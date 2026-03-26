@@ -1,0 +1,66 @@
+import { useState } from 'react';
+import { useEvaluationData } from '../../hooks/useEvaluationData';
+import { useRequirementsStore } from '../../store/useRequirementsStore';
+import { useTestsStore } from '../../store/useTestsStore';
+import { CHART_COLORS } from '../../lib/constants';
+import { CoverageCard } from './CoverageCard';
+import { StatusChart } from './StatusChart';
+import { TraceabilityMatrix } from './TraceabilityMatrix';
+import { OrphanedRequirements } from './OrphanedRequirements';
+import { OrphanedTests } from './OrphanedTests';
+import { FilterBar } from './FilterBar';
+import type { DashboardFilters } from '../../types';
+
+export function EvaluationDashboard() {
+  const [filters, setFilters] = useState<DashboardFilters>({
+    requirementStatus: 'All',
+    testStatus: 'All',
+  });
+
+  const metrics = useEvaluationData(filters);
+  const allRequirements = useRequirementsStore((s) => s.requirements);
+  const allTests = useTestsStore((s) => s.tests);
+
+  // Apply filters for the matrix
+  const filteredReqs = filters.requirementStatus !== 'All'
+    ? allRequirements.filter((r) => r.status === filters.requirementStatus)
+    : allRequirements;
+  const filteredTests = filters.testStatus !== 'All'
+    ? allTests.filter((t) => t.status === filters.testStatus)
+    : allTests;
+
+  const reqChartData = Object.entries(metrics.requirementStatusCounts).map(([name, value]) => ({
+    name,
+    value,
+    color: CHART_COLORS.requirement[name as keyof typeof CHART_COLORS.requirement],
+  }));
+
+  const testChartData = Object.entries(metrics.testStatusCounts).map(([name, value]) => ({
+    name,
+    value,
+    color: CHART_COLORS.test[name as keyof typeof CHART_COLORS.test],
+  }));
+
+  return (
+    <div className="space-y-6">
+      <FilterBar filters={filters} onChange={setFilters} />
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <CoverageCard
+          coveragePercent={metrics.coveragePercent}
+          covered={metrics.totalRequirements - metrics.orphanedRequirements.length}
+          total={metrics.totalRequirements}
+        />
+        <StatusChart title="Requirement-Status" data={reqChartData} type="pie" />
+        <StatusChart title="Test-Status" data={testChartData} type="bar" />
+      </div>
+
+      <TraceabilityMatrix filteredRequirements={filteredReqs} filteredTests={filteredTests} />
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <OrphanedRequirements requirements={metrics.orphanedRequirements} />
+        <OrphanedTests tests={metrics.orphanedTests} />
+      </div>
+    </div>
+  );
+}
