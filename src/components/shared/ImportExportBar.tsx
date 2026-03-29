@@ -1,8 +1,10 @@
 import { useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Download, Upload } from 'lucide-react';
 import { useImportExport } from '../../store/useImportExport';
 
 export function ImportExportBar() {
+  const { t } = useTranslation();
   const { exportData, importData } = useImportExport();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -19,24 +21,24 @@ export function ImportExportBar() {
   return (
     <div className="flex items-center gap-2">
       {message && (
-        <span className={`text-xs ${message.type === 'success' ? 'text-green-600' : 'text-red-600'}`}>
+        <span className={`text-xs font-medium ${message.type === 'success' ? 'text-success' : 'text-danger'}`}>
           {message.text}
         </span>
       )}
       <input ref={fileInputRef} type="file" accept=".json" onChange={handleImport} className="hidden" />
       <button
         onClick={() => fileInputRef.current?.click()}
-        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-text-secondary bg-surface border border-border rounded-lg hover:bg-surface-hover transition-colors"
       >
         <Upload className="w-4 h-4" />
-        Import
+        {t('importExport.import')}
       </button>
       <button
         onClick={exportData}
-        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-text-secondary bg-surface border border-border rounded-lg hover:bg-surface-hover transition-colors"
       >
         <Download className="w-4 h-4" />
-        Export
+        {t('importExport.export')}
       </button>
     </div>
   );

@@ -1,4 +1,7 @@
+'use no memo';
+
 import { useState, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   useReactTable,
   getCoreRowModel,
@@ -8,7 +11,7 @@ import {
   flexRender,
   type SortingState,
 } from '@tanstack/react-table';
-import { Plus, Pencil, Trash2, ArrowUpDown } from 'lucide-react';
+import { Plus, Pencil, Trash2, ArrowUpDown, Search } from 'lucide-react';
 import { useTestsStore } from '../../store/useTestsStore';
 import { useRequirementsStore } from '../../store/useRequirementsStore';
 import { StatusBadge } from '../shared/StatusBadge';
@@ -20,6 +23,7 @@ import type { Test } from '../../types';
 const columnHelper = createColumnHelper<Test>();
 
 export function TestsTable() {
+  const { t } = useTranslation();
   const tests = useTestsStore((s) => s.tests);
   const addTest = useTestsStore((s) => s.addTest);
   const updateTest = useTestsStore((s) => s.updateTest);
@@ -37,40 +41,40 @@ export function TestsTable() {
   const columns = useMemo(
     () => [
       columnHelper.accessor('id', {
-        header: 'ID',
-        cell: (info) => <span className="font-mono text-xs text-gray-500">{info.getValue()}</span>,
+        header: t('tests.id'),
+        cell: (info) => <span className="font-mono text-xs text-text-tertiary">{info.getValue()}</span>,
         size: 100,
       }),
       columnHelper.accessor('title', {
-        header: 'Titel',
-        cell: (info) => <span className="font-medium text-gray-900">{info.getValue()}</span>,
+        header: t('tests.title'),
+        cell: (info) => <span className="font-medium text-text-primary">{info.getValue()}</span>,
       }),
       columnHelper.accessor('description', {
-        header: 'Beschreibung',
+        header: t('tests.description'),
         cell: (info) => (
-          <span className="text-gray-500 text-sm truncate max-w-xs block">
+          <span className="text-text-secondary text-sm truncate max-w-xs block">
             {info.getValue() || '—'}
           </span>
         ),
       }),
       columnHelper.accessor('status', {
-        header: 'Status',
+        header: t('tests.status'),
         cell: (info) => <StatusBadge status={info.getValue()} type="test" />,
         size: 100,
       }),
       columnHelper.accessor('linkedRequirementIds', {
-        header: 'Requirements',
+        header: t('tests.requirements'),
         cell: (info) => {
           const ids = info.getValue();
           if (ids.length === 0) {
-            return <span className="text-red-500 text-xs font-medium">Keine</span>;
+            return <span className="text-danger text-xs font-medium">{t('tests.noLinked')}</span>;
           }
           return (
             <div className="flex flex-wrap gap-1">
               {ids.map((id) => (
                 <span
                   key={id}
-                  className="inline-flex items-center rounded bg-blue-50 px-1.5 py-0.5 text-xs font-mono text-blue-700"
+                  className="inline-flex items-center rounded-md bg-accent-subtle px-1.5 py-0.5 text-xs font-mono text-accent-text"
                   title={reqMap.get(id)?.title}
                 >
                   {id}
@@ -88,22 +92,22 @@ export function TestsTable() {
           <div className="flex items-center gap-1">
             <button
               onClick={() => { setEditingTest(row.original); setModalOpen(true); }}
-              className="p-1 text-gray-400 hover:text-blue-600 rounded"
+              className="p-1.5 text-text-tertiary hover:text-accent rounded-lg hover:bg-accent-subtle transition-colors"
             >
-              <Pencil className="w-4 h-4" />
+              <Pencil className="w-3.5 h-3.5" />
             </button>
             <button
               onClick={() => setDeleteId(row.original.id)}
-              className="p-1 text-gray-400 hover:text-red-600 rounded"
+              className="p-1.5 text-text-tertiary hover:text-danger rounded-lg hover:bg-danger-subtle transition-colors"
             >
-              <Trash2 className="w-4 h-4" />
+              <Trash2 className="w-3.5 h-3.5" />
             </button>
           </div>
         ),
         size: 80,
       }),
     ],
-    [reqMap]
+    [reqMap, t]
   );
 
   const table = useReactTable({
@@ -120,44 +124,47 @@ export function TestsTable() {
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-        <input
-          type="text"
-          placeholder="Suchen..."
-          value={globalFilter}
-          onChange={(e) => setGlobalFilter(e.target.value)}
-          className="px-3 py-2 border border-gray-300 rounded-md text-sm w-64 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-tertiary" />
+          <input
+            type="text"
+            placeholder={t('common.search')}
+            value={globalFilter}
+            onChange={(e) => setGlobalFilter(e.target.value)}
+            className="pl-9 pr-3 py-2 bg-input-bg border border-input-border rounded-lg text-sm w-64 text-text-primary placeholder:text-text-tertiary focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-colors"
+          />
+        </div>
         <button
           onClick={() => { setEditingTest(null); setModalOpen(true); }}
-          className="inline-flex items-center gap-1.5 px-4 py-2 text-sm text-white bg-blue-600 rounded-md hover:bg-blue-700"
+          className="inline-flex items-center gap-1.5 px-4 py-2 text-sm text-text-inverse bg-accent rounded-lg hover:bg-accent-hover transition-colors font-medium shadow-sm"
         >
           <Plus className="w-4 h-4" />
-          Test
+          {t('tests.addTest')}
         </button>
       </div>
 
       {tests.length === 0 && !globalFilter ? (
         <EmptyState
-          title="Keine Tests"
-          description="Erstelle deinen ersten Test, um loszulegen."
-          action={{ label: 'Test erstellen', onClick: () => { setEditingTest(null); setModalOpen(true); } }}
+          title={t('tests.noTests')}
+          description={t('tests.noTestsDesc')}
+          action={{ label: t('tests.createTest'), onClick: () => { setEditingTest(null); setModalOpen(true); } }}
         />
       ) : (
-        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+        <div className="bg-surface rounded-xl border border-border overflow-hidden shadow-sm">
           <table className="w-full">
             <thead>
               {table.getHeaderGroups().map((headerGroup) => (
-                <tr key={headerGroup.id} className="bg-gray-50 border-b border-gray-200">
+                <tr key={headerGroup.id} className="bg-surface-tertiary border-b border-border">
                   {headerGroup.headers.map((header) => (
                     <th
                       key={header.id}
-                      className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none"
+                      className="px-4 py-3 text-left text-xs font-semibold text-text-tertiary uppercase tracking-wider cursor-pointer select-none"
                       style={{ width: header.getSize() !== 150 ? header.getSize() : undefined }}
                       onClick={header.column.getToggleSortingHandler()}
                     >
                       <div className="flex items-center gap-1">
                         {flexRender(header.column.columnDef.header, header.getContext())}
-                        {header.column.getCanSort() && <ArrowUpDown className="w-3 h-3 text-gray-400" />}
+                        {header.column.getCanSort() && <ArrowUpDown className="w-3 h-3 text-text-tertiary" />}
                       </div>
                     </th>
                   ))}
@@ -166,7 +173,7 @@ export function TestsTable() {
             </thead>
             <tbody>
               {table.getRowModel().rows.map((row) => (
-                <tr key={row.id} className="border-b border-gray-100 hover:bg-gray-50">
+                <tr key={row.id} className="border-b border-border-subtle hover:bg-surface-hover transition-colors">
                   {row.getVisibleCells().map((cell) => (
                     <td key={cell.id} className="px-4 py-3 text-sm">
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -194,8 +201,8 @@ export function TestsTable() {
 
       <ConfirmDialog
         open={deleteId !== null}
-        title="Test löschen"
-        message="Dieser Test wird unwiderruflich gelöscht."
+        title={t('tests.deleteTitle')}
+        message={t('tests.deleteMessage')}
         onConfirm={() => { if (deleteId) deleteTest(deleteId); setDeleteId(null); }}
         onCancel={() => setDeleteId(null)}
       />

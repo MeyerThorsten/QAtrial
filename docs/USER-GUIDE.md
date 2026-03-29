@@ -1,0 +1,745 @@
+# QAtrial User Guide
+
+Complete end-user guide for QAtrial, the regulated quality workspace for GxP-compliant industries.
+
+---
+
+## Table of Contents
+
+1. [Getting Started](#1-getting-started)
+2. [Project Setup Wizard](#2-project-setup-wizard-6-steps)
+3. [Requirements Management](#3-requirements-management)
+4. [Test Management](#4-test-management)
+5. [Dashboard and Analytics](#5-dashboard-and-analytics)
+6. [AI Features](#6-ai-features)
+7. [Reports](#7-reports)
+8. [Compliance Features](#8-compliance-features)
+9. [Data Management](#9-data-management)
+10. [Demo Projects](#10-demo-projects)
+
+---
+
+## 1. Getting Started
+
+### System Requirements
+
+| Component | Minimum |
+|-----------|---------|
+| Browser | Chrome 90+, Firefox 90+, Safari 15+, Edge 90+ |
+| Node.js | 18.0 or later |
+| npm | 9.0 or later |
+| Screen | 1280x720 minimum (1920x1080 recommended) |
+
+### Installation and Running
+
+```bash
+git clone https://github.com/MeyerThorsten/QAtrial.git
+cd QAtrial
+npm install
+npm run dev
+```
+
+The development server starts on `http://localhost:5173` by default.
+
+### First Launch Experience
+
+When you open QAtrial for the first time, the application detects that no project data exists and automatically presents the **Setup Wizard**. There is no login screen or user account system in the current version -- the application stores all data locally in your browser's `localStorage`.
+
+The header bar shows:
+- **QAtrial** branding with the project name (once created)
+- Navigation tabs: Requirements, Tests, Evaluation (Dashboard), Reports
+- Toolbar: Audit Trail button, Settings (gear icon), Language Selector, Theme Toggle, New Project, Import/Export
+
+### Language Selection
+
+QAtrial supports 12 fully translated languages:
+
+| Language | Code |
+|----------|------|
+| English | en |
+| German | de |
+| French | fr |
+| Spanish | es |
+| Italian | it |
+| Portuguese | pt |
+| Dutch | nl |
+| Japanese | ja |
+| Chinese (Simplified) | zh |
+| Korean | ko |
+| Hindi | hi |
+| Thai | th |
+
+To switch languages, click the **Language Selector** dropdown in the header bar. The switch is instant and persists across sessions. All UI labels, navigation items, wizard steps, and button text update immediately.
+
+---
+
+## 2. Project Setup Wizard (6 Steps)
+
+The Setup Wizard guides you through creating a new project with regulatory-aware templates. It appears automatically on first launch or when you click **New Project** (after confirming you want to discard existing data).
+
+### Step 1: Country Selection
+
+**What it determines:**
+- Which regulatory authority templates are loaded (e.g., FDA requirements for US, PMDA for Japan)
+- For EU countries, the EU base templates are loaded first, then country-specific overlays
+- Which industry verticals are available in Step 2 (not all verticals are available in all countries)
+- The regulatory references embedded in generated requirements
+
+**How it works:**
+- 37 countries are available, organized by region (Americas, Europe, Asia)
+- Use the search box to quickly filter countries
+- Click a country card to select it
+
+**Demo Projects:**
+- Countries with demo projects display a "Demo available" badge
+- Click **Load Demo** to pre-fill the entire wizard with a realistic demo project
+- Loading a demo sets the country, vertical, project metadata, project type, and modules, then advances to Step 2 so you can review and customize before creating
+
+### Step 2: Industry Vertical
+
+**What each vertical means:**
+
+| Vertical | GxP Focus | Risk Taxonomy |
+|----------|-----------|---------------|
+| Pharmaceuticals | GMP, GCP, GLP, GDP, GVP, GDocP | ICH Q9 |
+| Biotechnology | GMP (Biologics), GCP, GLP | ICH Q9 |
+| Medical Devices | QMSR, ISO 13485, IEC 62304, ISO 14971 | ISO 14971 |
+| Clinical Research (CRO) | GCP, GLP, GDocP | ICH Q9 |
+| Clinical Laboratories | GLP, GDocP, ISO 15189 | FMEA |
+| Logistics / GDP / GSP | GDP, GSP | FMEA |
+| Software and IT (GAMP/CSV) | GAMP 5, CSV, Part 11 | GAMP 5 |
+| Cosmetics / Chemical / Env. | GMP, GLP, REACH | Generic |
+| Aerospace | AS9100D, DO-178C | FMEA |
+| Chemical / Environmental | GLP, REACH, CLP | FMEA |
+
+**Which standards apply:** The vertical selection determines which regulatory standards are referenced in the generated requirements and tests. For example, selecting "Medical Devices" loads ISO 13485, ISO 14971, IEC 62304, and EU MDR 2017/745 references.
+
+**Optional skip:** You may click **Skip -- use generic templates** to proceed without a vertical selection. This uses only country-level templates without industry-specific requirements.
+
+### Step 3: Project Metadata
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| Project Name | Yes | A descriptive name (e.g., "MedDevice Firmware v2") |
+| Description | No | Brief project description for documentation context |
+| Owner | No | Name of the person or team responsible |
+| Version | No | Version identifier (defaults to "1.0") |
+
+All fields except Project Name are optional. The owner and version are displayed in the header and included in reports.
+
+### Step 4: Project Type
+
+Select the type of project that best describes your work. The project type loads additional type-specific template content within the selected vertical.
+
+| Project Type | When to Use |
+|-------------|-------------|
+| **Software / Web App** | Software development and validation projects (web apps, mobile, desktop) |
+| **Embedded / IoT** | Hardware, firmware, IoT device projects requiring IEC 62304 or similar |
+| **Quality System (QMS)** | Setting up or improving a Quality Management System, SOPs, process controls |
+| **Validation** | IQ/OQ/PQ protocols, CSV (Computer System Validation), method validation |
+| **Clinical** | Clinical studies, trials, and investigations (GCP-focused) |
+| **Compliance / Audit** | Regulatory compliance assessment and audit preparation projects |
+| **Supplier Quality** | Supplier qualification and ongoing oversight programs |
+| **Empty** | No templates. Start with a completely blank project. Skips Step 5 (modules) entirely |
+
+Selecting **Empty** skips the module selection step and goes directly to the preview with zero pre-generated requirements or tests.
+
+### Step 5: Quality Modules
+
+Quality modules add focused sets of requirements and tests to your project. Each module addresses a specific quality control domain. You can select any combination.
+
+| Module | Description | Typical Req Count |
+|--------|-------------|-------------------|
+| Audit Trail | Event logging with timestamps and user identification | 5 |
+| Electronic Signatures | 21 CFR Part 11 / EU Annex 11 compliant signatures | 5 |
+| Data Integrity (ALCOA+) | Attributable, Legible, Contemporaneous, Original, Accurate | 5 |
+| Change Control | Change requests, impact assessment, approval workflow | 5 |
+| CAPA | Corrective and preventive actions with root cause analysis | 5 |
+| Deviation Management | Deviation recording, classification, investigation | 5 |
+| Training Management | Training plans, competency assessment, records | 5 |
+| Supplier Qualification | Supplier assessment, audit, approval, review | 5 |
+| Complaint Handling | Intake, investigation, trending, reporting | 5 |
+| Risk Management | Hazard identification, risk estimation and control | 5 |
+| Document Control | Version control, review/approval, distribution | 5 |
+| Backup and Disaster Recovery | Backup schedule, restore testing, business continuity | 5 |
+| Access Control / SoD | Role-based access, segregation of duties | 5 |
+| Validation / CSV | URS, FS, DS, IQ/OQ/PQ protocols | 5 |
+| Traceability Matrix | Full requirement to design to test traceability | 5 |
+
+**"Select All" option:** Click **Select All** to add every module at once, or **Deselect All** to clear your selection. The header shows a count of how many modules you have selected.
+
+**How modules compose with verticals:** Module requirements and tests are added *on top of* the country and vertical templates. If a module requirement duplicates one already provided by the country or vertical template (matched by title), the later entry wins during deduplication. This means you get a clean, non-redundant set of requirements.
+
+### Step 6: Preview and Customize
+
+Before creating the project, you see a preview of all generated requirements and tests.
+
+- **Requirement list:** Shows all requirements that will be created, with category tags and titles
+- **Test list:** Shows all tests that will be created, with category tags and titles
+- **Checkboxes:** Each item has a checkbox. Deselect any items you do not want included
+- **Counts:** The header shows "Requirements (selected/total)" and "Tests (selected/total)"
+- **Select All / Deselect All:** Bulk toggle buttons for quick editing
+- **Create Project button:** Shows the final count of items that will be created
+
+Click **Create Project** to finalize. The wizard closes and you arrive at the Requirements tab with your newly generated project.
+
+---
+
+## 3. Requirements Management
+
+### Creating Requirements
+
+1. Navigate to the **Requirements** tab
+2. Click the **Requirement** button (top right)
+3. Fill in the modal form:
+   - **Title** (required): A concise requirement statement
+   - **Description** (required): Detailed specification of what must be fulfilled
+   - **Status**: Draft (default), Active, or Closed
+4. Click **Save**
+
+The requirement is assigned an auto-generated ID (e.g., REQ-001, REQ-002).
+
+### Editing and Deleting
+
+- **Edit:** Click the pencil icon on any requirement row. The edit modal opens with all fields pre-filled. Modify and save.
+- **Delete:** Click the trash icon. A confirmation dialog warns that all links to tests will also be removed. Confirm to delete.
+
+When a requirement is deleted, the system automatically removes its ID from the `linkedRequirementIds` of all tests that reference it, maintaining referential integrity.
+
+### Status Workflow
+
+Requirements follow a three-state lifecycle:
+
+```
+Draft  -->  Active  -->  Closed
+```
+
+| Status | Meaning |
+|--------|---------|
+| **Draft** | Initial state. Requirement is being written or reviewed. Not yet baselined. |
+| **Active** | Requirement has been approved/baselined and is actively being tested against. |
+| **Closed** | Requirement has been fully verified or is no longer applicable. |
+
+Change the status via the edit modal's status dropdown.
+
+### Searching and Sorting
+
+- **Search:** Use the search box at the top of the requirements table to filter by title or description text
+- **Sorting:** Click any column header to sort ascending/descending. The table supports sorting by ID, title, status, risk level, and regulatory reference.
+
+### Understanding Enriched Metadata
+
+Requirements generated from templates include additional metadata fields:
+
+| Field | Description |
+|-------|-------------|
+| **Tags** | Categorical labels used for test linking (e.g., "audit-trail", "data-integrity") |
+| **Risk Level** | Severity classification: low, medium, high, or critical |
+| **Regulatory Ref** | Specific regulatory clause reference (e.g., "21 CFR 11.10(e)") |
+| **Jurisdictions** | Country codes where this requirement applies |
+| **Verticals** | Industry verticals where this requirement is relevant |
+| **Evidence Hints** | Suggestions for what evidence is needed to demonstrate compliance |
+
+### AI Features per Requirement
+
+Each requirement row provides two AI action buttons:
+
+1. **Generate Tests (AI):** Opens the Test Generation Panel to auto-generate test cases for this requirement. See [Section 6](#6-ai-features) for details.
+2. **Classify Risk (AI):** Opens the Risk Classification Panel to get an AI-proposed severity and likelihood rating. See [Section 6](#6-ai-features) for details.
+
+### Signing/Approving Requirements
+
+Click the signature/shield icon on a requirement to open the Electronic Signature Modal. This records a formal signature with meaning (authored, reviewed, approved, verified, or rejected), reason, and authentication. See [Section 8](#8-compliance-features) for the full signature workflow.
+
+---
+
+## 4. Test Management
+
+### Creating Tests
+
+1. Navigate to the **Tests** tab
+2. Click the **Test** button (top right)
+3. Fill in the modal form:
+   - **Title** (required): Descriptive test case title
+   - **Description** (required): Test procedure, steps, and expected outcomes
+   - **Status**: Not Run (default), Passed, or Failed
+   - **Linked Requirements**: Multi-select checkboxes to link this test to one or more requirements
+4. Click **Save**
+
+Tests are assigned auto-generated IDs (e.g., TST-001, TST-002).
+
+### Linking Tests to Requirements
+
+The test creation and edit modals include a **Linked Requirements** section showing all available requirements as checkboxes. Select any number of requirements to create traceability links. The count of linked requirements is displayed in the section header.
+
+When templates are composed during project setup, tests are automatically linked to requirements via **tag-based matching**. A test's `linkedReqTags` are compared against each requirement's `tags`, and matches are converted into direct ID links.
+
+### Status Tracking
+
+Tests follow a three-state lifecycle:
+
+```
+Not Run  -->  Passed
+             \--> Failed
+```
+
+| Status | Meaning |
+|--------|---------|
+| **Not Run** | Test has not been executed yet |
+| **Passed** | Test was executed and met all acceptance criteria |
+| **Failed** | Test was executed and did not meet acceptance criteria |
+
+### Viewing Linked Requirement Tags
+
+Each test row shows its linked requirements in a compact format. Click on a linked requirement to navigate to it.
+
+---
+
+## 5. Dashboard and Analytics
+
+Navigate to the **Evaluation** tab to access the dashboard. It contains seven sub-tabs:
+
+### Overview Tab
+
+The Overview tab provides a snapshot of project quality metrics:
+
+- **Coverage Card:** A prominent percentage showing how many requirements have at least one linked test. Displays "X / Y Requirements" covered.
+- **Requirement Status Chart (Pie):** Visual breakdown of requirements by Draft / Active / Closed.
+- **Test Status Chart (Bar):** Visual breakdown of tests by Not Run / Passed / Failed.
+- **Traceability Matrix:** A grid showing which tests are linked to which requirements. Requirements are rows, tests are columns, and cells indicate links.
+- **Orphaned Requirements:** Lists requirements that have no linked tests (coverage gaps).
+- **Orphaned Tests:** Lists tests that are not linked to any requirements (potential waste).
+- **Filter Bar:** Filter the view by requirement status and/or test status.
+
+### Compliance Tab
+
+The Compliance tab combines two views:
+
+**Compliance Readiness Score**
+
+A weighted composite score (0-100%) displayed as a circular gauge. Five metrics contribute:
+
+| Metric | Weight | How Calculated |
+|--------|--------|---------------|
+| Requirement Coverage | 25% | Percentage of requirements in Active or Closed status |
+| Test Coverage | 25% | Percentage of requirements with at least one linked test |
+| Test Pass Rate | 20% | Percentage of tests with Passed status |
+| Risk Assessed | 15% | Percentage of requirements with a risk level assigned |
+| Signature Completeness | 15% | Percentage of requirements with approval signatures (placeholder) |
+
+Each metric has its own progress bar with color coding:
+- Green: 80% or above
+- Yellow: 50-79%
+- Red: Below 50%
+
+**Penalty:** If any requirement has a "critical" risk level, the overall score is penalized by 10 points.
+
+**Gap Analysis**
+
+- Click **Run Gap Analysis** to invoke the AI gap analysis engine
+- The system sends your requirements and tests to the configured LLM provider
+- Results show a per-standard breakdown: total clauses analyzed, covered, partial, and missing
+- An overall readiness percentage is calculated (covered = 1.0, partial = 0.5, missing = 0.0)
+- **Critical Gaps** section lists all partial and missing clauses with AI-generated suggestions
+- Each gap has a **Generate Requirement** button to create a requirement addressing it
+
+### Risk Tab
+
+The Risk tab displays an interactive **5x5 severity-by-likelihood risk matrix**.
+
+**How to read it:**
+- X-axis: Severity (1=Negligible to 5=Critical)
+- Y-axis: Likelihood (1=Rare to 5=Almost Certain)
+- Cell colors indicate risk zones:
+  - Green: Low risk (score 1-3)
+  - Yellow: Medium risk (score 4-8)
+  - Orange: High risk (score 9-15)
+  - Red: Critical risk (score 16-25)
+- Numbers in cells show how many requirements fall in that zone
+
+**Clicking cells:** Click any cell to see the list of requirements in that risk zone.
+
+**Bulk classification:** If unassessed requirements exist, a **Classify All Unassessed** button appears. This sends each unassessed requirement to the AI for risk classification in sequence. Results are saved directly to the requirements.
+
+**Summary stats:** Shows counts of critical, high, medium, and low risk requirements plus unassessed count.
+
+### Evidence Tab
+
+The Evidence tab tracks per-requirement evidence completeness. A requirement has "complete evidence" when it has:
+1. At least one linked test
+2. A risk assessment (risk level assigned)
+3. An approval signature
+
+The **Evidence Score** is the percentage of requirements with all three elements complete. Each requirement is listed with checkmarks indicating which evidence components are present.
+
+### CAPA Tab
+
+The CAPA (Corrective and Preventive Action) tab focuses on failed tests:
+
+- **Total Failed Tests:** Count of tests with Failed status
+- **Failed Test List:** Each failed test is shown with its linked requirement
+- **Suggest CAPA (AI):** Button on each failed test to generate an AI-powered CAPA suggestion containing:
+  - Root Cause analysis
+  - Containment action
+  - Corrective Action
+  - Preventive Action
+  - Effectiveness Check criteria
+
+### Trends Tab
+
+The Trends tab shows current snapshot charts:
+
+- **Requirements by Status:** Bar chart showing Draft / Active / Closed counts
+- **Tests by Status:** Bar chart showing Not Run / Passed / Failed counts
+- **Risk Distribution:** Chart showing distribution across risk levels
+- **Coverage by Category:** Coverage percentage broken down by requirement category
+
+### Portfolio Tab
+
+The Portfolio tab provides a multi-project overview table showing:
+- Project name, country, vertical
+- Readiness percentage
+- Health status (On Track / At Risk / Blocked)
+- Requirement and test counts
+- Last updated timestamp
+
+Note: This is an **enterprise feature**. The current version displays a placeholder indicating that QAtrial Enterprise is required for multi-project management.
+
+---
+
+## 6. AI Features
+
+### Configuring an LLM Provider
+
+Before using any AI feature, you must configure at least one LLM provider. Navigate to the **Settings** tab (gear icon in the header).
+
+#### Anthropic (Claude)
+
+1. Click **Add Provider**
+2. Set **Name** to something descriptive (e.g., "Claude Sonnet")
+3. Set **Type** to "Anthropic"
+4. **Base URL** auto-fills to `https://api.anthropic.com`
+5. Enter your **API Key** (starts with `sk-ant-`)
+6. Enter the **Model** name (e.g., `claude-sonnet-4-20250514`)
+7. Select **Purposes** (leave "All" checked to use for everything)
+8. Adjust **Max Tokens** (default 2000) and **Temperature** (default 0.3)
+9. Set **Priority** (1 = highest priority)
+10. Ensure **Enabled** is checked
+11. Click **Save**
+
+#### OpenRouter
+
+1. Click **Add Provider**
+2. Set **Type** to "OpenAI-compatible"
+3. Set **Base URL** to `https://openrouter.ai/api/v1`
+4. Enter your OpenRouter API key
+5. Enter the model identifier (e.g., `anthropic/claude-sonnet-4`)
+6. Configure purposes, tokens, temperature as needed
+7. Click **Save**
+
+#### Ollama (Local)
+
+1. Click **Add Provider**
+2. Set **Type** to "OpenAI-compatible"
+3. Set **Base URL** to `http://localhost:11434/v1`
+4. Leave **API Key** empty (Ollama does not require one)
+5. Enter the model name (e.g., `llama3.1`)
+6. Click **Save**
+
+After saving, click the **lightning bolt** icon to test the connection. A green checkmark indicates success with latency information.
+
+### Purpose-Scoped Routing Explained
+
+Each provider can be assigned to one or more purposes:
+
+| Purpose | Used For |
+|---------|----------|
+| All | Fallback for any unmatched purpose |
+| Test Generation | AI-generated test cases from requirements |
+| Gap Analysis | Regulatory gap analysis against standards |
+| Risk Classification | Severity/likelihood risk scoring |
+| Report Narrative | AI-written report sections (VSR, Executive Brief) |
+| Requirement Decomp | Breaking down requirements into sub-requirements |
+| CAPA | Corrective and preventive action suggestions |
+
+**Routing algorithm:**
+1. For a given purpose, find all enabled providers whose purpose list includes that specific purpose
+2. Sort by priority (lower number = higher priority)
+3. Use the first match
+4. If no specific match, fall back to providers with "All" purpose
+5. If still no match, the AI feature shows an error
+
+This allows you to route different AI tasks to different models (e.g., a powerful model for report generation, a faster model for risk classification).
+
+The **Purpose Routing** table on the Settings page shows which provider currently handles each purpose.
+
+### Using the Test Case Generator
+
+1. Go to the **Requirements** tab
+2. Click **Generate Tests (AI)** on any requirement row
+3. The Test Generation Panel opens and automatically starts generating
+4. The AI produces 4-6 test cases, each showing:
+   - **Confidence score** (color-coded: green >=90%, yellow >=70%, red <70%)
+   - Title and description
+   - Numbered test steps
+   - Expected result
+   - Regulatory standard reference (when applicable)
+5. For each test case, you can:
+   - **Accept:** Creates the test and links it to the requirement
+   - **Edit:** Opens inline editing (modify before accepting)
+   - **Reject:** Removes the suggestion from the list
+6. **Bulk actions:**
+   - **Accept High Confidence:** Accepts only tests with >=90% confidence
+   - **Accept All:** Accepts all remaining test cases
+
+### Using Risk Classification
+
+1. Go to the **Requirements** tab
+2. Click **Classify Risk (AI)** on any requirement row
+3. The Risk Classification Panel opens and automatically classifies
+4. Results show:
+   - Severity score (1-5)
+   - Likelihood score (1-5)
+   - Computed risk score (severity x likelihood, out of 25)
+   - Risk level (Low / Medium / High / Critical)
+   - Safety class (when applicable for the vertical)
+   - AI reasoning explaining the classification
+   - Confidence score
+   - Model that generated the result
+5. Click **Accept** to save the risk level to the requirement, or **Reject** to discard
+
+### Running Gap Analysis
+
+1. Go to the **Evaluation** tab, then the **Compliance** sub-tab
+2. Click **Run Gap Analysis**
+3. The system collects applicable standards from your requirements' regulatory references
+4. If no standards are found, defaults are used (e.g., 21 CFR Part 11, EU Annex 11)
+5. Results show:
+   - Per-standard clause coverage (covered / partial / missing)
+   - Overall readiness percentage
+   - Critical gaps with AI suggestions for remediation
+
+### Getting CAPA Suggestions
+
+1. Go to the **Evaluation** tab, then the **CAPA** sub-tab
+2. Find a failed test in the list
+3. Click **Suggest CAPA (AI)**
+4. The AI generates a structured CAPA with root cause, containment, corrective action, preventive action, and effectiveness check
+
+### Understanding Confidence Scores
+
+Every AI-generated result includes a confidence score (0-100%):
+
+| Range | Color | Interpretation |
+|-------|-------|---------------|
+| 90-100% | Green | High confidence. The AI is very confident this is accurate. |
+| 70-89% | Yellow | Medium confidence. Review carefully before accepting. |
+| Below 70% | Red | Low confidence. The AI is uncertain. Manual review strongly recommended. |
+
+---
+
+## 7. Reports
+
+### Available Report Types
+
+| Report Type | Description | AI-Generated |
+|------------|-------------|:---:|
+| **Validation Summary Report (VSR)** | Complete 7-section audit-ready report with executive summary, scope, methodology, results, traceability, and conclusion | Yes |
+| **Traceability Matrix Export** | Full requirement-to-test traceability table with coverage analysis | No |
+| **Gap Analysis Report** | Summary of requirements without test coverage (gap identification) | No |
+| **Risk Assessment Report** | Risk distribution summary with critical requirement details | No |
+| **Executive Compliance Brief** | C-level one-page compliance status with key metrics and recommended actions | Yes |
+| **Regulatory Submission Package** | Formatted for a specific regulatory authority (FDA, EMA, MHRA, PMDA, etc.) with cover sheet and full VSR sections | Yes |
+
+### How to Generate a Report (Step-by-Step)
+
+1. Navigate to the **Reports** tab
+2. Click the card for your desired report type (it highlights when selected)
+3. Configure options:
+   - **Format:** HTML (available) or PDF (coming soon)
+   - **Include e-signatures:** Toggle to include signature blocks in the report
+   - **Target Authority** (submission package only): Select from FDA, EMA, MHRA, PMDA, Health Canada, TGA, ANVISA, or NMPA
+4. Click **Generate Report**
+5. Wait for generation (AI-powered reports may take a few seconds)
+
+### Reviewing AI-Generated Sections
+
+For reports that include AI-generated content (VSR, Executive Brief, Submission Package):
+- Each section is labeled as AI-generated or data-assembled
+- Review each section for accuracy before distribution
+- Use the **Approve Section** button to formally sign off on reviewed sections
+
+### Downloading Reports
+
+After generation, the report preview displays all sections in a formatted view. Use the **Download** button to save the report as an HTML file. The filename includes the project name and date.
+
+### Report Formats
+
+Currently supported:
+- **HTML:** Fully styled, printable HTML document
+- **PDF:** Planned for a future release
+
+---
+
+## 8. Compliance Features
+
+### Electronic Signatures
+
+Electronic signatures in QAtrial follow the 21 CFR Part 11 and EU Annex 11 model.
+
+**When to use:** Apply a signature when formally authoring, reviewing, approving, verifying, or rejecting a requirement, test, or report section.
+
+**The Signature Modal:**
+1. A context banner shows what you are signing (entity type, ID, title)
+2. Select a **Meaning**:
+   - **I authored this** -- You created or wrote this record
+   - **I reviewed this** -- You reviewed the record for accuracy
+   - **I approve this** -- You formally approve the record
+   - **I verified this** -- You verified the record against source data
+   - **I reject this** -- You formally reject the record with cause
+3. Enter a **Reason for signing** (required): Explain why you are signing
+4. Enter your **Password** (required): Re-authenticate to confirm identity
+5. Click **Sign and Apply**
+
+The signature is permanently recorded in the audit trail with the signer's name, role, timestamp, meaning, method, and reason.
+
+**Disclaimer:** "By signing, you confirm this record is accurate and complete."
+
+### Audit Trail
+
+QAtrial maintains a comprehensive audit trail of all actions. Access it via the **Audit Trail** button in the header.
+
+**Viewing:**
+- Entries are displayed in a timeline format, newest first
+- Each entry shows: action badge (Created/Modified/Deleted/etc.), entity type and ID, timestamp, and user name
+- Signed entries display a shield icon and signature details
+- Entries with value changes show a **View Diff** expandable section showing previous and new values
+
+**Filtering:**
+- Use the date range picker (From/To) to narrow the time window
+- Default view shows the last 30 days
+- When viewing from a specific entity, only that entity's audit entries are shown
+
+**Exporting:**
+- **Export Trail (CSV):** Downloads all filtered entries as a CSV file with columns: Timestamp, Action, User, Entity Type, Entity ID, Previous Value, New Value, Reason, Signature Meaning, Signer
+- **Export Trail (PDF):** Opens the browser print dialog for the current view
+
+**Tracked actions:**
+
+| Action | Description |
+|--------|-------------|
+| Created | A new entity was created |
+| Modified | An existing entity was updated |
+| Deleted | An entity was removed |
+| Status changed | An entity's status was changed |
+| Linked | A test was linked to a requirement |
+| Unlinked | A link between test and requirement was removed |
+| Approved | An entity was formally approved |
+| Rejected | An entity was formally rejected |
+| Signed | An electronic signature was applied |
+| Exported | Data was exported |
+| Report generated | A report was generated |
+
+### Change Control
+
+Change control governs how modifications to critical records are managed.
+
+**How it works per vertical:**
+
+For **strict verticals** (Pharmaceuticals, Medical Devices, Biotechnology), change control is automatically configured with:
+- Approval required for: requirements, tests, reports, risk assessments, documents
+- Minimum 2 approvers required
+- Reason required for all changes
+- Electronic signature required
+- Auto-revert on change: When an approved record is modified, its approval status is automatically reverted, requiring re-approval
+
+For all other verticals, change control starts with default (lenient) settings that can be manually configured.
+
+**Approval workflows:** When change control is active for an entity type, modifications trigger an approval workflow. The entity enters a "Pending Approval" state until the required number of approvers sign off.
+
+---
+
+## 9. Data Management
+
+### Import/Export (JSON Format)
+
+**Exporting:**
+1. Click the **Export** button in the header toolbar
+2. A JSON file downloads containing:
+   - Project metadata
+   - All requirements
+   - All tests
+   - Counter states (for ID generation continuity)
+3. Filename format: `project-name-YYYY-MM-DD.json`
+
+**Importing:**
+1. Click the **Import** button in the header toolbar
+2. Select a previously exported JSON file
+3. The system validates:
+   - Version compatibility (must be version 1)
+   - Array structure for requirements and tests
+   - Referential integrity (dangling test links to non-existent requirements are stripped)
+4. On success, a message confirms "Imported X requirements and Y tests"
+
+### Data Persistence
+
+All data is stored in the browser's `localStorage` under these keys:
+
+| Key | Contents |
+|-----|----------|
+| `qatrial:project` | Project metadata |
+| `qatrial:requirements` | Requirements array and counter |
+| `qatrial:tests` | Tests array and counter |
+| `qatrial:audit` | Audit trail entries |
+| `qatrial:llm` | LLM provider configurations and usage stats |
+| `qatrial:theme` | Light/dark theme preference |
+| `qatrial:locale` | Selected language and country |
+| `qatrial:change-control` | Change control configuration |
+
+Data persists across browser sessions. Clearing browser data or localStorage will erase all project data.
+
+### Theme Switching
+
+Click the **sun/moon icon** in the header to toggle between light and dark modes. The preference is saved and persists across sessions. The theme system uses CSS custom properties for consistent styling.
+
+### Language Switching
+
+Use the **Language Selector** dropdown in the header to switch between 12 supported languages. The change takes effect immediately across all UI text.
+
+---
+
+## 10. Demo Projects
+
+QAtrial includes 16 realistic demo projects spanning different countries, verticals, and project types. Loading a demo pre-fills the Setup Wizard with all fields.
+
+### Available Demo Projects
+
+| Country | Company | Vertical | Project Type |
+|---------|---------|----------|-------------|
+| US | Meridian Therapeutics | Pharmaceuticals | Software |
+| CA | NorthStar BioSystems | Medical Devices | Quality System |
+| MX | Laboratorios Azteca S.A. de C.V. | Pharmaceuticals | Compliance |
+| DE | Rheinland MedTech GmbH | Medical Devices | Embedded |
+| GB | Thames Pharma Solutions Ltd | Pharmaceuticals | Validation |
+| FR | Laboratoires Pasteur-Curie S.A. | Biotechnology | Quality System |
+| IT | Farmaceutica Adriatica S.r.l. | Pharmaceuticals | Compliance |
+| ES | Laboratorios Ibericos S.L. | Clinical Research (CRO) | Clinical |
+| NL | Van der Berg Diagnostics B.V. | Clinical Laboratories | Quality System |
+| PT | Farmacia Atlantica Lda. | Logistics | Compliance |
+| JP | Tokyo BioScience K.K. | Biotechnology | Validation |
+| CN | Shanghai Precision Medical Technology Co., Ltd. | Medical Devices | Compliance |
+| KR | Seoul Pharmaceutical Co., Ltd. | Pharmaceuticals | Validation |
+| IN | Mumbai MedTech Pvt. Ltd. | Software and IT | Software |
+| TH | Bangkok Pharma Co., Ltd. | Pharmaceuticals | Compliance |
+
+### How to Load a Demo Project
+
+1. Start a new project (click **New Project** or launch the app fresh)
+2. In Step 1 (Country Selection), find a country with the "Demo available" badge
+3. Click **Load Demo** on that country's card
+4. The wizard pre-fills all fields and advances to Step 2
+5. Review and adjust any settings as desired
+6. Continue through the remaining wizard steps
+7. Click **Create Project** on the Preview step
+
+Demo projects include realistic company names, descriptions in the local language (with English translations), and appropriate module selections for the project's vertical and type.

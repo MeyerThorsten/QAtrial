@@ -1,8 +1,110 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --color-surface: #ffffff;
+  --color-surface-secondary: #f8fafc;
+  --color-surface-tertiary: #f1f5f9;
+  --color-surface-hover: #f1f5f9;
+  --color-surface-elevated: #ffffff;
+  --color-border: #e2e8f0;
+  --color-border-subtle: #f1f5f9;
+  --color-text-primary: #0f172a;
+  --color-text-secondary: #475569;
+  --color-text-tertiary: #94a3b8;
+  --color-text-inverse: #ffffff;
+  --color-accent: #6366f1;
+  --color-accent-hover: #4f46e5;
+  --color-accent-subtle: #eef2ff;
+  --color-accent-text: #4f46e5;
+  --color-danger: #ef4444;
+  --color-danger-hover: #dc2626;
+  --color-danger-subtle: #fef2f2;
+  --color-success: #10b981;
+  --color-success-subtle: #ecfdf5;
+  --color-warning: #f59e0b;
+  --color-warning-subtle: #fffbeb;
+  --color-overlay: rgba(0, 0, 0, 0.5);
+  --color-input-bg: #ffffff;
+  --color-input-border: #cbd5e1;
+  --color-badge-draft-bg: #f1f5f9;
+  --color-badge-draft-text: #475569;
+  --color-badge-active-bg: #eef2ff;
+  --color-badge-active-text: #4f46e5;
+  --color-badge-closed-bg: #ecfdf5;
+  --color-badge-closed-text: #059669;
+  --color-badge-notrun-bg: #f1f5f9;
+  --color-badge-notrun-text: #475569;
+  --color-badge-passed-bg: #ecfdf5;
+  --color-badge-passed-text: #059669;
+  --color-badge-failed-bg: #fef2f2;
+  --color-badge-failed-text: #dc2626;
+  --color-gradient-start: #6366f1;
+  --color-gradient-end: #8b5cf6;
+}
+
+/* --- Dark theme overrides --- */
+.dark {
+  --color-surface: #0f1117;
+  --color-surface-secondary: #161822;
+  --color-surface-tertiary: #1e2030;
+  --color-surface-hover: #1e2030;
+  --color-surface-elevated: #1a1c2e;
+  --color-border: #2a2d3e;
+  --color-border-subtle: #1e2030;
+  --color-text-primary: #e2e8f0;
+  --color-text-secondary: #94a3b8;
+  --color-text-tertiary: #64748b;
+  --color-text-inverse: #0f172a;
+  --color-accent: #818cf8;
+  --color-accent-hover: #6366f1;
+  --color-accent-subtle: rgba(99, 102, 241, 0.15);
+  --color-accent-text: #a5b4fc;
+  --color-danger: #f87171;
+  --color-danger-hover: #ef4444;
+  --color-danger-subtle: rgba(239, 68, 68, 0.15);
+  --color-success: #34d399;
+  --color-success-subtle: rgba(16, 185, 129, 0.15);
+  --color-warning: #fbbf24;
+  --color-warning-subtle: rgba(245, 158, 11, 0.15);
+  --color-overlay: rgba(0, 0, 0, 0.7);
+  --color-input-bg: #1a1c2e;
+  --color-input-border: #2a2d3e;
+  --color-badge-draft-bg: #1e2030;
+  --color-badge-draft-text: #94a3b8;
+  --color-badge-active-bg: rgba(99, 102, 241, 0.15);
+  --color-badge-active-text: #a5b4fc;
+  --color-badge-closed-bg: rgba(16, 185, 129, 0.15);
+  --color-badge-closed-text: #34d399;
+  --color-badge-notrun-bg: #1e2030;
+  --color-badge-notrun-text: #94a3b8;
+  --color-badge-passed-bg: rgba(16, 185, 129, 0.15);
+  --color-badge-passed-text: #34d399;
+  --color-badge-failed-bg: rgba(239, 68, 68, 0.15);
+  --color-badge-failed-text: #f87171;
+  --color-gradient-start: #818cf8;
+  --color-gradient-end: #a78bfa;
+}
+
 body {
   margin: 0;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background: var(--color-surface-secondary);
+  color: var(--color-text-primary);
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Recharts text color fix for dark mode */
+.dark .recharts-text {
+  fill: var(--color-text-secondary) !important;
+}
+.dark .recharts-cartesian-axis-tick-value {
+  fill: var(--color-text-tertiary) !important;
+}
+.dark .recharts-tooltip-wrapper .recharts-default-tooltip {
+  background-color: var(--color-surface-elevated) !important;
+  border-color: var(--color-border) !important;
 }

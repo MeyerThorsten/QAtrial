@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { X } from 'lucide-react';
 import { REQUIREMENT_STATUSES } from '../../lib/constants';
 import type { Requirement, RequirementStatus } from '../../types';
@@ -11,23 +12,23 @@ interface Props {
 }
 
 export function RequirementModal({ open, requirement, onSave, onClose }: Props) {
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [status, setStatus] = useState<RequirementStatus>('Draft');
-
-  useEffect(() => {
-    if (requirement) {
-      setTitle(requirement.title);
-      setDescription(requirement.description);
-      setStatus(requirement.status);
-    } else {
-      setTitle('');
-      setDescription('');
-      setStatus('Draft');
-    }
-  }, [requirement, open]);
-
   if (!open) return null;
+
+  return (
+    <RequirementModalContent
+      key={requirement?.id ?? 'new'}
+      requirement={requirement}
+      onSave={onSave}
+      onClose={onClose}
+    />
+  );
+}
+
+function RequirementModalContent({ requirement, onSave, onClose }: Omit<Props, 'open'>) {
+  const { t } = useTranslation();
+  const [title, setTitle] = useState(() => requirement?.title ?? '');
+  const [description, setDescription] = useState(() => requirement?.description ?? '');
+  const [status, setStatus] = useState<RequirementStatus>(() => requirement?.status ?? 'Draft');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,56 +38,56 @@ export function RequirementModal({ open, requirement, onSave, onClose }: Props) 
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-lg mx-4" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900">
-            {requirement ? 'Requirement bearbeiten' : 'Neues Requirement'}
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-overlay" onClick={onClose}>
+      <div className="bg-surface-elevated rounded-xl shadow-2xl w-full max-w-lg mx-4 border border-border" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border">
+          <h2 className="text-lg font-semibold text-text-primary">
+            {requirement ? t('requirements.editRequirement') : t('requirements.newRequirement')}
           </h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-500">
+          <button onClick={onClose} className="text-text-tertiary hover:text-text-secondary transition-colors">
             <X className="w-5 h-5" />
           </button>
         </div>
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Titel *</label>
+            <label className="block text-sm font-medium text-text-secondary mb-1">{t('requirements.title')} *</label>
             <input
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Requirement-Titel eingeben..."
+              className="w-full px-3 py-2 bg-input-bg border border-input-border rounded-lg text-sm text-text-primary placeholder:text-text-tertiary focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent"
+              placeholder={t('requirements.titlePlaceholder')}
               autoFocus
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Beschreibung</label>
+            <label className="block text-sm font-medium text-text-secondary mb-1">{t('requirements.description')}</label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={4}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Beschreibung eingeben..."
+              className="w-full px-3 py-2 bg-input-bg border border-input-border rounded-lg text-sm text-text-primary placeholder:text-text-tertiary focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent"
+              placeholder={t('requirements.descriptionPlaceholder')}
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+            <label className="block text-sm font-medium text-text-secondary mb-1">{t('requirements.status')}</label>
             <select
               value={status}
               onChange={(e) => setStatus(e.target.value as RequirementStatus)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 bg-input-bg border border-input-border rounded-lg text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent"
             >
               {REQUIREMENT_STATUSES.map((s) => (
-                <option key={s} value={s}>{s}</option>
+                <option key={s} value={s}>{t(`statuses.${s}`)}</option>
               ))}
             </select>
           </div>
           <div className="flex justify-end gap-2 pt-2">
-            <button type="button" onClick={onClose} className="px-4 py-2 text-sm text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200">
-              Abbrechen
+            <button type="button" onClick={onClose} className="px-4 py-2 text-sm text-text-secondary bg-surface-tertiary rounded-lg hover:bg-surface-hover transition-colors">
+              {t('common.cancel')}
             </button>
-            <button type="submit" disabled={!title.trim()} className="px-4 py-2 text-sm text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed">
-              Speichern
+            <button type="submit" disabled={!title.trim()} className="px-4 py-2 text-sm text-text-inverse bg-accent rounded-lg hover:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium">
+              {t('common.save')}
             </button>
           </div>
         </form>

@@ -1,0 +1,158 @@
+import type { ProjectTemplate } from '../types';
+
+export const PROJECT_TEMPLATES: ProjectTemplate[] = [
+  {
+    type: 'software',
+    label: 'Software / Web App',
+    description: 'Funktionale und nicht-funktionale Anforderungen für Webanwendungen, APIs und Software-Projekte.',
+    requirements: [
+      // Functional (0-5)
+      { category: 'Functional', title: 'Benutzerregistrierung', description: 'Benutzer können sich mit E-Mail und Passwort registrieren. Validierung der Eingaben und Bestätigungs-E-Mail.' },
+      { category: 'Functional', title: 'Benutzer-Login', description: 'Benutzer können sich mit ihren Zugangsdaten einloggen. Session-Management und Token-basierte Authentifizierung.' },
+      { category: 'Functional', title: 'Passwort-Zurücksetzen', description: 'Benutzer können ihr Passwort über einen E-Mail-Link zurücksetzen. Link hat eine begrenzte Gültigkeitsdauer.' },
+      { category: 'Functional', title: 'Benutzerprofil verwalten', description: 'Benutzer können ihr Profil (Name, E-Mail, Avatar) einsehen und bearbeiten.' },
+      { category: 'Functional', title: 'Rollenbasierte Zugriffskontrolle', description: 'Verschiedene Benutzerrollen (Admin, User, Viewer) mit unterschiedlichen Berechtigungen.' },
+      { category: 'Functional', title: 'Daten-CRUD-Operationen', description: 'Erstellen, Lesen, Aktualisieren und Löschen von Kerndaten der Anwendung.' },
+      // Performance (6-8)
+      { category: 'Performance', title: 'Seitenladezeit < 3 Sekunden', description: 'Alle Seiten müssen innerhalb von 3 Sekunden vollständig geladen sein (bei 3G-Verbindung).' },
+      { category: 'Performance', title: 'API-Antwortzeit < 500ms', description: 'Alle API-Endpunkte müssen innerhalb von 500ms antworten (95. Perzentil).' },
+      { category: 'Performance', title: 'Gleichzeitige Benutzer', description: 'System muss mindestens 1000 gleichzeitige Benutzer ohne Leistungseinbußen unterstützen.' },
+      // Security (9-12)
+      { category: 'Security', title: 'Eingabevalidierung', description: 'Alle Benutzereingaben werden serverseitig validiert. Schutz vor SQL-Injection und XSS.' },
+      { category: 'Security', title: 'Verschlüsselte Datenübertragung', description: 'Alle Daten werden über HTTPS/TLS übertragen. Keine unverschlüsselten Verbindungen.' },
+      { category: 'Security', title: 'Passwort-Hashing', description: 'Passwörter werden mit bcrypt/Argon2 gehasht gespeichert. Keine Klartextpasswörter.' },
+      { category: 'Security', title: 'CSRF-Schutz', description: 'Alle zustandsverändernden Requests werden mit CSRF-Token geschützt.' },
+      // Usability (13-15)
+      { category: 'Usability', title: 'Responsive Design', description: 'Anwendung ist auf Desktop, Tablet und Smartphone vollständig nutzbar.' },
+      { category: 'Usability', title: 'Barrierefreiheit (WCAG 2.1 AA)', description: 'Anwendung erfüllt WCAG 2.1 Level AA. Screenreader-kompatibel, Keyboard-Navigation.' },
+      { category: 'Usability', title: 'Fehlermeldungen', description: 'Alle Fehlermeldungen sind benutzerfreundlich, spezifisch und enthalten Handlungsvorschläge.' },
+      // Data & Reliability (16-18)
+      { category: 'Reliability', title: 'Automatisches Backup', description: 'Tägliches automatisches Backup der Datenbank mit 30-Tage-Aufbewahrung.' },
+      { category: 'Reliability', title: 'Verfügbarkeit 99.5%', description: 'System-Uptime von mindestens 99.5% (max. ~44 Stunden Downtime pro Jahr).' },
+      { category: 'Data', title: 'Datenschutz (DSGVO)', description: 'Verarbeitung personenbezogener Daten konform zur DSGVO. Datenlöschung auf Anfrage möglich.' },
+      { category: 'Data', title: 'Audit-Logging', description: 'Alle sicherheitsrelevanten Aktionen werden geloggt (Login, Datenänderungen, Admin-Aktionen).' },
+    ],
+    tests: [
+      { category: 'Auth', title: 'Registrierung mit validen Daten', description: 'Prüft erfolgreiche Registrierung mit gültiger E-Mail und starkem Passwort.', linkedReqIndices: [0] },
+      { category: 'Auth', title: 'Registrierung mit ungültigen Daten', description: 'Prüft Fehlermeldungen bei ungültiger E-Mail, zu kurzem Passwort, etc.', linkedReqIndices: [0, 9] },
+      { category: 'Auth', title: 'Login und Session', description: 'Prüft Login, Session-Erstellung und Token-Refresh.', linkedReqIndices: [1] },
+      { category: 'Auth', title: 'Passwort-Reset-Flow', description: 'Prüft E-Mail-Versand, Link-Gültigkeit und Passwort-Änderung.', linkedReqIndices: [2] },
+      { category: 'Auth', title: 'Rollenbasierte Zugriffsrechte', description: 'Prüft ob Admin-, User- und Viewer-Rollen korrekte Berechtigungen haben.', linkedReqIndices: [4] },
+      { category: 'Functional', title: 'Profil bearbeiten', description: 'Prüft Anzeige und Bearbeitung aller Profilfelder.', linkedReqIndices: [3] },
+      { category: 'Functional', title: 'CRUD-Operationen', description: 'Prüft Erstellen, Lesen, Bearbeiten und Löschen von Kerndaten.', linkedReqIndices: [5] },
+      { category: 'Performance', title: 'Lastentest: Seitenladezeit', description: 'Misst Ladezeiten unter Last mit Lighthouse/WebPageTest.', linkedReqIndices: [6] },
+      { category: 'Performance', title: 'API-Benchmark', description: 'Lastentest der API-Endpunkte mit k6 oder Artillery.', linkedReqIndices: [7, 8] },
+      { category: 'Security', title: 'SQL-Injection / XSS Test', description: 'Automatisierter Penetrationstest gegen Injection-Angriffe.', linkedReqIndices: [9] },
+      { category: 'Security', title: 'HTTPS & Zertifikat-Prüfung', description: 'Prüft TLS-Konfiguration, Zertifikate und Header.', linkedReqIndices: [10] },
+      { category: 'Security', title: 'Passwort-Speicherung', description: 'Prüft dass Passwörter gehasht sind und keine Klartextpasswörter existieren.', linkedReqIndices: [11] },
+      { category: 'Security', title: 'CSRF-Token-Validierung', description: 'Prüft ob CSRF-Schutz auf allen zustandsverändernden Endpunkten aktiv ist.', linkedReqIndices: [12] },
+      { category: 'Usability', title: 'Responsive-Layout-Test', description: 'Prüft Layout auf verschiedenen Bildschirmgrößen (320px - 2560px).', linkedReqIndices: [13] },
+      { category: 'Usability', title: 'Accessibility-Audit', description: 'Automatisiertes WCAG-Audit mit axe-core + manueller Screenreader-Test.', linkedReqIndices: [14] },
+    ],
+  },
+  {
+    type: 'embedded',
+    label: 'Embedded / IoT',
+    description: 'Anforderungen für eingebettete Systeme, Firmware, Hardware-Interfaces und IoT-Geräte.',
+    requirements: [
+      // Hardware Interface (0-3)
+      { category: 'Hardware', title: 'GPIO-Konfiguration', description: 'Alle GPIO-Pins sind korrekt konfiguriert (Input/Output, Pull-up/Pull-down, Interrupt).' },
+      { category: 'Hardware', title: 'Sensoranbindung', description: 'Alle Sensoren (Temperatur, Druck, Beschleunigung) sind über I2C/SPI angebunden und liefern valide Daten.' },
+      { category: 'Hardware', title: 'Aktor-Steuerung', description: 'Aktoren (Motoren, Ventile, LEDs) werden präzise über PWM/DAC gesteuert.' },
+      { category: 'Hardware', title: 'Kommunikationsschnittstellen', description: 'UART, I2C, SPI und CAN-Bus Schnittstellen sind konfiguriert und funktionsfähig.' },
+      // Firmware (4-7)
+      { category: 'Firmware', title: 'Boot-Sequenz', description: 'System bootet innerhalb von 2 Sekunden in den Betriebszustand. Hardware-Initialisierung in definierter Reihenfolge.' },
+      { category: 'Firmware', title: 'Echtzeit-Verarbeitung', description: 'Kritische Interrupt-Handler reagieren innerhalb von 100µs. Deterministisches Timing.' },
+      { category: 'Firmware', title: 'OTA-Firmware-Update', description: 'Firmware kann Over-the-Air aktualisiert werden mit Rollback bei Fehler.' },
+      { category: 'Firmware', title: 'Watchdog-Timer', description: 'Watchdog überwacht System-Health und führt bei Hänger einen kontrollierten Neustart durch.' },
+      // Power (8-10)
+      { category: 'Power', title: 'Energieverbrauch im Betrieb', description: 'Maximaler Stromverbrauch im Betrieb: 500mA @ 3.3V.' },
+      { category: 'Power', title: 'Sleep-Mode', description: 'Im Sleep-Mode sinkt der Verbrauch auf < 10µA. Wake-up über Timer oder Interrupt.' },
+      { category: 'Power', title: 'Batterie-Management', description: 'Batteriestand wird überwacht. Warnung bei < 20%, Notabschaltung bei < 5%.' },
+      // Environment (11-13)
+      { category: 'Environment', title: 'Temperaturbereich', description: 'System arbeitet zuverlässig im Bereich -20°C bis +70°C.' },
+      { category: 'Environment', title: 'EMV-Konformität', description: 'Gerät erfüllt EN 55032 (Emission) und EN 55035 (Immunität).' },
+      { category: 'Environment', title: 'IP-Schutzklasse', description: 'Gehäuse erfüllt mindestens IP54 (Schutz gegen Staub und Spritzwasser).' },
+      // Reliability (14-16)
+      { category: 'Reliability', title: 'MTBF > 50.000 Stunden', description: 'Mittlere Betriebsdauer zwischen Ausfällen beträgt mindestens 50.000 Stunden.' },
+      { category: 'Reliability', title: 'Fehlertoleranz', description: 'Bei Sensorfehler wechselt System in degraded Mode statt abzustürzen.' },
+      { category: 'Reliability', title: 'Datenintegrität bei Stromausfall', description: 'Konfigurationsdaten und Messwerte überleben einen plötzlichen Stromausfall.' },
+      // Communication (17-19)
+      { category: 'Communication', title: 'MQTT-Anbindung', description: 'Gerät kommuniziert über MQTT mit dem Cloud-Backend. QoS Level 1 für kritische Nachrichten.' },
+      { category: 'Communication', title: 'Bluetooth Low Energy', description: 'BLE-Konfigurationsschnittstelle für Ersteinrichtung und Diagnose per Smartphone.' },
+      { category: 'Communication', title: 'Daten-Logging lokal', description: 'Messdaten werden lokal auf Flash/SD-Karte geloggt mit Ring-Buffer bei vollem Speicher.' },
+    ],
+    tests: [
+      { category: 'Hardware', title: 'GPIO-Pin-Test', description: 'Prüft alle GPIO-Pins auf korrekte Konfiguration und Signalpegel.', linkedReqIndices: [0] },
+      { category: 'Hardware', title: 'Sensor-Kalibrierung', description: 'Prüft Sensorwerte gegen Referenzmessgeräte innerhalb Toleranz.', linkedReqIndices: [1] },
+      { category: 'Hardware', title: 'Aktor-Präzisionstest', description: 'Prüft PWM-Signale und Aktor-Ansteuerung mit Oszilloskop.', linkedReqIndices: [2] },
+      { category: 'Hardware', title: 'Bus-Kommunikationstest', description: 'Prüft Datenübertragung auf UART, I2C, SPI und CAN.', linkedReqIndices: [3] },
+      { category: 'Firmware', title: 'Boot-Zeit-Messung', description: 'Misst Zeit von Power-On bis Betriebsbereitschaft.', linkedReqIndices: [4] },
+      { category: 'Firmware', title: 'Interrupt-Latenz-Test', description: 'Misst Reaktionszeit kritischer Interrupt-Handler.', linkedReqIndices: [5] },
+      { category: 'Firmware', title: 'OTA-Update-Test', description: 'Prüft Firmware-Update, Verifizierung und Rollback bei korruptem Image.', linkedReqIndices: [6] },
+      { category: 'Firmware', title: 'Watchdog-Recovery-Test', description: 'Simuliert System-Hänger und prüft Watchdog-Neustart.', linkedReqIndices: [7] },
+      { category: 'Power', title: 'Stromverbrauchs-Messung', description: 'Misst Stromverbrauch in allen Modi (Betrieb, Sleep, Peak).', linkedReqIndices: [8, 9] },
+      { category: 'Power', title: 'Batterie-Schwellwert-Test', description: 'Prüft Warnungen und Notabschaltung bei sinkendem Batteriestand.', linkedReqIndices: [10] },
+      { category: 'Environment', title: 'Temperaturzyklus-Test', description: 'Betrieb über gesamten Temperaturbereich mit Funktionsprüfung.', linkedReqIndices: [11] },
+      { category: 'Environment', title: 'EMV-Test', description: 'Emissions- und Immunitätsmessung nach EN 55032/55035.', linkedReqIndices: [12] },
+      { category: 'Reliability', title: 'Power-Cycle-Test', description: 'Wiederholtes Ein/Ausschalten und Prüfung der Datenintegrität.', linkedReqIndices: [16] },
+      { category: 'Communication', title: 'MQTT-Verbindungstest', description: 'Prüft Verbindungsaufbau, Nachrichtenversand und Reconnect.', linkedReqIndices: [17] },
+      { category: 'Communication', title: 'BLE-Kopplung', description: 'Prüft BLE-Pairing, Datenübertragung und Reichweite.', linkedReqIndices: [18] },
+    ],
+  },
+  {
+    type: 'compliance',
+    label: 'Regulatorisch / Compliance',
+    description: 'Anforderungen für normkonforme Entwicklung (ISO, FDA, IEC) mit Audit-Trails und Dokumentationsprüfungen.',
+    requirements: [
+      // Standards (0-3)
+      { category: 'Normen', title: 'ISO 13485 Konformität', description: 'Qualitätsmanagementsystem erfüllt ISO 13485 für Medizinprodukte.' },
+      { category: 'Normen', title: 'IEC 62304 Software-Lebenszyklus', description: 'Software-Entwicklungsprozess entspricht IEC 62304 (Klasse B oder C).' },
+      { category: 'Normen', title: 'ISO 14971 Risikomanagement', description: 'Systematische Risikoanalyse und -bewertung nach ISO 14971 durchgeführt.' },
+      { category: 'Normen', title: 'IEC 60601 Elektrische Sicherheit', description: 'Produkt erfüllt IEC 60601-1 Anforderungen an elektrische Sicherheit.' },
+      // Documentation (4-7)
+      { category: 'Dokumentation', title: 'Anforderungsspezifikation', description: 'Vollständige Anforderungsspezifikation (SRS) liegt vor und ist freigegeben.' },
+      { category: 'Dokumentation', title: 'Design-Spezifikation', description: 'Software-Architektur und Design-Dokumente sind erstellt und reviewed.' },
+      { category: 'Dokumentation', title: 'Rückverfolgbarkeit', description: 'Vollständige Traceability von Anforderungen über Design zu Tests und Ergebnissen.' },
+      { category: 'Dokumentation', title: 'Änderungshistorie', description: 'Jede Änderung an Anforderungen und Code ist dokumentiert mit Begründung und Genehmigung.' },
+      // Risk Management (8-11)
+      { category: 'Risiko', title: 'Gefahrenanalyse (FMEA)', description: 'FMEA für alle identifizierten Gefährdungen durchgeführt und dokumentiert.' },
+      { category: 'Risiko', title: 'Risiko-Nutzen-Bewertung', description: 'Verbleibende Risiken sind gegen den Nutzen abgewogen und akzeptabel.' },
+      { category: 'Risiko', title: 'Sicherheitsklassifizierung', description: 'Alle Software-Module sind nach Sicherheitsklasse (A/B/C) klassifiziert.' },
+      { category: 'Risiko', title: 'Risikominderungsmaßnahmen', description: 'Für jedes identifizierte Risiko sind Minderungsmaßnahmen definiert und implementiert.' },
+      // Audit & Validation (12-15)
+      { category: 'Audit', title: 'Audit-Trail', description: 'Alle Änderungen an regulatorisch relevanten Daten werden mit Zeitstempel und Benutzer geloggt.' },
+      { category: 'Audit', title: 'Elektronische Signaturen', description: 'Freigabeprozesse verwenden elektronische Signaturen konform zu 21 CFR Part 11.' },
+      { category: 'Audit', title: 'Validierungsplan', description: 'IQ/OQ/PQ-Validierungsplan ist erstellt und genehmigt.' },
+      { category: 'Audit', title: 'CAPA-Prozess', description: 'Corrective and Preventive Action Prozess ist definiert und wird bei Abweichungen angewendet.' },
+      // Data Integrity (16-18)
+      { category: 'Datenintegrität', title: 'ALCOA+ Prinzipien', description: 'Daten sind Attributable, Legible, Contemporaneous, Original, Accurate (+ Complete, Consistent, Enduring, Available).' },
+      { category: 'Datenintegrität', title: 'Backup & Recovery', description: 'Regelmäßige Backups mit dokumentiertem und getestetem Recovery-Verfahren.' },
+      { category: 'Datenintegrität', title: 'Zugriffskontrollen', description: 'Rollenbasierter Zugriff auf alle regulatorisch relevanten Daten und Systeme.' },
+    ],
+    tests: [
+      { category: 'Normen', title: 'ISO 13485 Gap-Analyse', description: 'Checklisten-Prüfung aller ISO 13485 Anforderungen gegen QMS.', linkedReqIndices: [0] },
+      { category: 'Normen', title: 'IEC 62304 Prozess-Audit', description: 'Prüfung des SW-Entwicklungsprozesses gegen IEC 62304.', linkedReqIndices: [1] },
+      { category: 'Normen', title: 'Risikomanagement-Review', description: 'Review der Risikoakte auf Vollständigkeit und Konsistenz.', linkedReqIndices: [2, 8] },
+      { category: 'Normen', title: 'Elektrische Sicherheitsprüfung', description: 'Prüfung nach IEC 60601-1 im akkreditierten Labor.', linkedReqIndices: [3] },
+      { category: 'Dokumentation', title: 'SRS-Review', description: 'Formales Review der Anforderungsspezifikation auf Vollständigkeit und Widerspruchsfreiheit.', linkedReqIndices: [4] },
+      { category: 'Dokumentation', title: 'Design-Review', description: 'Formales Review der Design-Dokumente gegen Anforderungen.', linkedReqIndices: [5] },
+      { category: 'Dokumentation', title: 'Traceability-Matrix-Prüfung', description: 'Prüfung der vollständigen Rückverfolgbarkeit Req → Design → Test.', linkedReqIndices: [6] },
+      { category: 'Dokumentation', title: 'Änderungshistorie-Audit', description: 'Stichprobenprüfung: Alle Änderungen haben Begründung und Genehmigung.', linkedReqIndices: [7] },
+      { category: 'Risiko', title: 'FMEA-Vollständigkeits-Check', description: 'Prüfung ob alle Gefährdungen identifiziert und bewertet sind.', linkedReqIndices: [8, 9] },
+      { category: 'Risiko', title: 'Sicherheitsklassen-Verifikation', description: 'Prüfung der Klassifizierung aller SW-Module.', linkedReqIndices: [10, 11] },
+      { category: 'Audit', title: 'Audit-Trail-Test', description: 'Prüfung ob alle Datenänderungen vollständig geloggt werden.', linkedReqIndices: [12] },
+      { category: 'Audit', title: '21 CFR Part 11 Compliance', description: 'Prüfung elektronischer Signaturen gegen FDA-Anforderungen.', linkedReqIndices: [13] },
+      { category: 'Audit', title: 'IQ/OQ/PQ-Durchführung', description: 'Durchführung der Installation-, Operational- und Performance-Qualifizierung.', linkedReqIndices: [14] },
+      { category: 'Datenintegrität', title: 'ALCOA+ Datenintegritäts-Audit', description: 'Prüfung aller Datenflüsse auf ALCOA+ Konformität.', linkedReqIndices: [16] },
+      { category: 'Datenintegrität', title: 'Backup-Recovery-Test', description: 'Simulation eines Datenverlusts und Wiederherstellung aus Backup.', linkedReqIndices: [17] },
+    ],
+  },
+  {
+    type: 'empty',
+    label: 'Leer starten',
+    description: 'Nur Projekt-Metadaten, keine vorgefertigten Requirements oder Tests.',
+    requirements: [],
+    tests: [],
+  },
+];

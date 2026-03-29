@@ -6,14 +6,16 @@ import type { DashboardFilters, EvaluationMetrics } from '../types';
 export function useEvaluationData(filters?: DashboardFilters): EvaluationMetrics {
   const requirements = useRequirementsStore((s) => s.requirements);
   const tests = useTestsStore((s) => s.tests);
+  const requirementStatus = filters?.requirementStatus ?? 'All';
+  const testStatus = filters?.testStatus ?? 'All';
 
   return useMemo(() => {
-    const filteredReqs = filters?.requirementStatus && filters.requirementStatus !== 'All'
-      ? requirements.filter((r) => r.status === filters.requirementStatus)
+    const filteredReqs = requirementStatus !== 'All'
+      ? requirements.filter((r) => r.status === requirementStatus)
       : requirements;
 
-    const filteredTests = filters?.testStatus && filters.testStatus !== 'All'
-      ? tests.filter((t) => t.status === filters.testStatus)
+    const filteredTests = testStatus !== 'All'
+      ? tests.filter((t) => t.status === testStatus)
       : tests;
 
     const coveredRequirements = filteredReqs.filter((req) =>
@@ -48,5 +50,5 @@ export function useEvaluationData(filters?: DashboardFilters): EvaluationMetrics
       requirementStatusCounts,
       testStatusCounts,
     };
-  }, [requirements, tests, filters?.requirementStatus, filters?.testStatus]);
+  }, [requirements, tests, requirementStatus, testStatus]);
 }
