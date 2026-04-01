@@ -15,6 +15,7 @@ export const templateSet: VerticalTemplateSet = {
     // GMP Fundamentals
     // -----------------------------------------------------------------------
     {
+      templateId: 'pharma:gmp:req-01',
       title: 'GMP Quality System Foundation',
       description:
         'A pharmaceutical quality system (PQS) compliant with ICH Q10 shall be established and maintained. The PQS shall encompass GMP requirements, define quality objectives, allocate resources, and establish communication channels to ensure product quality throughout the lifecycle.',

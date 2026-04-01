@@ -96,7 +96,8 @@ export function ProviderSettings() {
     if (!form.name.trim() || !form.model.trim()) return;
 
     if (editingId) {
-      const { id: _id, ...data } = form;
+      const { id: _unusedId, ...data } = form;
+      void _unusedId;
       updateProvider(editingId, data);
     } else {
       const id =

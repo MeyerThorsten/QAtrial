@@ -66,6 +66,8 @@
     "yes": "Yes",
     "no": "No",
     "required": "Required",
+    "created": "Created",
+    "settings": "Settings",
     "optional": "Optional",
     "actions": "Actions",
     "settings": "Settings"
@@ -315,7 +317,9 @@
     "authenticate": "Authenticate",
     "password": "Password",
     "signAndApply": "Sign & Apply",
-    "disclaimer": "By signing, you confirm this record is accurate and complete."
+    "disclaimer": "By signing, you confirm this record is accurate and complete.",
+    "authFailed": "Authentication failed. Please check your password.",
+    "noUserWarning": "No user logged in. Signature will be recorded as unverified. Log in for compliant electronic signatures."
   },
   "changeControl": {
     "approvalRequired": "Approval Required",
@@ -436,5 +440,58 @@
     "compliance": { "name": "Compliance / Audit", "desc": "Regulatory compliance and audit preparation" },
     "supplier_quality": { "name": "Supplier Quality", "desc": "Supplier qualification and oversight" },
     "empty": { "name": "Empty", "desc": "No templates — start from scratch" }
+  },
+  "auth": {
+    "login": "Log In",
+    "logout": "Log Out",
+    "register": "Register",
+    "email": "Email",
+    "password": "Password",
+    "displayName": "Display Name",
+    "role": "Role",
+    "department": "Department",
+    "title": "Job Title",
+    "loginFailed": "Login failed. Check your credentials.",
+    "emailExists": "Email already registered.",
+    "loggedInAs": "Logged in as {{name}}",
+    "notLoggedIn": "Not logged in"
+  },
+  "evidence": {
+    "title": "Evidence",
+    "addEvidence": "Add Evidence",
+    "evidenceType": "Evidence Type",
+    "fileName": "File Name",
+    "uploadedBy": "Uploaded By",
+    "uploadedAt": "Uploaded At",
+    "reviewed": "Reviewed",
+    "notReviewed": "Not Reviewed",
+    "completeness": "Evidence Completeness",
+    "complete": "Complete",
+    "incomplete": "Incomplete",
+    "types": {
+      "screenshot": "Screenshot",
+      "log_file": "Log File",
+      "test_output": "Test Output",
+      "configuration": "Configuration",
+      "approval_record": "Approval Record",
+      "training_record": "Training Record",
+      "certificate": "Certificate",
+      "photo": "Photo",
+      "document": "Document",
+      "other": "Other"
+    }
+  },
+  "connectors": {
+    "title": "External Connectors",
+    "addConnector": "Add Connector",
+    "connected": "Connected",
+    "disconnected": "Disconnected",
+    "connecting": "Connecting...",
+    "error": "Connection Error",
+    "testConnection": "Test Connection",
+    "sync": "Sync Now",
+    "lastSync": "Last synced: {{time}}",
+    "fieldMappings": "Field Mappings",
+    "syncDirection": "Sync Direction"
   }
 }

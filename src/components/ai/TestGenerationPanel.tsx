@@ -297,6 +297,7 @@ export function TestGenerationPanel({ requirementId, onClose }: Props) {
 }
 
 // Placeholder for edit-in-place (opens the test content for inline modification)
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function openEditInline(_index: number) {
   // Future: inline edit mode for the test case before accepting
   // For now, accept and edit in the test table after

@@ -193,7 +193,13 @@ export type AuditAction =
   | 'reject'
   | 'sign'
   | 'export'
-  | 'generate_report';
+  | 'generate_report'
+  | 'ai_generate'
+  | 'ai_accept'
+  | 'ai_reject'
+  | 'login'
+  | 'logout'
+  | 'import';
 
 export interface AuditEntry {
   id: string;

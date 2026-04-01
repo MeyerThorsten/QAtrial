@@ -4,6 +4,7 @@ import { useRequirementsStore } from '../../store/useRequirementsStore';
 import { useTestsStore } from '../../store/useTestsStore';
 import { useProjectStore } from '../../store/useProjectStore';
 import { useLLMStore } from '../../store/useLLMStore';
+import { useGapStore } from '../../store/useGapStore';
 import { analyzeGaps } from '../../ai/prompts/gapAnalysis';
 import type { AIGapAnalysis, GapStatus } from '../../types';
 
@@ -28,9 +29,13 @@ export function GapAnalysisView() {
   const project = useProjectStore((s) => s.project);
   const hasProvider = useLLMStore((s) => s.hasAnyProvider());
 
+  const addRequirement = useRequirementsStore((s) => s.addRequirement);
+  const gapStore = useGapStore();
+
   const [results, setResults] = useState<AIGapAnalysis[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [generatedReqs, setGeneratedReqs] = useState<Set<string>>(new Set());
 
   const handleRunAnalysis = useCallback(async () => {
     setLoading(true);
@@ -75,12 +80,30 @@ export function GapAnalysisView() {
       });
 
       setResults(gaps);
+      setGeneratedReqs(new Set());
+
+      // Persist the gap analysis run
+      const covered = gaps.filter((g) => g.status === 'covered').length;
+      const partial = gaps.filter((g) => g.status === 'partial').length;
+      const weighted = covered + partial * 0.5;
+      const readiness = gaps.length > 0 ? Math.round((weighted / gaps.length) * 100) : 0;
+
+      gapStore.addRun({
+        analyzedAt: new Date().toISOString(),
+        country: country,
+        vertical: vertical,
+        standards: applicableStandards,
+        gaps,
+        readinessScore: readiness,
+        providerId: 'current',
+        model: 'current',
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
       setLoading(false);
     }
-  }, [requirements, tests, project]);
+  }, [requirements, tests, project, gapStore]);
 
   const standardSummaries = useMemo<StandardSummary[]>(() => {
     const map = new Map<string, StandardSummary>();
@@ -108,6 +131,30 @@ export function GapAnalysisView() {
     () => results.filter((r) => r.status === 'missing' || r.status === 'partial'),
     [results],
   );
+
+  /** Create a real requirement from a gap suggestion */
+  const handleGenerateRequirement = useCallback((gap: AIGapAnalysis) => {
+    const key = `${gap.standard}-${gap.clause}`;
+    if (generatedReqs.has(key)) return;
+
+    addRequirement({
+      title: `[${gap.standard}] ${gap.clause}`,
+      description: gap.suggestion || `Requirement to address ${gap.status} coverage for ${gap.standard} clause ${gap.clause}`,
+      status: 'Draft',
+      tags: ['auto-generated', 'gap-analysis', gap.standard.toLowerCase().replace(/\s+/g, '-')],
+      regulatoryRef: `${gap.standard} ${gap.clause}`,
+      riskLevel: gap.status === 'missing' ? 'high' : 'medium',
+    });
+
+    setGeneratedReqs((prev) => new Set(prev).add(key));
+  }, [addRequirement, generatedReqs]);
+
+  /** Create requirements for all critical gaps */
+  const handleGenerateAllReqs = useCallback(() => {
+    for (const gap of criticalGaps) {
+      handleGenerateRequirement(gap);
+    }
+  }, [criticalGaps, handleGenerateRequirement]);
 
   if (!hasProvider) {
     return (
@@ -257,8 +304,11 @@ export function GapAnalysisView() {
               {t('dashboard.criticalGaps')}
             </h4>
             {criticalGaps.length > 0 && (
-              <button className="rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-on-primary hover:bg-primary-hover transition-colors">
-                {t('dashboard.generateAllReqs')}
+              <button
+                onClick={handleGenerateAllReqs}
+                className="rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-on-primary hover:bg-primary-hover transition-colors"
+              >
+                {t('dashboard.generateAllReqs')} ({criticalGaps.length - generatedReqs.size} remaining)
               </button>
             )}
           </div>
@@ -288,8 +338,18 @@ export function GapAnalysisView() {
                       <p className="text-xs text-text-secondary mt-1">{gap.suggestion}</p>
                     )}
                   </div>
-                  <button className="shrink-0 rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-text-primary hover:bg-surface-secondary transition-colors">
-                    {t('dashboard.generateRequirement')}
+                  <button
+                    onClick={() => handleGenerateRequirement(gap)}
+                    disabled={generatedReqs.has(`${gap.standard}-${gap.clause}`)}
+                    className={`shrink-0 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors ${
+                      generatedReqs.has(`${gap.standard}-${gap.clause}`)
+                        ? 'border-success/30 bg-success/10 text-success cursor-default'
+                        : 'border-border text-text-primary hover:bg-surface-secondary'
+                    }`}
+                  >
+                    {generatedReqs.has(`${gap.standard}-${gap.clause}`)
+                      ? t('common.created')
+                      : t('dashboard.generateRequirement')}
                   </button>
                 </div>
               ))}

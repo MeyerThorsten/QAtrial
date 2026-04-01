@@ -518,6 +518,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
     icon: 'ScrollText',
     requirements: [
       {
+        templateId: 'mod-audit_trail:data-integrity:req-01',
         title: 'Comprehensive Event Logging',
         description:
           'The system shall create an immutable audit trail entry for every create, read (where required), update, and delete operation on GxP-relevant records. Each entry shall capture the action type, affected record, old value, new value, user identity, and ISO 8601 timestamp with timezone.',
@@ -527,6 +528,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
         regulatoryRef: '21 CFR 11.10(e)',
       },
       {
+        templateId: 'mod-audit_trail:data-integrity:req-02',
         title: 'Before/After Value Capture',
         description:
           'For every data modification, the audit trail shall record both the previous (before) and new (after) values of each changed field, enabling full reconstruction of the record state at any point in time.',
@@ -536,6 +538,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
         regulatoryRef: '21 CFR 11.10(e); EU Annex 11 Section 9',
       },
       {
+        templateId: 'mod-audit_trail:data-integrity:req-03',
         title: 'Timestamp Accuracy and Synchronization',
         description:
           'Audit trail timestamps shall be derived from a trusted, NTP-synchronized time source with accuracy of +/- 1 second. The system shall prevent manual alteration of system clocks by non-administrative users and log any clock adjustments.',
@@ -545,6 +548,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
         regulatoryRef: '21 CFR 11.10(e); ALCOA+ (Attributable, Contemporaneous)',
       },
       {
+        templateId: 'mod-audit_trail:access-control:req-01',
         title: 'User Identification in Audit Records',
         description:
           'Every audit trail entry shall include the authenticated user identity (unique user ID and display name) of the person who performed the action. System-generated actions shall be attributed to a clearly identified system account.',
@@ -554,6 +558,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
         regulatoryRef: '21 CFR 11.10(d); 21 CFR 11.10(e)',
       },
       {
+        templateId: 'mod-audit_trail:data-integrity:req-04',
         title: 'Audit Log Tamper Protection',
         description:
           'Audit trail records shall be stored in append-only storage that prevents modification, deletion, or backdating of entries. The system shall implement cryptographic integrity verification (e.g., hash chaining) to detect any unauthorized tampering.',
@@ -565,6 +570,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
     ],
     tests: [
       {
+        templateId: 'mod-audit_trail:functional:tst-01',
         title: 'Verify Audit Log on CRUD Operations',
         description:
           'Create a GxP-relevant record, update it, then delete it (or mark inactive). For each operation, verify that a corresponding audit trail entry is created containing: action type, record identifier, old and new values, authenticated user ID, and ISO 8601 timestamp.',
@@ -573,6 +579,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
         linkedReqTags: ['audit-trail', 'event-logging', 'before-after'],
       },
       {
+        templateId: 'mod-audit_trail:security:tst-01',
         title: 'Verify Tamper Protection Mechanism',
         description:
           'Attempt to directly modify an existing audit trail record at the database level. Verify that the cryptographic integrity check detects the modification and raises an alert. Confirm that no API endpoint allows deletion or modification of audit entries.',
@@ -581,6 +588,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
         linkedReqTags: ['audit-trail', 'tamper-protection', 'integrity'],
       },
       {
+        templateId: 'mod-audit_trail:functional:tst-02',
         title: 'Verify Timestamp Accuracy',
         description:
           'Perform an auditable action and capture the audit trail timestamp. Compare against an independent NTP-synchronized reference clock. Confirm the variance is within +/- 1 second. Verify that manual system clock changes are logged.',
@@ -601,6 +609,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
     icon: 'PenTool',
     requirements: [
       {
+        templateId: 'mod-e_signatures:authentication:req-01',
         title: 'Unique User Identity for Signatures',
         description:
           'Each electronic signature shall be linked to a unique individual. The system shall ensure that no two users share the same credential combination and that credentials are not reused or reassigned.',
@@ -610,6 +619,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
         regulatoryRef: '21 CFR 11.100(a)',
       },
       {
+        templateId: 'mod-e_signatures:data-integrity:req-01',
         title: 'Signature Manifestation',
         description:
           'Each signed electronic record shall display the printed name of the signer, the date and time of the signature, and the meaning (e.g., review, approval, responsibility) associated with the signature.',
@@ -619,6 +629,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
         regulatoryRef: '21 CFR 11.50(a)',
       },
       {
+        templateId: 'mod-e_signatures:data-integrity:req-02',
         title: 'Signature Meaning Declaration',
         description:
           'The system shall require the signer to select or acknowledge the meaning of the signature (e.g., "Authored", "Reviewed", "Approved") at the time of signing, and this meaning shall be permanently bound to the signed record.',
@@ -628,6 +639,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
         regulatoryRef: '21 CFR 11.50(a)(1)(iii)',
       },
       {
+        templateId: 'mod-e_signatures:security:req-01',
         title: 'Non-Repudiation of Signatures',
         description:
           'Once an electronic signature is applied, the system shall make it computationally infeasible for the signer to deny having signed. The signature binding shall survive record export, archival, and migration.',
@@ -637,6 +649,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
         regulatoryRef: '21 CFR 11.70',
       },
       {
+        templateId: 'mod-e_signatures:authentication:req-02',
         title: 'Re-authentication for Signing',
         description:
           'The system shall require re-entry of credentials (password and, where applicable, second factor) at the point of signing. For consecutive signatures within a controlled session, at minimum the password component shall be re-entered.',
@@ -648,6 +661,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
     ],
     tests: [
       {
+        templateId: 'mod-e_signatures:functional:tst-01',
         title: 'Verify Signature Contains Required Fields',
         description:
           'Apply an electronic signature to a record. Verify the signed record displays: signer printed name, date/time of signature, and signature meaning. Verify all three elements are stored and cannot be separated from the record.',
@@ -656,6 +670,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
         linkedReqTags: ['e-signature', 'manifestation', 'meaning'],
       },
       {
+        templateId: 'mod-e_signatures:security:tst-01',
         title: 'Verify Re-authentication on Signing',
         description:
           'Attempt to sign a record. Verify the system prompts for credential re-entry before the signature is accepted. Attempt to sign without re-authenticating and confirm the signature is rejected.',
@@ -664,6 +679,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
         linkedReqTags: ['e-signature', 're-authentication', 'authentication'],
       },
       {
+        templateId: 'mod-e_signatures:security:tst-02',
         title: 'Verify Non-Repudiation After Export',
         description:
           'Sign a record, export it to PDF and archived format. Verify the signature metadata (signer, timestamp, meaning) is preserved in the exported document and cannot be stripped or altered.',
@@ -684,6 +700,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
     icon: 'ShieldCheck',
     requirements: [
       {
+        templateId: 'mod-capa:quality-management:req-01',
         title: 'Root Cause Analysis Documentation',
         description:
           'The CAPA system shall require documentation of a formal root cause analysis using recognized methodologies (e.g., 5-Why, Fishbone, Fault Tree) before corrective action planning can proceed. The root cause shall be linked to the originating deviation, complaint, or audit finding.',
@@ -693,6 +710,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
         regulatoryRef: '21 CFR 820.90(a); ICH Q10 Section 3.2',
       },
       {
+        templateId: 'mod-capa:quality-management:req-02',
         title: 'Corrective Action Plan with Accountability',
         description:
           'Each CAPA shall have a documented corrective action plan that includes: specific actions to be taken, responsible persons, target completion dates, and required approvals. The plan shall address both immediate correction and systemic corrective action.',
@@ -702,6 +720,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
         regulatoryRef: '21 CFR 820.90(a); ISO 13485 Section 8.5.2',
       },
       {
+        templateId: 'mod-capa:quality-management:req-03',
         title: 'Effectiveness Check Requirement',
         description:
           'The system shall enforce an effectiveness check for every CAPA at a configurable interval after implementation (default 90 days). The effectiveness check shall verify that the root cause has been eliminated and the nonconformance has not recurred.',
@@ -711,6 +730,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
         regulatoryRef: '21 CFR 820.90(b); ICH Q10 Section 3.2.2',
       },
       {
+        templateId: 'mod-capa:quality-management:req-04',
         title: 'CAPA Escalation and Trending',
         description:
           'The system shall support escalation of overdue CAPAs to management and provide trending analysis of CAPA categories, root causes, and recurrence rates to enable proactive quality improvement.',
@@ -720,6 +740,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
         regulatoryRef: 'ICH Q10 Section 4; 21 CFR 820.90',
       },
       {
+        templateId: 'mod-capa:documentation:req-01',
         title: 'CAPA Documentation and Traceability',
         description:
           'Complete CAPA records shall be maintained including: originating event, investigation, root cause, action plan, implementation evidence, effectiveness check results, and closure approval. Full traceability from source event to closure shall be maintained.',
@@ -731,6 +752,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
     ],
     tests: [
       {
+        templateId: 'mod-capa:functional:tst-01',
         title: 'Verify CAPA Workflow Execution',
         description:
           'Create a CAPA from a deviation. Complete root cause analysis, define corrective actions with owners and due dates, submit for approval, implement actions, and close. Verify all workflow states are enforced and transitions require appropriate authorization.',
@@ -739,6 +761,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
         linkedReqTags: ['capa', 'root-cause', 'corrective-action'],
       },
       {
+        templateId: 'mod-capa:functional:tst-02',
         title: 'Verify Effectiveness Check Trigger',
         description:
           'Implement and close a CAPA. Verify the system automatically generates an effectiveness check task at the configured interval. Verify the CAPA cannot be marked fully closed until the effectiveness check is completed and approved.',
@@ -747,6 +770,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
         linkedReqTags: ['capa', 'effectiveness', 'verification'],
       },
       {
+        templateId: 'mod-capa:functional:tst-03',
         title: 'Verify CAPA Escalation for Overdue Actions',
         description:
           'Create a CAPA with a target date in the past. Verify the system triggers escalation notifications to the configured management contacts. Verify overdue CAPAs appear in the management dashboard with appropriate visual indicators.',
@@ -767,6 +791,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
     icon: 'FileText',
     requirements: [
       {
+        templateId: 'mod-document_control:document-management:req-01',
         title: 'Document Versioning and Lifecycle',
         description:
           'The system shall enforce a formal document lifecycle (Draft -> Review -> Approved -> Effective -> Retired) with version control. Each version shall be uniquely numbered and the system shall prevent edits to approved/effective documents without initiating a new version.',
@@ -776,6 +801,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
         regulatoryRef: '21 CFR 211.186; ISO 13485 Section 4.2.4',
       },
       {
+        templateId: 'mod-document_control:document-management:req-02',
         title: 'Controlled Document Distribution',
         description:
           'The system shall ensure only the current effective version of a document is accessible to general users. Obsolete versions shall be clearly marked and access-restricted. Distribution acknowledgment shall be tracked.',
@@ -785,6 +811,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
         regulatoryRef: '21 CFR 820.40; EU GMP Chapter 4',
       },
       {
+        templateId: 'mod-document_control:document-management:req-03',
         title: 'Review and Approval Workflow',
         description:
           'Documents shall pass through a configurable review and approval workflow with electronic signatures. The system shall enforce that required reviewers and approvers have acted before a document can become effective.',
@@ -794,6 +821,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
         regulatoryRef: '21 CFR 820.40(a); ISO 13485 Section 4.2.4',
       },
       {
+        templateId: 'mod-document_control:document-management:req-04',
         title: 'Periodic Review Scheduling',
         description:
           'The system shall track periodic review dates for all effective documents and generate notifications when reviews are due. Overdue reviews shall be escalated to document owners and quality management.',
@@ -805,6 +833,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
     ],
     tests: [
       {
+        templateId: 'mod-document_control:functional:tst-01',
         title: 'Verify Document Lifecycle Transitions',
         description:
           'Create a document, move it through Draft -> Review -> Approved -> Effective. Verify each transition enforces the required actions (review, signature). Attempt to edit an effective document and verify a new version is required.',
@@ -813,6 +842,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
         linkedReqTags: ['document-control', 'versioning', 'lifecycle'],
       },
       {
+        templateId: 'mod-document_control:security:tst-01',
         title: 'Verify Obsolete Version Restriction',
         description:
           'Create a document with multiple versions. Verify that general users can only access the current effective version. Verify obsolete versions are clearly marked and accessible only to users with appropriate permissions.',
@@ -821,6 +851,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
         linkedReqTags: ['document-control', 'distribution', 'access'],
       },
       {
+        templateId: 'mod-document_control:functional:tst-02',
         title: 'Verify Periodic Review Notification',
         description:
           'Set a document periodic review date to a past date. Verify the system generates a review-due notification. Verify escalation occurs if the review is not completed within the configured grace period.',
@@ -841,6 +872,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
     icon: 'GraduationCap',
     requirements: [
       {
+        templateId: 'mod-training:training:req-01',
         title: 'Training Assignment and Tracking',
         description:
           'The system shall automatically assign training requirements based on role, department, and document changes. Training completion status, including date, trainer, and evidence, shall be recorded and tracked per individual.',
@@ -850,6 +882,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
         regulatoryRef: '21 CFR 211.25; EU GMP Chapter 2',
       },
       {
+        templateId: 'mod-training:training:req-02',
         title: 'Training Effectiveness Assessment',
         description:
           'The system shall support training effectiveness assessment through configurable quizzes, practical evaluations, or manager sign-off. Minimum passing scores shall be enforced where applicable.',
@@ -859,6 +892,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
         regulatoryRef: '21 CFR 211.25(a); ICH Q10 Section 1.8',
       },
       {
+        templateId: 'mod-training:training:req-03',
         title: 'Training Matrix and Gap Analysis',
         description:
           'The system shall maintain a training matrix mapping roles to required curricula and provide gap analysis reporting to identify personnel with incomplete or overdue training.',
@@ -868,6 +902,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
         regulatoryRef: 'EU GMP Chapter 2.8; ISO 13485 Section 6.2',
       },
       {
+        templateId: 'mod-training:training:req-04',
         title: 'Retraining on Document Revision',
         description:
           'When a controlled document is revised to a new effective version, the system shall automatically generate retraining assignments for all personnel previously trained on the document.',
@@ -879,6 +914,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
     ],
     tests: [
       {
+        templateId: 'mod-training:functional:tst-01',
         title: 'Verify Auto-Assignment on Document Change',
         description:
           'Revise a controlled document to a new version. Verify training assignments are automatically created for all previously trained personnel. Verify the assignment references the new document version.',
@@ -887,6 +923,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
         linkedReqTags: ['training', 'retraining', 'document-change'],
       },
       {
+        templateId: 'mod-training:functional:tst-02',
         title: 'Verify Training Effectiveness Quiz',
         description:
           'Complete a training assignment with a quiz. Submit answers below the passing threshold and verify the training is marked incomplete. Submit passing answers and verify completion is recorded.',
@@ -895,6 +932,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
         linkedReqTags: ['training', 'effectiveness', 'assessment'],
       },
       {
+        templateId: 'mod-training:functional:tst-03',
         title: 'Verify Training Gap Report',
         description:
           'Assign training curricula to a role. Add a user to that role without completing the training. Generate the training gap report and verify the user appears as having outstanding requirements.',
@@ -915,6 +953,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
     icon: 'GitBranch',
     requirements: [
       {
+        templateId: 'mod-change_control:change-management:req-01',
         title: 'Change Request Initiation and Classification',
         description:
           'All changes to GxP-relevant systems, processes, or documents shall be initiated via a formal change request. Each request shall be classified by type (minor, major, critical) and assessed for regulatory impact before implementation.',
@@ -924,6 +963,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
         regulatoryRef: 'ICH Q10 Section 3.2.4; 21 CFR 211.100',
       },
       {
+        templateId: 'mod-change_control:change-management:req-02',
         title: 'Impact Assessment and Risk Evaluation',
         description:
           'Each change request shall undergo a documented impact assessment covering: product quality, patient safety, regulatory compliance, validated state, and related systems. Risk evaluation shall use the applicable risk taxonomy.',
@@ -933,6 +973,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
         regulatoryRef: 'ICH Q9; ICH Q10 Section 3.2.4',
       },
       {
+        templateId: 'mod-change_control:change-management:req-03',
         title: 'Change Implementation and Verification',
         description:
           'Changes shall only be implemented after all required approvals are obtained. Post-implementation verification shall confirm the change achieved its intended purpose without unintended consequences.',
@@ -944,6 +985,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
     ],
     tests: [
       {
+        templateId: 'mod-change_control:functional:tst-01',
         title: 'Verify Change Control Workflow',
         description:
           'Submit a change request, complete impact assessment, obtain approvals, implement the change, and perform post-implementation verification. Verify all stages enforce proper authorization and documentation.',
@@ -952,6 +994,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
         linkedReqTags: ['change-control', 'initiation', 'implementation'],
       },
       {
+        templateId: 'mod-change_control:functional:tst-02',
         title: 'Verify Impact Assessment Completeness',
         description:
           'Attempt to advance a change request past the assessment stage with missing impact evaluation fields. Verify the system prevents progression until all required assessments are documented.',
@@ -972,6 +1015,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
     icon: 'AlertTriangle',
     requirements: [
       {
+        templateId: 'mod-deviation:quality-management:req-01',
         title: 'Deviation Recording and Classification',
         description:
           'All deviations from approved procedures, specifications, or planned activities shall be recorded immediately upon detection. Each deviation shall be classified by severity (critical, major, minor) and category.',
@@ -981,6 +1025,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
         regulatoryRef: '21 CFR 211.192; EU GMP Chapter 1.4(xiv)',
       },
       {
+        templateId: 'mod-deviation:quality-management:req-02',
         title: 'Deviation Investigation and Closure',
         description:
           'Each deviation shall be investigated to determine root cause and impact on product quality. Investigation depth shall be commensurate with severity. Closure shall require documented justification and quality approval.',
@@ -990,6 +1035,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
         regulatoryRef: '21 CFR 211.192; ICH Q10 Section 3.2',
       },
       {
+        templateId: 'mod-deviation:quality-management:req-03',
         title: 'CAPA Linkage for Recurring Deviations',
         description:
           'The system shall automatically flag recurring deviations (same category/root cause within a configurable window) and prompt for CAPA initiation. Trending data shall be available for management review.',
@@ -1001,6 +1047,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
     ],
     tests: [
       {
+        templateId: 'mod-deviation:functional:tst-01',
         title: 'Verify Deviation Workflow',
         description:
           'Record a deviation, classify it, perform investigation, document root cause, and close with quality approval. Verify all workflow states are enforced and proper authorization is required at each step.',
@@ -1009,6 +1056,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
         linkedReqTags: ['deviation', 'recording', 'investigation'],
       },
       {
+        templateId: 'mod-deviation:functional:tst-02',
         title: 'Verify Recurring Deviation Detection',
         description:
           'Create three deviations with the same category within the configured window. Verify the system flags the recurring pattern and prompts for CAPA initiation on the third occurrence.',
@@ -1029,6 +1077,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
     icon: 'Shield',
     requirements: [
       {
+        templateId: 'mod-risk_management:risk-management:req-01',
         title: 'Risk Assessment Framework',
         description:
           'The system shall support formal risk assessment using configurable methodologies (FMEA, FTA, HAZOP, PHA). Risk shall be evaluated based on severity, probability of occurrence, and detectability to produce a Risk Priority Number (RPN) or equivalent.',
@@ -1038,6 +1087,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
         regulatoryRef: 'ICH Q9; ISO 14971 Section 4',
       },
       {
+        templateId: 'mod-risk_management:risk-management:req-02',
         title: 'Risk Control and Mitigation Tracking',
         description:
           'For each identified risk exceeding the acceptance threshold, the system shall require documented risk control measures, responsible owners, and implementation deadlines. Residual risk shall be evaluated after controls are applied.',
@@ -1047,6 +1097,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
         regulatoryRef: 'ICH Q9 Section 4; ISO 14971 Section 7',
       },
       {
+        templateId: 'mod-risk_management:risk-management:req-03',
         title: 'Risk Review and Communication',
         description:
           'The risk register shall be reviewed periodically and after significant changes. Risk assessment results and residual risks shall be communicated to relevant stakeholders and documented in management review.',
@@ -1058,6 +1109,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
     ],
     tests: [
       {
+        templateId: 'mod-risk_management:functional:tst-01',
         title: 'Verify Risk Assessment Workflow',
         description:
           'Create a risk assessment, identify hazards, evaluate severity/probability/detectability, calculate RPN, define control measures, and evaluate residual risk. Verify all steps are enforced and calculations are correct.',
@@ -1066,6 +1118,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
         linkedReqTags: ['risk', 'assessment', 'methodology'],
       },
       {
+        templateId: 'mod-risk_management:functional:tst-02',
         title: 'Verify Risk Control Enforcement',
         description:
           'Identify a risk above the acceptance threshold. Attempt to accept it without defining control measures. Verify the system requires mitigation actions before the risk can be accepted.',
@@ -1086,6 +1139,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
     icon: 'Building2',
     requirements: [
       {
+        templateId: 'mod-supplier_management:supplier-quality:req-01',
         title: 'Supplier Qualification and Approval',
         description:
           'All suppliers of GxP-critical materials, components, or services shall be qualified through a documented assessment process including quality questionnaire, capability evaluation, and risk-based audit determination before approval.',
@@ -1095,6 +1149,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
         regulatoryRef: '21 CFR 820.50; ICH Q10 Section 2.7',
       },
       {
+        templateId: 'mod-supplier_management:supplier-quality:req-02',
         title: 'Supplier Performance Monitoring',
         description:
           'Approved suppliers shall be monitored through defined KPIs including: on-time delivery, quality rejection rate, CAPA responsiveness, and audit findings. Performance shall be reviewed at least annually.',
@@ -1104,6 +1159,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
         regulatoryRef: '21 CFR 820.50(a); ISO 13485 Section 7.4.1',
       },
       {
+        templateId: 'mod-supplier_management:supplier-quality:req-03',
         title: 'Supplier Audit Program',
         description:
           'A risk-based supplier audit program shall be maintained. Audit frequency shall be determined by supplier criticality, performance history, and regulatory requirements. Audit findings shall be tracked to resolution.',
@@ -1115,6 +1171,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
     ],
     tests: [
       {
+        templateId: 'mod-supplier_management:functional:tst-01',
         title: 'Verify Supplier Qualification Workflow',
         description:
           'Initiate supplier qualification, complete the quality questionnaire, perform capability assessment, approve the supplier. Verify all steps are documented and the supplier status reflects the approval.',
@@ -1123,6 +1180,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
         linkedReqTags: ['supplier', 'qualification', 'approval'],
       },
       {
+        templateId: 'mod-supplier_management:functional:tst-02',
         title: 'Verify Supplier Performance Dashboard',
         description:
           'Enter supplier delivery and quality data. Verify the performance KPI dashboard calculates metrics correctly. Verify suppliers falling below thresholds are flagged for review.',
@@ -1143,6 +1201,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
     icon: 'MessageSquareWarning',
     requirements: [
       {
+        templateId: 'mod-complaint_handling:complaint-management:req-01',
         title: 'Complaint Intake and Triage',
         description:
           'All product complaints shall be recorded with: date received, complainant information, product identification (lot/batch), complaint description, and initial severity assessment. Potentially reportable events shall be flagged within 24 hours.',
@@ -1152,6 +1211,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
         regulatoryRef: '21 CFR 820.198; 21 CFR 211.198',
       },
       {
+        templateId: 'mod-complaint_handling:complaint-management:req-02',
         title: 'Complaint Investigation and Resolution',
         description:
           'Each complaint shall be investigated commensurate with its severity. Investigation shall determine root cause, affected lots, and whether the complaint indicates a systematic quality issue. Resolution and response to complainant shall be documented.',
@@ -1161,6 +1221,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
         regulatoryRef: '21 CFR 820.198(a); 21 CFR 211.198(a)',
       },
       {
+        templateId: 'mod-complaint_handling:regulatory:req-01',
         title: 'Regulatory Reporting Trigger',
         description:
           'The system shall identify complaints that meet regulatory reporting criteria (e.g., MDR, MedWatch, field safety corrective actions) and enforce reporting timelines. Reportable events shall be escalated to the responsible regulatory affairs person.',
@@ -1172,6 +1233,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
     ],
     tests: [
       {
+        templateId: 'mod-complaint_handling:functional:tst-01',
         title: 'Verify Complaint Intake and Triage',
         description:
           'Enter a complaint with all required fields. Verify initial severity assessment is captured. Simulate a potentially reportable event and verify it is flagged within the 24-hour window.',
@@ -1180,6 +1242,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
         linkedReqTags: ['complaint', 'intake', 'triage'],
       },
       {
+        templateId: 'mod-complaint_handling:functional:tst-02',
         title: 'Verify Regulatory Reporting Trigger',
         description:
           'Create a complaint that meets MDR reporting criteria. Verify the system identifies it as reportable and generates the appropriate notification to regulatory affairs within the configured timeline.',
@@ -1200,6 +1263,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
     icon: 'CheckCircle2',
     requirements: [
       {
+        templateId: 'mod-validation_csv:validation:req-01',
         title: 'Validation Planning (VP)',
         description:
           'A Validation Plan shall be created before validation execution, defining: system description, scope, validation approach (GAMP category), roles and responsibilities, acceptance criteria, and deliverables. The VP shall be approved by quality and system owner.',
@@ -1209,6 +1273,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
         regulatoryRef: 'GAMP 5 Section 5; 21 CFR Part 11; EU Annex 11',
       },
       {
+        templateId: 'mod-validation_csv:validation:req-02',
         title: 'Risk-Based Testing (IQ/OQ/PQ)',
         description:
           'Validation shall follow a risk-based approach per GAMP 5. Installation Qualification (IQ), Operational Qualification (OQ), and Performance Qualification (PQ) protocols shall be executed as determined by system risk assessment.',
@@ -1218,6 +1283,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
         regulatoryRef: 'GAMP 5; EU Annex 11 Section 4',
       },
       {
+        templateId: 'mod-validation_csv:validation:req-03',
         title: 'Validation Summary Report',
         description:
           'A Validation Summary Report shall document: tests executed, results (pass/fail), deviations encountered, risk assessment updates, and an overall conclusion on the validated state. The report shall be approved before system go-live.',
@@ -1227,6 +1293,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
         regulatoryRef: 'GAMP 5 Section 5; EU Annex 11 Section 4.7',
       },
       {
+        templateId: 'mod-validation_csv:validation:req-04',
         title: 'Periodic Review of Validated State',
         description:
           'The validated state of computerized systems shall be periodically reviewed (at least annually) considering: change history, incident history, regulatory updates, and continued suitability.',
@@ -1238,6 +1305,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
     ],
     tests: [
       {
+        templateId: 'mod-validation_csv:functional:tst-01',
         title: 'Verify IQ/OQ/PQ Protocol Execution',
         description:
           'Create validation protocols for IQ, OQ, and PQ. Execute test steps, record results, and generate the protocol report. Verify that failed test steps require deviation documentation before the protocol can be approved.',
@@ -1246,6 +1314,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
         linkedReqTags: ['csv', 'iq-oq-pq', 'testing'],
       },
       {
+        templateId: 'mod-validation_csv:functional:tst-02',
         title: 'Verify Validation Report Generation',
         description:
           'Complete all validation protocols. Generate the Validation Summary Report. Verify it includes all executed protocols, results summary, and requires quality approval before the system can be marked as validated.',
@@ -1266,6 +1335,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
     icon: 'Lock',
     requirements: [
       {
+        templateId: 'mod-access_control:access-control:req-01',
         title: 'Role-Based Access Control (RBAC)',
         description:
           'The system shall implement role-based access control where permissions are assigned to roles, and roles are assigned to users. Access shall follow the principle of least privilege. Role assignments shall be documented and approved.',
@@ -1275,6 +1345,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
         regulatoryRef: '21 CFR 11.10(d); EU Annex 11 Section 12',
       },
       {
+        templateId: 'mod-access_control:access-control:req-02',
         title: 'Unique User Identification',
         description:
           'Each system user shall have a unique identifier that is not shared or reused. Shared or generic accounts shall not be permitted for GxP-relevant activities. User identity shall be verified before account activation.',
@@ -1284,6 +1355,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
         regulatoryRef: '21 CFR 11.10(d); 21 CFR 11.300',
       },
       {
+        templateId: 'mod-access_control:authentication:req-01',
         title: 'Multi-Factor Authentication (MFA)',
         description:
           'The system shall enforce multi-factor authentication for all users accessing GxP-relevant data. MFA shall combine at least two factors: something the user knows (password), something the user has (token/device), or something the user is (biometric).',
@@ -1293,6 +1365,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
         regulatoryRef: '21 CFR 11.10(d); NIST SP 800-63B',
       },
       {
+        templateId: 'mod-access_control:access-control:req-03',
         title: 'Access Review and Recertification',
         description:
           'User access rights shall be reviewed at least quarterly. Terminated or transferred employees shall have access revoked within 24 hours. Annual access recertification by management shall be documented.',
@@ -1304,6 +1377,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
     ],
     tests: [
       {
+        templateId: 'mod-access_control:security:tst-01',
         title: 'Verify RBAC Enforcement',
         description:
           'Assign a user to a role with limited permissions. Attempt to access resources outside the role scope. Verify access is denied. Change the role and verify new permissions take effect.',
@@ -1312,6 +1386,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
         linkedReqTags: ['access-control', 'rbac', 'authorization'],
       },
       {
+        templateId: 'mod-access_control:security:tst-02',
         title: 'Verify MFA Authentication',
         description:
           'Enable MFA for a user account. Attempt to log in with password only and verify access is denied. Complete MFA challenge and verify access is granted. Verify MFA cannot be bypassed.',
@@ -1320,6 +1395,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
         linkedReqTags: ['access-control', 'mfa', 'authentication'],
       },
       {
+        templateId: 'mod-access_control:security:tst-03',
         title: 'Verify Access Revocation',
         description:
           'Deactivate a user account. Verify the user can no longer log in or access any system resources. Verify active sessions are terminated. Verify the deactivation is recorded in the audit trail.',
@@ -1340,6 +1416,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
     icon: 'DatabaseBackup',
     requirements: [
       {
+        templateId: 'mod-backup_recovery:business-continuity:req-01',
         title: 'Automated Backup Schedule',
         description:
           'The system shall perform automated backups per a defined schedule: full backups at least weekly, incremental backups at least daily. Backups shall include all GxP-relevant data, configurations, and audit trails.',
@@ -1349,6 +1426,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
         regulatoryRef: 'EU Annex 11 Section 7.2; 21 CFR 11.10(c)',
       },
       {
+        templateId: 'mod-backup_recovery:business-continuity:req-02',
         title: 'Backup Integrity Verification',
         description:
           'Backup integrity shall be verified through automated checksums at the time of creation and periodic restore tests (at least quarterly). Failed backups shall generate immediate alerts to the operations team.',
@@ -1358,6 +1436,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
         regulatoryRef: 'EU Annex 11 Section 7.2',
       },
       {
+        templateId: 'mod-backup_recovery:business-continuity:req-03',
         title: 'Disaster Recovery Plan and RTO/RPO',
         description:
           'A documented disaster recovery plan shall define Recovery Time Objective (RTO) and Recovery Point Objective (RPO) for each GxP system. The plan shall be tested annually and results documented.',
@@ -1369,6 +1448,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
     ],
     tests: [
       {
+        templateId: 'mod-backup_recovery:operational:tst-01',
         title: 'Verify Backup Restore Procedure',
         description:
           'Perform a full backup of the system. Simulate data loss by restoring to a test environment. Verify all GxP data, configurations, and audit trails are intact. Verify the restore completes within the documented RTO.',
@@ -1377,6 +1457,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
         linkedReqTags: ['backup', 'integrity', 'disaster-recovery'],
       },
       {
+        templateId: 'mod-backup_recovery:operational:tst-02',
         title: 'Verify Backup Failure Alerting',
         description:
           'Simulate a backup failure (e.g., insufficient storage). Verify the system generates an immediate alert to the configured operations contacts. Verify the failure is logged in the system event log.',
@@ -1397,6 +1478,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
     icon: 'ArrowRightLeft',
     requirements: [
       {
+        templateId: 'mod-data_migration:data-migration:req-01',
         title: 'Migration Validation Protocol',
         description:
           'Data migration shall be executed per an approved protocol that defines: scope of data, mapping rules, transformation logic, acceptance criteria, and rollback procedure. The protocol shall be approved by data owner and quality.',
@@ -1406,6 +1488,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
         regulatoryRef: 'EU Annex 11 Section 4.8; GAMP 5 Appendix D4',
       },
       {
+        templateId: 'mod-data_migration:data-migration:req-02',
         title: 'Data Integrity Verification Post-Migration',
         description:
           'After migration, data integrity shall be verified by comparing source and target record counts, checksums, and a statistically significant sample of individual records. Discrepancies shall be investigated and resolved before go-live.',
@@ -1415,6 +1498,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
         regulatoryRef: 'EU Annex 11 Section 4.8; 21 CFR 11.10(c)',
       },
       {
+        templateId: 'mod-data_migration:data-migration:req-03',
         title: 'Audit Trail Continuity',
         description:
           'The migration process shall preserve the complete audit trail history from the source system. If audit trail format changes, a documented mapping shall ensure no historical data is lost or misrepresented.',
@@ -1426,6 +1510,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
     ],
     tests: [
       {
+        templateId: 'mod-data_migration:functional:tst-01',
         title: 'Verify Migration Data Integrity',
         description:
           'Execute a test migration. Compare source and target: total record counts, field-level checksums for a representative sample, and verify no data truncation or format corruption occurred.',
@@ -1434,6 +1519,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
         linkedReqTags: ['migration', 'integrity', 'verification'],
       },
       {
+        templateId: 'mod-data_migration:functional:tst-02',
         title: 'Verify Audit Trail Preservation',
         description:
           'After migration, retrieve audit trail records from the target system. Verify they match the source system entries including: timestamps, user IDs, action types, and before/after values.',
@@ -1454,6 +1540,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
     icon: 'BarChart3',
     requirements: [
       {
+        templateId: 'mod-reporting:reporting:req-01',
         title: 'Configurable Quality Metrics Dashboard',
         description:
           'The system shall provide a configurable dashboard displaying key quality metrics including: open CAPA count, overdue deviations, training compliance rate, pending change controls, and complaint trends. Data shall refresh at configurable intervals.',
@@ -1463,6 +1550,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
         regulatoryRef: 'ICH Q10 Section 4.1; ISO 13485 Section 8.4',
       },
       {
+        templateId: 'mod-reporting:reporting:req-02',
         title: 'Regulatory Submission Report Generation',
         description:
           'The system shall generate formatted reports suitable for regulatory submissions and inspections, including: validation summary, audit trail extracts, deviation summaries, and CAPA status reports. Reports shall be exportable in PDF and CSV formats.',
@@ -1472,6 +1560,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
         regulatoryRef: '21 CFR 11.10(b); EU Annex 11 Section 8',
       },
       {
+        templateId: 'mod-reporting:reporting:req-03',
         title: 'Trend Analysis and Statistical Process Control',
         description:
           'The system shall support trend analysis with configurable control limits and alert thresholds. Out-of-trend conditions shall generate notifications. Statistical tools (e.g., control charts, Pareto analysis) shall be available.',
@@ -1483,6 +1572,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
     ],
     tests: [
       {
+        templateId: 'mod-reporting:functional:tst-01',
         title: 'Verify Dashboard Data Accuracy',
         description:
           'Create known quantities of CAPAs, deviations, and training records. Verify the dashboard metrics match the expected counts. Modify data and verify the dashboard refreshes correctly.',
@@ -1491,6 +1581,7 @@ export const MODULE_DEFINITIONS: ModuleDefinition[] = [
         linkedReqTags: ['reporting', 'dashboard', 'metrics'],
       },
       {
+        templateId: 'mod-reporting:functional:tst-02',
         title: 'Verify Report Export Formats',
         description:
           'Generate a regulatory submission report. Export in PDF and CSV formats. Verify PDF formatting is correct and data is complete. Verify CSV contains all data fields and is properly delimited.',

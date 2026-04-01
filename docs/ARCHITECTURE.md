@@ -9,12 +9,16 @@ Technical architecture documentation for QAtrial, the regulated quality workspac
 1. [System Overview](#1-system-overview)
 2. [Data Model](#2-data-model)
 3. [State Management](#3-state-management)
-4. [Template Composition Engine](#4-template-composition-engine)
-5. [AI System](#5-ai-system)
-6. [i18n Architecture](#6-i18n-architecture)
-7. [Theming](#7-theming)
-8. [Component Architecture](#8-component-architecture)
-9. [File Structure](#9-file-structure)
+4. [Authentication and RBAC](#4-authentication-and-rbac)
+5. [Template Composition Engine](#5-template-composition-engine)
+6. [AI System](#6-ai-system)
+7. [Connector Framework](#7-connector-framework)
+8. [Code Splitting](#8-code-splitting)
+9. [i18n Architecture](#9-i18n-architecture)
+10. [Theming](#10-theming)
+11. [Component Architecture](#11-component-architecture)
+12. [Test Infrastructure](#12-test-infrastructure)
+13. [File Structure](#13-file-structure)
 
 ---
 
@@ -28,7 +32,7 @@ Technical architecture documentation for QAtrial, the regulated quality workspac
 |                                                                        |
 |  +------------------+   +------------------+   +--------------------+  |
 |  |   React 19 UI    |   |  Zustand Stores  |   |  Template Engine   |  |
-|  |  (Components)    |<->|  (8 stores)      |   |  (Composer)        |  |
+|  |  (Components)    |<->|  (14 stores)     |   |  (Composer)        |  |
 |  +------------------+   +------------------+   +--------------------+  |
 |         |                       |                       |              |
 |         v                       v                       v              |
@@ -38,10 +42,16 @@ Technical architecture documentation for QAtrial, the regulated quality workspac
 |  +------------------+   +------------------+   +--------------------+  |
 |         |                                                              |
 |         v                                                              |
-|  +------------------+                                                  |
-|  | AI Client        |-------> External LLM APIs                       |
-|  | (provider router) |       (Anthropic / OpenAI-compatible)           |
-|  +------------------+                                                  |
+|  +------------------+   +------------------+                           |
+|  | AI Client        |-->| AI Proxy (opt.)  |-------> External LLM APIs |
+|  | (provider router) |   | (server-side)    |       (Anthropic/OpenAI)  |
+|  +------------------+   +------------------+                           |
+|         |                                                              |
+|         v                                                              |
+|  +------------------+   +------------------+                           |
+|  | Auth Store       |   | Connector Fwk    |-------> External Systems  |
+|  | (RBAC, sessions) |   | (sync adapters)  |       (Jira, ALM, etc.)   |
+|  +------------------+   +------------------+                           |
 +-----------------------------------------------------------------------+
 ```
 
@@ -62,12 +72,14 @@ Technical architecture documentation for QAtrial, the regulated quality workspac
 
 ### Design Principles
 
-1. **Client-Side Only:** No backend server. All data lives in `localStorage`. AI calls go directly from the browser to LLM APIs.
+1. **Client-Side Only:** No backend server. All data lives in `localStorage`. AI calls go directly from the browser to LLM APIs (or through an optional server-side proxy via `VITE_AI_PROXY_URL`).
 2. **Composition Over Inheritance:** Templates are composed from independent dimensions (country, vertical, project type, modules) rather than inherited from base classes.
-3. **Deduplication by Title:** When templates overlap, later sources override earlier ones (overlay wins over base).
-4. **Lazy Loading:** Template files and translation files are loaded via dynamic imports and HTTP backend respectively, keeping the initial bundle small.
-5. **Purpose-Scoped AI:** Different AI tasks can be routed to different LLM providers based on purpose configuration.
-6. **GxP Awareness:** Every feature considers regulatory compliance (audit trails, electronic signatures, change control).
+3. **Deduplication by Template ID:** When templates overlap, deduplication uses `templateId` (falls back to title for backward compatibility). Later sources override earlier ones.
+4. **Lazy Loading and Code Splitting:** Template files, translation files, and tab components are loaded via dynamic imports (`React.lazy` + `Suspense`). Vite manual chunks split vendor code into `vendor-react`, `vendor-charts`, `vendor-table`, `vendor-i18n`, `vendor-state`, `templates`, and `ai` bundles.
+5. **Purpose-Scoped AI:** Different AI tasks can be routed to different LLM providers based on purpose configuration. AI responses are validated with JSON schema validation and retry logic.
+6. **GxP Awareness:** Every feature considers regulatory compliance (audit trails, electronic signatures, change control, CAPA lifecycle).
+7. **Role-Based Access Control:** Five user roles (admin, qa_manager, qa_engineer, auditor, reviewer) govern permissions across the application via a ROLE_PERMISSIONS matrix.
+8. **Connector Extensibility:** A pluggable connector framework allows integration with external systems (Jira, ALM tools, etc.) via a typed registry.
 
 ---
 
@@ -183,7 +195,8 @@ interface ProjectMeta {
 **AuditAction:**
 ```
 "create" | "update" | "delete" | "status_change" | "link" | "unlink" |
-"approve" | "reject" | "sign" | "export" | "generate_report"
+"approve" | "reject" | "sign" | "export" | "generate_report" |
+"ai_generate" | "ai_accept" | "ai_reject" | "login" | "logout" | "import"
 ```
 
 **SignatureMeaning:**
@@ -224,7 +237,7 @@ Risk level is computed from severity and likelihood:
 
 ## 3. State Management
 
-QAtrial uses 9 Zustand stores with localStorage persistence.
+QAtrial uses 14 Zustand stores (plus 1 hook) with localStorage persistence.
 
 ### Store Summary
 
@@ -238,6 +251,13 @@ QAtrial uses 9 Zustand stores with localStorage persistence.
 | `useThemeStore` | `useThemeStore.ts` | `qatrial:theme` | Light/dark theme preference with DOM class management |
 | `useLocaleStore` | `useLocaleStore.ts` | `qatrial:locale` | Language preference and country setting |
 | `useChangeControlStore` | `useChangeControlStore.ts` | `qatrial:change-control` | Change control configuration per vertical |
+| `useAuthStore` | `useAuthStore.ts` | `qatrial:auth` | User authentication, RBAC, session management, signature verification |
+| `useRiskStore` | `useRiskStore.ts` | `qatrial:risks` | Persisted risk assessments with CRUD and per-requirement queries |
+| `useCAPAStore` | `useCAPAStore.ts` | `qatrial:capa` | CAPA records with full lifecycle (open through closed) |
+| `useGapStore` | `useGapStore.ts` | `qatrial:gaps` | Gap analysis runs with readiness scores and review status |
+| `useEvidenceStore` | `useEvidenceStore.ts` | `qatrial:evidence` | Evidence attachments with completeness tracking |
+| `useAIHistoryStore` | `useAIHistoryStore.ts` | `qatrial:ai-history` | AI artifact provenance, re-run history, usage statistics |
+| `useConnectorStore` | `useConnectorStore.ts` | `qatrial:connectors` | External connector configurations and sync records |
 | `useImportExport` | `useImportExport.ts` | N/A (hook, not persisted) | JSON export/import with referential integrity validation |
 
 ### Persistence Strategy
@@ -275,7 +295,56 @@ The `importData` function strips dangling requirement links from tests before lo
 
 ---
 
-## 4. Template Composition Engine
+## 4. Authentication and RBAC
+
+### Overview
+
+QAtrial v2.0.0 introduces a client-side authentication and role-based access control (RBAC) system via `useAuthStore` (`src/store/useAuthStore.ts`), persisted in `localStorage` under `qatrial:auth`.
+
+### User Roles
+
+| Role | Description |
+|------|-------------|
+| `admin` | Full system access, user management, configuration |
+| `qa_manager` | Manage requirements, tests, reports, approve changes |
+| `qa_engineer` | Create and edit requirements and tests, run AI features |
+| `auditor` | Read-only access with audit trail and report generation |
+| `reviewer` | Review and approve/reject records, apply signatures |
+
+### ROLE_PERMISSIONS Matrix
+
+Permissions are defined in a static `ROLE_PERMISSIONS` matrix mapping each `UserRole` to an array of allowed actions. The `hasPermission(action)` method checks the current user's role against this matrix.
+
+### Key Types
+
+```typescript
+interface UserProfile {
+  id: string;
+  name: string;
+  email: string;
+  role: UserRole;
+  createdAt: string;
+}
+
+type UserRole = 'admin' | 'qa_manager' | 'qa_engineer' | 'auditor' | 'reviewer';
+```
+
+### Authentication Flow
+
+1. **Registration:** `register(name, email, password, role)` creates a new user profile and logs them in.
+2. **Login:** `login(email, password)` authenticates and sets the current user.
+3. **Logout:** `logout()` clears the session and logs an audit event.
+4. **Signature Verification:** `verifyForSignature(password)` re-authenticates the user with a 15-minute validity window. `isSignatureValid()` checks whether the window is still active.
+
+### Integration with Other Systems
+
+- **Audit Trail:** All audit entries now use the real user identity from `useAuthStore` instead of placeholder values.
+- **Electronic Signatures:** Signatures pull the authenticated user's name, role, and ID. A warning is displayed when no user is logged in.
+- **Auto-Logging:** All requirement and test CRUD operations automatically log audit entries with the current user identity.
+
+---
+
+## 5. Template Composition Engine
 
 ### 4-Dimensional Model
 
@@ -333,13 +402,25 @@ Each step appends requirements and tests to accumulating arrays. Later entries o
 function deduplicateRequirements(reqs: TemplateRequirement[]): TemplateRequirement[] {
   const map = new Map<string, TemplateRequirement>();
   for (const req of reqs) {
-    map.set(req.title, req);  // Later entry overwrites earlier
+    const key = req.templateId || req.title;  // Prefer templateId, fall back to title
+    map.set(key, req);  // Later entry overwrites earlier
   }
   return Array.from(map.values());
 }
 ```
 
-Deduplication is by **exact title match**. This is intentional: when a German overlay needs to replace an EU base requirement about data protection, it uses the same title with updated content. The overlay's version wins because it is loaded after the base.
+Deduplication uses the `templateId` field when present, falling back to **exact title match** for backward compatibility. The `templateId` field provides a stable identifier that survives title translations and edits. When a German overlay needs to replace an EU base requirement, it uses the same `templateId` with updated content. The overlay's version wins because it is loaded after the base.
+
+### Template ID System (v2.0.0)
+
+`TemplateRequirement` and `TemplateTest` now include two additional fields:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `templateId` | `string` (optional) | Stable identifier for deduplication across locales and overlays |
+| `source` | `string` (optional) | Origin of the template (e.g., `"eu/base"`, `"de/overlays/pharma"`, `"module/audit_trail"`) |
+
+Templates authored before v2.0.0 that lack `templateId` continue to deduplicate by title.
 
 ### Tag-Based Test Linking
 
@@ -370,7 +451,7 @@ Each with 5 requirements and 3 tests (approximately), defined directly in `regis
 
 ---
 
-## 5. AI System
+## 6. AI System
 
 ### Provider Abstraction
 
@@ -436,11 +517,33 @@ export async function doSomething(ctx: SomeContext): Promise<Result> {
 }
 ```
 
+### AI Validation Layer (v2.0.0)
+
+**File:** `src/ai/validation.ts`
+
+AI responses are now validated through a structured validation layer:
+
+1. **JSON Schema Validation:** Each prompt type defines an expected JSON schema. Responses are validated against it before being accepted.
+2. **Safe Parsing:** `safeParse(text, schema)` strips markdown code fences, attempts `JSON.parse()`, then validates the parsed object against the schema.
+3. **Retry Logic:** If validation fails, the system automatically retries the AI call (up to a configurable number of attempts) with an amended prompt that includes the validation error.
+4. **ValidationError:** A custom error class that carries the schema violations for debugging and UI display.
+
+### AI Proxy Mode (v2.0.0)
+
+**File:** `src/ai/proxy.ts`
+
+For deployments where browser-to-LLM direct calls are not desired (e.g., to protect API keys), QAtrial supports a server-side proxy:
+
+- Set the `VITE_AI_PROXY_URL` environment variable to the proxy endpoint
+- The `complete()` function in `client.ts` checks for the proxy URL before making direct calls
+- When set, all AI requests are routed through the proxy, which forwards them to the configured LLM provider
+- The proxy receives the same `CompletionRequest` payload and returns a `CompletionResponse`
+
 ### Response Parsing Strategy
 
 AI responses are expected as JSON (for structured outputs) or markdown (for narrative outputs). The parsing approach:
 
-1. For JSON responses: `JSON.parse()` on the raw text, with fallback handling for markdown code fences
+1. For JSON responses: Validated via `safeParse()` with schema checking, retry on failure
 2. For narrative responses: Used directly as text content
 3. Confidence scores are included in structured responses as a 0.0-1.0 float
 4. Provider ID and model name are attached to results for traceability
@@ -449,12 +552,112 @@ AI responses are expected as JSON (for structured outputs) or markdown (for narr
 
 - **No provider found:** Throws `Error("No AI provider configured for purpose: ...")`
 - **HTTP errors:** Throws with status code and response body text
+- **Validation errors:** Throws `ValidationError` with schema violations; triggers automatic retry
 - **Parse errors:** Caught and surfaced to the UI as error messages with retry option
 - **Token tracking:** Always called after successful responses via `trackUsage()`
 
 ---
 
-## 6. i18n Architecture
+## 7. Connector Framework
+
+### Overview
+
+**File:** `src/connectors/types.ts`
+
+The connector framework provides a pluggable architecture for integrating QAtrial with external systems (e.g., Jira, Azure DevOps, ALM tools).
+
+### Core Types
+
+```typescript
+type ConnectorType = 'jira' | 'azure_devops' | 'csv' | 'custom';
+
+interface ConnectorConfig {
+  id: string;
+  name: string;
+  type: ConnectorType;
+  baseUrl: string;
+  credentials: Record<string, string>;
+  fieldMappings: FieldMapping[];
+  enabled: boolean;
+}
+
+interface FieldMapping {
+  sourceField: string;
+  targetField: string;
+  transform?: string;
+}
+
+interface SyncRecord {
+  id: string;
+  connectorId: string;
+  direction: 'import' | 'export' | 'bidirectional';
+  status: 'pending' | 'in_progress' | 'completed' | 'failed';
+  itemsSynced: number;
+  errors: string[];
+  startedAt: string;
+  completedAt?: string;
+}
+```
+
+### Connector Interface
+
+```typescript
+interface Connector {
+  id: string;
+  type: ConnectorType;
+  name: string;
+  connect(config: ConnectorConfig): Promise<boolean>;
+  disconnect(): Promise<void>;
+  sync(direction: SyncRecord['direction']): Promise<SyncRecord>;
+  testConnection(): Promise<{ ok: boolean; message: string }>;
+}
+```
+
+### Registry
+
+The `connectorRegistry` in `src/connectors/types.ts` provides:
+- `registerConnector(connector: Connector)` -- Registers a new connector implementation
+- `getConnector(type: ConnectorType)` -- Retrieves a registered connector by type
+
+Connector state (configurations and sync records) is managed by `useConnectorStore`.
+
+---
+
+## 8. Code Splitting
+
+### Lazy-Loaded Tab Components
+
+`AppShell` lazy-loads all tab components using `React.lazy` wrapped in `Suspense`:
+
+```typescript
+const RequirementsTable = React.lazy(() => import('./requirements/RequirementsTable'));
+const TestsTable = React.lazy(() => import('./tests/TestsTable'));
+const EvaluationDashboard = React.lazy(() => import('./dashboard/EvaluationDashboard'));
+const ReportGenerator = React.lazy(() => import('./reports/ReportGenerator'));
+const ProviderSettings = React.lazy(() => import('./ai/ProviderSettings'));
+```
+
+Each tab is rendered inside a `<Suspense fallback={<LoadingSpinner />}>` boundary so the user sees a loading indicator while the chunk downloads.
+
+### Vite Manual Chunks
+
+The Vite build configuration in `vite.config.ts` defines manual chunks to optimize caching and load performance:
+
+| Chunk Name | Contents |
+|-----------|----------|
+| `vendor-react` | `react`, `react-dom`, `react/jsx-runtime` |
+| `vendor-charts` | `recharts` and dependencies |
+| `vendor-table` | `@tanstack/react-table` |
+| `vendor-i18n` | `react-i18next`, `i18next`, `i18next-http-backend` |
+| `vendor-state` | `zustand` |
+| `templates` | `src/templates/**` |
+| `ai` | `src/ai/**` |
+
+This ensures that vendor libraries are cached separately from application code, reducing re-download on deployments.
+
+---
+
+## 9. i18n Architecture
 
 ### react-i18next Configuration
 
@@ -522,7 +725,7 @@ All translations use a single `common` namespace with top-level groupings:
 
 ---
 
-## 7. Theming
+## 10. Theming
 
 ### CSS Custom Properties System
 
@@ -569,7 +772,7 @@ This allows using tokens in Tailwind classes: `bg-surface`, `text-text-primary`,
 
 ---
 
-## 8. Component Architecture
+## 11. Component Architecture
 
 ### Component Tree Overview
 
@@ -581,6 +784,7 @@ App
       |    |-- ThemeToggle
       |    |-- ImportExportBar
       |    |-- Navigation Tabs
+      |    |-- UserMenu (login/logout, role display)
       |
       |-- SetupWizard (shown when no project data)
       |    |-- StepCountry
@@ -590,16 +794,18 @@ App
       |    |-- StepModules
       |    |-- StepPreview
       |
-      |-- RequirementsTable (tab: requirements)
+      |-- <Suspense> (lazy-loaded tab components)
+      |
+      |-- RequirementsTable (tab: requirements) [lazy]
       |    |-- RequirementModal (create/edit)
       |    |-- TestGenerationPanel (AI)
       |    |-- RiskClassificationPanel (AI)
       |    |-- SignatureModal
       |
-      |-- TestsTable (tab: tests)
+      |-- TestsTable (tab: tests) [lazy]
       |    |-- TestModal (create/edit)
       |
-      |-- EvaluationDashboard (tab: dashboard)
+      |-- EvaluationDashboard (tab: dashboard) [lazy]
       |    |-- FilterBar
       |    |-- CoverageCard
       |    |-- StatusChart (pie, bar)
@@ -614,13 +820,16 @@ App
       |    |-- TrendCharts
       |    |-- PortfolioDashboard
       |
-      |-- ReportGenerator (tab: reports)
+      |-- ReportGenerator (tab: reports) [lazy]
       |    |-- ReportPreview
+      |    |    |-- PDF Export Button
       |
-      |-- ProviderSettings (tab: settings)
+      |-- ProviderSettings (tab: settings) [lazy]
       |
       |-- AuditTrailViewer (modal)
       |-- ConfirmDialog (modal)
+      |-- LoginModal (modal)
+      |-- RegisterModal (modal)
 ```
 
 ### Component Categories
@@ -659,7 +868,55 @@ Modals use a consistent pattern: fixed overlay with centered dialog, click-outsi
 
 ---
 
-## 9. File Structure
+## 12. Test Infrastructure
+
+### Framework
+
+QAtrial v2.0.0 introduces automated testing using:
+
+| Tool | Purpose |
+|------|---------|
+| **Vitest** | Test runner and assertion library (configured in `vitest.config.ts`) |
+| **React Testing Library** | Component rendering and interaction testing |
+| **jsdom** | Browser environment simulation for tests |
+
+### Configuration
+
+The test configuration lives in `vitest.config.ts` at the project root. It sets the environment to `jsdom` and configures path aliases to match the Vite config.
+
+### Test File Location
+
+Test files are co-located with source code in `__tests__` directories:
+
+```
+src/
+  store/
+    __tests__/
+      useAuthStore.test.ts
+      useRiskStore.test.ts
+      ...
+  ai/
+    __tests__/
+      validation.test.ts
+      ...
+  components/
+    requirements/
+      __tests__/
+        RequirementsTable.test.tsx
+        ...
+```
+
+### Running Tests
+
+```bash
+npm run test          # Run all tests
+npm run test:watch    # Run in watch mode
+npm run test:coverage # Run with coverage report
+```
+
+---
+
+## 13. File Structure
 
 ```
 QAtrial/
@@ -681,8 +938,10 @@ QAtrial/
 |-- src/
 |   |-- ai/                         # AI system
 |   |   |-- types.ts                # CompletionRequest, CompletionResponse
-|   |   |-- client.ts               # Unified completion client (Anthropic + OpenAI)
+|   |   |-- client.ts               # Unified completion client (checks proxy, then direct)
 |   |   |-- provider.ts             # Purpose-scoped provider resolver
+|   |   |-- validation.ts           # JSON schema validation, safe parsing, retry logic
+|   |   |-- proxy.ts                # Server-side proxy mode (VITE_AI_PROXY_URL)
 |   |   |-- prompts/
 |   |       |-- generateTests.ts    # Test case generation prompt
 |   |       |-- riskClassification.ts # Risk severity/likelihood prompt
@@ -720,6 +979,9 @@ QAtrial/
 |   |   |       |-- pharma.ts
 |   |   |       |-- medical_devices.ts
 |   |
+|   |-- connectors/                # Connector framework
+|   |   |-- types.ts               # ConnectorConfig, Connector interface, registry
+|   |
 |   |-- store/                     # Zustand state management
 |   |   |-- useProjectStore.ts     # Project metadata
 |   |   |-- useRequirementsStore.ts # Requirements CRUD
@@ -729,6 +991,13 @@ QAtrial/
 |   |   |-- useThemeStore.ts       # Theme preference
 |   |   |-- useLocaleStore.ts      # Language preference
 |   |   |-- useChangeControlStore.ts # Change control config
+|   |   |-- useAuthStore.ts        # Authentication, RBAC, session mgmt
+|   |   |-- useRiskStore.ts        # Persisted risk assessments
+|   |   |-- useCAPAStore.ts        # CAPA records with lifecycle
+|   |   |-- useGapStore.ts         # Gap analysis runs
+|   |   |-- useEvidenceStore.ts    # Evidence attachments
+|   |   |-- useAIHistoryStore.ts   # AI artifact provenance
+|   |   |-- useConnectorStore.ts   # Connector configs and sync records
 |   |   |-- useImportExport.ts     # Import/export hook
 |   |
 |   |-- hooks/                     # Custom React hooks
@@ -738,9 +1007,10 @@ QAtrial/
 |   |   |-- constants.ts           # Chart colors, UI constants
 |   |   |-- idGenerator.ts         # generateId("REQ", counter) -> "REQ-001"
 |   |   |-- demoProjects.ts        # 16 demo project configurations
+|   |   |-- pdfExport.ts           # PDF export with cover page, TOC, signatures
 |   |
 |   |-- types/
-|   |   |-- index.ts               # All TypeScript type definitions (50+ types)
+|   |   |-- index.ts               # All TypeScript type definitions (60+ types)
 |   |
 |   |-- i18n/
 |   |   |-- index.ts               # i18next configuration
@@ -808,6 +1078,7 @@ QAtrial/
 |-- docs/                          # Documentation
 |-- package.json
 |-- tsconfig.json
-|-- vite.config.ts
+|-- vite.config.ts                 # Build config with manual chunks
+|-- vitest.config.ts               # Test runner configuration
 |-- tailwind.config.ts
 ```

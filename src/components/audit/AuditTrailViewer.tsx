@@ -28,6 +28,12 @@ const ACTION_COLORS: Record<AuditAction, string> = {
   sign: 'bg-accent-subtle text-accent',
   export: 'bg-badge-draft-bg text-badge-draft-text',
   generate_report: 'bg-badge-draft-bg text-badge-draft-text',
+  ai_generate: 'bg-accent-subtle text-accent',
+  ai_accept: 'bg-badge-passed-bg text-badge-passed-text',
+  ai_reject: 'bg-danger-subtle text-danger',
+  login: 'bg-badge-active-bg text-badge-active-text',
+  logout: 'bg-badge-notrun-bg text-badge-notrun-text',
+  import: 'bg-badge-draft-bg text-badge-draft-text',
 };
 
 function formatTimestamp(iso: string): string {
