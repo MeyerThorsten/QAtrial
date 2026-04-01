@@ -7,15 +7,19 @@ Complete end-user guide for QAtrial, the regulated quality workspace for GxP-com
 ## Table of Contents
 
 1. [Getting Started](#1-getting-started)
-2. [Project Setup Wizard](#2-project-setup-wizard-6-steps)
-3. [Requirements Management](#3-requirements-management)
-4. [Test Management](#4-test-management)
-5. [Dashboard and Analytics](#5-dashboard-and-analytics)
-6. [AI Features](#6-ai-features)
-7. [Reports](#7-reports)
-8. [Compliance Features](#8-compliance-features)
-9. [Data Management](#9-data-management)
-10. [Demo Projects](#10-demo-projects)
+2. [User Registration and Login](#2-user-registration-and-login)
+3. [Project Setup Wizard](#3-project-setup-wizard-6-steps)
+4. [Requirements Management](#4-requirements-management)
+5. [Test Management](#5-test-management)
+6. [Dashboard and Analytics](#6-dashboard-and-analytics)
+7. [AI Features](#7-ai-features)
+8. [Reports](#8-reports)
+9. [Evidence Management](#9-evidence-management)
+10. [CAPA Workflow](#10-capa-workflow)
+11. [Compliance Features](#11-compliance-features)
+12. [Connector Setup](#12-connector-setup)
+13. [Data Management](#13-data-management)
+14. [Demo Projects](#14-demo-projects)
 
 ---
 
@@ -43,12 +47,13 @@ The development server starts on `http://localhost:5173` by default.
 
 ### First Launch Experience
 
-When you open QAtrial for the first time, the application detects that no project data exists and automatically presents the **Setup Wizard**. There is no login screen or user account system in the current version -- the application stores all data locally in your browser's `localStorage`.
+When you open QAtrial for the first time, you are presented with a **login/registration screen**. After creating an account and logging in, the application detects that no project data exists and automatically presents the **Setup Wizard**. All data is stored locally in your browser's `localStorage`.
 
 The header bar shows:
 - **QAtrial** branding with the project name (once created)
 - Navigation tabs: Requirements, Tests, Evaluation (Dashboard), Reports
 - Toolbar: Audit Trail button, Settings (gear icon), Language Selector, Theme Toggle, New Project, Import/Export
+- User menu: Displays current user name and role, with login/logout options
 
 ### Language Selection
 
@@ -73,7 +78,45 @@ To switch languages, click the **Language Selector** dropdown in the header bar.
 
 ---
 
-## 2. Project Setup Wizard (6 Steps)
+## 2. User Registration and Login
+
+### Creating an Account
+
+1. On the login screen, click **Register**
+2. Fill in your details:
+   - **Full Name** (required): Your display name for audit trails and signatures
+   - **Email** (required): Used as your login identifier
+   - **Password** (required): Used for login and signature re-authentication
+   - **Role**: Select your role (see below)
+3. Click **Register**
+
+### User Roles
+
+| Role | Permissions |
+|------|-------------|
+| **Admin** | Full access to all features, user management, system configuration |
+| **QA Manager** | Create, edit, and approve requirements and tests; generate reports; manage AI features |
+| **QA Engineer** | Create and edit requirements and tests; use AI features; cannot approve |
+| **Auditor** | Read-only access to all data; can view audit trails and generate reports |
+| **Reviewer** | Review and approve/reject records; apply electronic signatures |
+
+### Logging In
+
+1. Enter your **Email** and **Password**
+2. Click **Login**
+3. Your session persists in `localStorage` under `qatrial:auth` until you log out
+
+### Logging Out
+
+Click the **user menu** in the header and select **Logout**. A logout event is recorded in the audit trail.
+
+### Signature Re-Authentication
+
+When applying an electronic signature, you must re-enter your password. After successful re-authentication, a **15-minute window** is granted during which additional signatures do not require re-authentication. This aligns with 21 CFR Part 11.200(a) re-authentication requirements.
+
+---
+
+## 3. Project Setup Wizard (6 Steps)
 
 The Setup Wizard guides you through creating a new project with regulatory-aware templates. It appears automatically on first launch or when you click **New Project** (after confirming you want to discard existing data).
 
@@ -185,7 +228,7 @@ Click **Create Project** to finalize. The wizard closes and you arrive at the Re
 
 ---
 
-## 3. Requirements Management
+## 4. Requirements Management
 
 ### Creating Requirements
 
@@ -244,16 +287,16 @@ Requirements generated from templates include additional metadata fields:
 
 Each requirement row provides two AI action buttons:
 
-1. **Generate Tests (AI):** Opens the Test Generation Panel to auto-generate test cases for this requirement. See [Section 6](#6-ai-features) for details.
-2. **Classify Risk (AI):** Opens the Risk Classification Panel to get an AI-proposed severity and likelihood rating. See [Section 6](#6-ai-features) for details.
+1. **Generate Tests (AI):** Opens the Test Generation Panel to auto-generate test cases for this requirement. See [Section 7](#7-ai-features) for details.
+2. **Classify Risk (AI):** Opens the Risk Classification Panel to get an AI-proposed severity and likelihood rating. See [Section 7](#7-ai-features) for details.
 
 ### Signing/Approving Requirements
 
-Click the signature/shield icon on a requirement to open the Electronic Signature Modal. This records a formal signature with meaning (authored, reviewed, approved, verified, or rejected), reason, and authentication. See [Section 8](#8-compliance-features) for the full signature workflow.
+Click the signature/shield icon on a requirement to open the Electronic Signature Modal. This records a formal signature with meaning (authored, reviewed, approved, verified, or rejected), reason, and authentication. See [Section 11](#11-compliance-features) for the full signature workflow.
 
 ---
 
-## 4. Test Management
+## 5. Test Management
 
 ### Creating Tests
 
@@ -295,7 +338,7 @@ Each test row shows its linked requirements in a compact format. Click on a link
 
 ---
 
-## 5. Dashboard and Analytics
+## 6. Dashboard and Analytics
 
 Navigate to the **Evaluation** tab to access the dashboard. It contains seven sub-tabs:
 
@@ -407,7 +450,7 @@ Note: This is an **enterprise feature**. The current version displays a placehol
 
 ---
 
-## 6. AI Features
+## 7. AI Features
 
 ### Configuring an LLM Provider
 
@@ -538,7 +581,7 @@ Every AI-generated result includes a confidence score (0-100%):
 
 ---
 
-## 7. Reports
+## 8. Reports
 
 ### Available Report Types
 
@@ -556,7 +599,7 @@ Every AI-generated result includes a confidence score (0-100%):
 1. Navigate to the **Reports** tab
 2. Click the card for your desired report type (it highlights when selected)
 3. Configure options:
-   - **Format:** HTML (available) or PDF (coming soon)
+   - **Format:** HTML or PDF
    - **Include e-signatures:** Toggle to include signature blocks in the report
    - **Target Authority** (submission package only): Select from FDA, EMA, MHRA, PMDA, Health Canada, TGA, ANVISA, or NMPA
 4. Click **Generate Report**
@@ -571,35 +614,118 @@ For reports that include AI-generated content (VSR, Executive Brief, Submission 
 
 ### Downloading Reports
 
-After generation, the report preview displays all sections in a formatted view. Use the **Download** button to save the report as an HTML file. The filename includes the project name and date.
+After generation, the report preview displays all sections in a formatted view. Use the **Download** button to save the report as an HTML file, or the **PDF** button to export as a PDF document. The filename includes the project name and date.
+
+### PDF Export (v2.0.0)
+
+The **PDF** button on the report preview generates a professional PDF document with:
+- **Cover page** with project name, version, date, and company information
+- **Table of contents** with page numbers
+- **Signature blocks** for formal sign-off (when e-signatures are enabled)
+- All report sections formatted for print
+
+The PDF export uses `src/lib/pdfExport.ts` (`exportReportAsPDF` function).
 
 ### Report Formats
 
 Currently supported:
 - **HTML:** Fully styled, printable HTML document
-- **PDF:** Planned for a future release
+- **PDF:** Professional PDF with cover page, TOC, and signature blocks
 
 ---
 
-## 8. Compliance Features
+## 9. Evidence Management
+
+### Overview
+
+Evidence management tracks the completeness of supporting documentation for each requirement. The `useEvidenceStore` manages evidence attachments with completeness tracking.
+
+### Adding Evidence
+
+1. Navigate to the **Requirements** tab
+2. Click the evidence/paperclip icon on a requirement row
+3. Add evidence attachments:
+   - **Type:** Document, screenshot, test result, approval record, or other
+   - **Description:** What this evidence demonstrates
+   - **Reference:** Link or file reference to the actual evidence
+
+### Evidence Completeness
+
+A requirement has "complete evidence" when it has:
+1. At least one linked test
+2. A risk assessment (risk level assigned)
+3. An approval signature
+4. At least one evidence attachment
+
+The **Evidence Score** on the dashboard shows the percentage of requirements meeting all criteria. The `useEvidenceStore` provides per-requirement completeness tracking via the `EvidenceAttachment` type.
+
+---
+
+## 10. CAPA Workflow
+
+### Overview
+
+The CAPA (Corrective and Preventive Action) system in v2.0.0 has been expanded with a full lifecycle managed by `useCAPAStore`.
+
+### CAPA Lifecycle
+
+```
+open --> investigation --> in_progress --> verification --> resolved --> closed
+```
+
+| Status | Description |
+|--------|-------------|
+| **open** | CAPA record created, awaiting investigation |
+| **investigation** | Root cause analysis in progress |
+| **in_progress** | Corrective and preventive actions being implemented |
+| **verification** | Effectiveness of actions being verified |
+| **resolved** | Actions verified as effective |
+| **closed** | CAPA formally closed with documented evidence |
+
+### Creating a CAPA Record
+
+1. Go to the **Evaluation** tab, then the **CAPA** sub-tab
+2. Find a failed test and click **Suggest CAPA (AI)** for an AI-generated starting point, or click **Create CAPA** to start manually
+3. Fill in the CAPA details:
+   - **Root Cause:** Analysis of the underlying problem
+   - **Containment:** Immediate action to contain the issue
+   - **Corrective Action:** Steps to fix the problem
+   - **Preventive Action:** Steps to prevent recurrence
+   - **Effectiveness Check:** Criteria for verifying the actions worked
+
+### Managing CAPA Records
+
+- Use the CAPA dashboard to view all records by status
+- Advance records through the lifecycle stages
+- Each status transition is logged in the audit trail
+- CAPA records are stored via `useCAPAStore` with the `CAPARecord` type
+
+---
+
+## 11. Compliance Features
 
 ### Electronic Signatures
 
-Electronic signatures in QAtrial follow the 21 CFR Part 11 and EU Annex 11 model.
+Electronic signatures in QAtrial follow the 21 CFR Part 11 and EU Annex 11 model. In v2.0.0, signatures use the **real user identity** from `useAuthStore`.
 
 **When to use:** Apply a signature when formally authoring, reviewing, approving, verifying, or rejecting a requirement, test, or report section.
 
 **The Signature Modal:**
 1. A context banner shows what you are signing (entity type, ID, title)
-2. Select a **Meaning**:
+2. Your **name and role** are pre-filled from the logged-in user profile
+3. Select a **Meaning**:
    - **I authored this** -- You created or wrote this record
    - **I reviewed this** -- You reviewed the record for accuracy
    - **I approve this** -- You formally approve the record
    - **I verified this** -- You verified the record against source data
    - **I reject this** -- You formally reject the record with cause
-3. Enter a **Reason for signing** (required): Explain why you are signing
-4. Enter your **Password** (required): Re-authenticate to confirm identity
-5. Click **Sign and Apply**
+4. Enter a **Reason for signing** (required): Explain why you are signing
+5. Enter your **Password** (required): Re-authenticate to confirm identity
+6. Click **Sign and Apply**
+
+**Re-authentication window:** After entering your password, a **15-minute window** is granted. Additional signatures within this window do not require re-entering your password. The `verifyForSignature()` and `isSignatureValid()` functions in `useAuthStore` manage this window.
+
+**Warning when not logged in:** If no user is logged in, the signature modal displays a warning that signatures require an authenticated user. You must log in before signing.
 
 The signature is permanently recorded in the audit trail with the signer's name, role, timestamp, meaning, method, and reason.
 
@@ -624,6 +750,8 @@ QAtrial maintains a comprehensive audit trail of all actions. Access it via the 
 - **Export Trail (CSV):** Downloads all filtered entries as a CSV file with columns: Timestamp, Action, User, Entity Type, Entity ID, Previous Value, New Value, Reason, Signature Meaning, Signer
 - **Export Trail (PDF):** Opens the browser print dialog for the current view
 
+**Auto-logging (v2.0.0):** All requirement and test CRUD operations are now automatically logged to the audit trail with the real user identity from `useAuthStore`. You do not need to manually trigger audit entries for standard operations.
+
 **Tracked actions:**
 
 | Action | Description |
@@ -639,6 +767,12 @@ QAtrial maintains a comprehensive audit trail of all actions. Access it via the 
 | Signed | An electronic signature was applied |
 | Exported | Data was exported |
 | Report generated | A report was generated |
+| AI Generate | An AI generation was triggered |
+| AI Accept | An AI-generated result was accepted |
+| AI Reject | An AI-generated result was rejected |
+| Login | A user logged into the system |
+| Logout | A user logged out of the system |
+| Import | Data was imported into the system |
 
 ### Change Control
 
@@ -659,7 +793,43 @@ For all other verticals, change control starts with default (lenient) settings t
 
 ---
 
-## 9. Data Management
+## 12. Connector Setup
+
+### Overview
+
+QAtrial v2.0.0 introduces a connector framework for integrating with external systems. Connectors allow you to import requirements from and export data to tools like Jira, Azure DevOps, or CSV files.
+
+### Configuring a Connector
+
+1. Navigate to the **Settings** tab
+2. Scroll to the **Connectors** section
+3. Click **Add Connector**
+4. Select a connector type:
+   - **Jira** -- Import/export requirements and tests to/from Jira issues
+   - **Azure DevOps** -- Sync with Azure DevOps work items
+   - **CSV** -- Import from or export to CSV files
+   - **Custom** -- Configure a custom REST API connector
+5. Fill in the configuration:
+   - **Name:** A descriptive name for this connection
+   - **Base URL:** The API endpoint for the external system
+   - **Credentials:** API key, token, or authentication details
+   - **Field Mappings:** Map QAtrial fields to external system fields
+6. Click **Test Connection** to verify connectivity
+7. Click **Save**
+
+### Syncing Data
+
+After configuring a connector:
+1. Select the connector from the list
+2. Choose a sync direction: **Import**, **Export**, or **Bidirectional**
+3. Click **Sync**
+4. Review the sync results showing items synced and any errors
+
+Sync records are stored in `useConnectorStore` and can be reviewed for troubleshooting.
+
+---
+
+## 13. Data Management
 
 ### Import/Export (JSON Format)
 
@@ -695,6 +865,13 @@ All data is stored in the browser's `localStorage` under these keys:
 | `qatrial:theme` | Light/dark theme preference |
 | `qatrial:locale` | Selected language and country |
 | `qatrial:change-control` | Change control configuration |
+| `qatrial:auth` | User profile, session, and authentication state |
+| `qatrial:risks` | Persisted risk assessments |
+| `qatrial:capa` | CAPA records and lifecycle state |
+| `qatrial:gaps` | Gap analysis runs and results |
+| `qatrial:evidence` | Evidence attachments |
+| `qatrial:ai-history` | AI artifact provenance and usage statistics |
+| `qatrial:connectors` | Connector configurations and sync records |
 
 Data persists across browser sessions. Clearing browser data or localStorage will erase all project data.
 
@@ -708,7 +885,7 @@ Use the **Language Selector** dropdown in the header to switch between 12 suppor
 
 ---
 
-## 10. Demo Projects
+## 14. Demo Projects
 
 QAtrial includes 16 realistic demo projects spanning different countries, verticals, and project types. Loading a demo pre-fills the Setup Wizard with all fields.
 

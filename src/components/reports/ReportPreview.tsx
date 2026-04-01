@@ -9,8 +9,10 @@ import {
   CheckCircle2,
   Sparkles,
   ChevronRight,
+  FileDown,
 } from 'lucide-react';
 import type { ReportConfig } from '../../types';
+import { exportReportAsPDF } from '../../lib/pdfExport';
 
 interface ReportPreviewProps {
   config: ReportConfig;
@@ -115,6 +117,18 @@ export function ReportPreview({ config, onBack }: ReportPreviewProps) {
           {t('common.back')}
         </button>
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => exportReportAsPDF(config, {
+              title: getReportTitle(config.type),
+              organization: config.projectId,
+              pageNumbers: true,
+              includeTimestamp: true,
+            })}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-text-secondary bg-surface border border-border rounded-lg hover:bg-surface-hover transition-colors"
+          >
+            <FileDown className="w-4 h-4" />
+            PDF
+          </button>
           <button
             onClick={handlePrint}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-text-secondary bg-surface border border-border rounded-lg hover:bg-surface-hover transition-colors"

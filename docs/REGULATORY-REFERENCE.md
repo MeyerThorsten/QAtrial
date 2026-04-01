@@ -9,6 +9,7 @@ Reference guide for the regulatory standards and frameworks used in QAtrial's te
 1. [By Country](#1-by-country)
 2. [By Vertical](#2-by-vertical)
 3. [Module Standards](#3-module-standards)
+4. [v2.0.0 Compliance Improvements](#4-v200-compliance-improvements)
 
 ---
 
@@ -786,3 +787,74 @@ Reference guide for the regulatory standards and frameworks used in QAtrial's te
 - Gap identification (requirements without tests)
 - Design input to design output mapping
 - Verification and validation evidence linking
+
+---
+
+## 4. v2.0.0 Compliance Improvements
+
+### Real Signature Verification
+
+QAtrial v2.0.0 introduces proper identity-based electronic signatures:
+
+- **Real user identity:** Signatures now pull the authenticated user's name, role, and ID from `useAuthStore`, replacing placeholder values
+- **Password re-authentication:** Users must re-enter their password at the point of signing, with a 15-minute validity window per 21 CFR Part 11.200(a)
+- **Non-repudiation:** Each signature is bound to a verified user identity, supporting 21 CFR Part 11.70 non-repudiation requirements
+- **Warning on unauthenticated signing:** The system warns when no user is logged in, preventing anonymous signatures
+
+These improvements strengthen compliance with:
+- 21 CFR Part 11 Subparts B and C (electronic signatures)
+- EU Annex 11 Section 14 (electronic signatures)
+- PMDA ER/ES Guidance (Japan)
+
+### Audit Auto-Logging
+
+All requirement and test CRUD operations now automatically generate audit trail entries with the real user identity:
+
+- **No manual logging required:** Create, update, delete, status change, link, and unlink operations are automatically captured
+- **Real user attribution:** Every audit entry includes the authenticated user's name, role, and ID
+- **New audit actions:** `ai_generate`, `ai_accept`, `ai_reject`, `login`, `logout`, and `import` are now tracked
+- **AI provenance:** AI-generated artifacts are logged with the model, provider, and acceptance/rejection status
+
+This addresses:
+- 21 CFR Part 11.10(e) -- Audit trail requirement for electronic records
+- EU Annex 11 Section 9 -- Audit trail for GMP-critical data changes
+- FDA Data Integrity Guidance -- Attributable (who) requirement
+- MHRA Data Integrity Guidance -- Data lifecycle management
+
+### CAPA Lifecycle
+
+The CAPA system now implements a full lifecycle with formal status tracking:
+
+```
+open --> investigation --> in_progress --> verification --> resolved --> closed
+```
+
+Each status transition is logged in the audit trail. This structured lifecycle supports:
+- 21 CFR 820.90 -- Medical device CAPA requirements (formal investigation and effectiveness verification)
+- ISO 13485 Section 8.5.2/8.5.3 -- Corrective and preventive action with documented effectiveness
+- ICH Q10 Section 3.2 -- CAPA as part of the pharmaceutical quality system
+- EU GMP Chapter 1.4 -- Quality risk management and CAPA
+
+### Aerospace Vertical References
+
+The Aerospace vertical (`aerospace`) includes templates aligned with:
+- **AS9100D** -- QMS requirements for aviation, space, and defense organizations
+- **DO-178C** -- Software considerations in airborne systems and equipment certification
+- **DO-254** -- Design assurance for airborne electronic hardware
+- **EASA Part 21** -- European Aviation Safety Agency certification
+- **FAR Part 21** -- FAA type and production certification
+- **NADCAP** -- National Aerospace and Defense Contractors Accreditation
+
+Risk taxonomy: FMEA with Design Assurance Level (DAL A-E) safety classification per DO-178C.
+
+### Chemical / Environmental Vertical References
+
+The Chemical / Environmental vertical (`chemical_env`) includes templates aligned with:
+- **REACH (EC 1907/2006)** -- Registration, Evaluation, Authorisation and Restriction of Chemicals
+- **CLP Regulation (EC 1272/2008)** -- Classification, Labelling and Packaging of substances and mixtures
+- **TSCA** -- US Toxic Substances Control Act
+- **ISO 14001** -- Environmental Management Systems
+- **ISO 45001** -- Occupational Health and Safety Management Systems
+- **GHS** -- Globally Harmonized System of Classification and Labelling of Chemicals
+
+Risk taxonomy: FMEA for process and environmental risk assessment.

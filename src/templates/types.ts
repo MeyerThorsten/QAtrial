@@ -62,6 +62,17 @@ export interface ModuleDefinition {
  * Requirements are the atomic units of compliance tracking.
  */
 export interface TemplateRequirement {
+  /**
+   * Stable unique identifier for deduplication and provenance tracking.
+   * Format: `{source}:{category-slug}:{short-id}` e.g. `eu:data-integrity:di-01`
+   * When duplicates with the same templateId are found during composition,
+   * the later entry wins (overlay overrides base). This replaces fragile
+   * title-based deduplication.
+   *
+   * Optional for backward compatibility with templates that haven't been
+   * migrated yet — the composer falls back to title-based dedup when absent.
+   */
+  templateId?: string;
   /** Human-readable requirement title */
   title: string;
   /** Detailed description of what must be fulfilled */
@@ -74,6 +85,8 @@ export interface TemplateRequirement {
   riskLevel: RiskLevel;
   /** Optional reference to the regulatory source (e.g., '21 CFR 11.10(e)') */
   regulatoryRef?: string;
+  /** Source provenance: which template file contributed this requirement */
+  source?: string;
 }
 
 /**
@@ -81,6 +94,12 @@ export interface TemplateRequirement {
  * Tests validate that requirements have been properly implemented.
  */
 export interface TemplateTest {
+  /**
+   * Stable unique identifier for deduplication and provenance tracking.
+   * Format: `{source}:{category-slug}:{short-id}` e.g. `eu:audit:tst-01`
+   * Optional for backward compatibility — composer falls back to title-based dedup.
+   */
+  templateId?: string;
   /** Human-readable test title */
   title: string;
   /** Detailed description of test procedure and expected outcome */
@@ -91,6 +110,8 @@ export interface TemplateTest {
   tags: string[];
   /** Tags that link this test to matching requirements */
   linkedReqTags: string[];
+  /** Source provenance: which template file contributed this test */
+  source?: string;
 }
 
 /**

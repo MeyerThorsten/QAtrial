@@ -17,7 +17,7 @@ Country (jurisdiction) × Vertical (domain) × Project Type (execution) × Modul
 - Enriched metadata: tags, regulatory references, risk level, evidence hints
 - Sortable, searchable tables with TanStack Table
 
-### Industry Verticals (8 GxP domains)
+### Industry Verticals (10 GxP domains)
 | Vertical | Standards |
 |----------|----------|
 | Pharmaceuticals | FDA 21 CFR 210/211, ICH Q7/Q10, EU GMP Annex 11 |
@@ -28,12 +28,14 @@ Country (jurisdiction) × Vertical (domain) × Project Type (execution) × Modul
 | Logistics / GDP | WHO GDP, EU GDP, FDA DSCSA |
 | Software & IT (GAMP/CSV) | 21 CFR Part 11, EU Annex 11, GAMP 5 2nd Ed |
 | Cosmetics / Chemical | ISO 22716, OECD GLP, REACH |
+| Aerospace | AS9100D, DO-178C, DO-254, EASA Part 21 |
+| Chemical / Environmental | REACH, CLP, TSCA, ISO 14001, ISO 45001 |
 
 ### 15 Composable Quality Modules
 Audit Trail, Electronic Signatures, Data Integrity (ALCOA+), Change Control, CAPA, Deviation Management, Training, Supplier Qualification, Complaint Handling, Risk Management, Document Control, Backup/DR, Access Control, Validation/CSV, Traceability Matrix
 
-### Country-Specific Templates (6 countries + EU-wide)
-US, Germany, UK, France, Japan + EU-wide base. Each with regulatory requirements and tests referencing local standards and authorities.
+### Country-Specific Templates (14 countries + EU-wide)
+US, Germany, UK, France, Japan, South Korea, Canada, Mexico, China, India, Italy, Netherlands, Spain + EU-wide base. 37 countries supported in the setup wizard. Each with regulatory requirements and tests referencing local standards and authorities.
 
 ### AI Compliance Co-Pilot
 - **Test Case Generator**: Auto-generate 4-6 test cases from a requirement, context-aware (country, vertical, standards, risk level)
@@ -41,7 +43,9 @@ US, Germany, UK, France, Japan + EU-wide base. Each with regulatory requirements
 - **Gap Analysis**: Compare project against regulatory standards, identify covered/partial/missing clauses
 - **CAPA Suggestions**: AI-powered root cause analysis and corrective action proposals for failed tests
 - **Executive Brief**: One-click C-level compliance summary
+- **Validation Summary Report (VSR)**: AI-generated 7-section audit-ready report with PDF export
 - Multi-provider support: Anthropic, OpenAI-compatible (OpenRouter, Ollama, etc.)
+- Server-side proxy mode for production deployments (keeps API keys secure)
 
 ### 7 Dashboard Views
 1. **Overview**: Coverage metrics, status charts, traceability matrix, orphaned items
@@ -59,9 +63,30 @@ US, Germany, UK, France, Japan + EU-wide base. Each with regulatory requirements
 - Traceability Matrix, Gap Analysis, Risk Assessment exports
 
 ### Compliance Features
-- **Electronic Signatures**: 21 CFR Part 11 / EU Annex 11 compliant (meaning, reason, authentication)
-- **Audit Trail**: Full timeline with diffs, signatures, CSV/PDF export
+- **Electronic Signatures**: 21 CFR Part 11 / EU Annex 11 compliant with real identity verification, re-authentication for signatures, and 15-minute verification window
+- **Audit Trail**: Automatic event logging on all CRUD operations, full timeline with diffs, signatures, CSV/PDF export
 - **Change Control**: Configurable per vertical (auto-revert on change, approval workflows)
+- **Evidence Management**: Attach evidence files to requirements, tests, and CAPA records with completeness tracking
+- **Risk Assessments**: Persisted risk assessment entities with full lifecycle and audit trail
+- **CAPA Records**: Durable CAPA records with lifecycle states (open → investigation → in_progress → verification → resolved → closed)
+
+### Authentication & RBAC
+- User registration and login with role-based access control
+- 5 roles: Admin, QA Manager, QA Engineer, Auditor (read-only), Reviewer
+- Role-based permission matrix for all operations
+- Signature verification with password re-authentication
+- Session management with configurable timeouts
+
+### AI System Enhancements
+- **JSON Schema Validation**: All AI responses validated against expected schemas with automatic retry/repair
+- **Provenance Tracking**: Full audit trail of AI generations (model, parameters, tokens, timestamp, reviewer)
+- **Re-run History**: Complete history of all AI-generated artifacts with comparison capability
+- **Server Proxy Mode**: Optional server-side AI proxy (set `VITE_AI_PROXY_URL`) to keep API keys off the client
+
+### External Connectors
+- Connector interface for JIRA, Azure DevOps, GitHub, GitLab, Veeva Vault, MasterControl, TrackWise, SharePoint, Confluence
+- Field mapping configuration for bidirectional sync
+- Sync status tracking and conflict resolution
 
 ### Internationalization (12 languages)
 English, German, French, Spanish, Italian, Portuguese, Dutch, Japanese, Chinese (Simplified), Korean, Hindi, Thai
@@ -79,7 +104,8 @@ Light and dark mode with full design system (CSS custom properties, Tailwind tok
 | TypeScript | Type Safety |
 | Vite | Build Tool |
 | Tailwind CSS 4 | Styling |
-| Zustand | State Management (8 stores) |
+| Vitest | Test Framework |
+| Zustand | State Management (14 stores) |
 | TanStack Table v8 | Tables |
 | Recharts | Charts |
 | react-i18next | Internationalization |
@@ -97,7 +123,8 @@ src/
 │   ├── verticals/               # 5 industry vertical templates
 │   ├── modules/                 # 15 quality module definitions
 │   └── regions/                 # 6 country + EU base + overlays
-├── store/                       # 8 Zustand stores
+├── connectors/                  # External QMS/ALM connector interfaces
+├── store/                       # 14 Zustand stores (req, test, audit, auth, risk, CAPA, gap, evidence, AI history, connectors, ...)
 ├── i18n/                        # i18next configuration
 ├── hooks/                       # Custom hooks
 ├── lib/                         # Constants, ID generator, approval helpers
@@ -115,7 +142,7 @@ src/
 └── public/locales/              # 12 complete translation files
 ```
 
-**84 TypeScript source files, 14,000+ lines of code, 12 translation files (425 keys each)**
+**100+ TypeScript source files, 18,000+ lines of code, 12 translation files (425+ keys each)**
 
 ## Installation
 

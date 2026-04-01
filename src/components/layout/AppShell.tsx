@@ -1,21 +1,31 @@
-import { useState } from 'react';
+import { useState, lazy, Suspense } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ClipboardList, FlaskConical, BarChart3, FolderPlus, ScrollText, X, FileText, Settings } from 'lucide-react';
 import { ImportExportBar } from '../shared/ImportExportBar';
 import { ThemeToggle } from '../shared/ThemeToggle';
 import { LanguageSelector } from '../shared/LanguageSelector';
-import { RequirementsTable } from '../requirements/RequirementsTable';
-import { TestsTable } from '../tests/TestsTable';
-import { EvaluationDashboard } from '../dashboard/EvaluationDashboard';
-import { AuditTrailViewer } from '../audit/AuditTrailViewer';
-import { ReportGenerator } from '../reports/ReportGenerator';
-import { ProviderSettings } from '../ai/ProviderSettings';
-import { SetupWizard } from '../wizard/SetupWizard';
 import { ConfirmDialog } from '../shared/ConfirmDialog';
 import { useProjectStore } from '../../store/useProjectStore';
 import { useRequirementsStore } from '../../store/useRequirementsStore';
 import { useTestsStore } from '../../store/useTestsStore';
 import type { ViewTab } from '../../types';
+
+// Lazy-loaded components for code splitting
+const RequirementsTable = lazy(() => import('../requirements/RequirementsTable').then((m) => ({ default: m.RequirementsTable })));
+const TestsTable = lazy(() => import('../tests/TestsTable').then((m) => ({ default: m.TestsTable })));
+const EvaluationDashboard = lazy(() => import('../dashboard/EvaluationDashboard').then((m) => ({ default: m.EvaluationDashboard })));
+const AuditTrailViewer = lazy(() => import('../audit/AuditTrailViewer').then((m) => ({ default: m.AuditTrailViewer })));
+const ReportGenerator = lazy(() => import('../reports/ReportGenerator').then((m) => ({ default: m.ReportGenerator })));
+const ProviderSettings = lazy(() => import('../ai/ProviderSettings').then((m) => ({ default: m.ProviderSettings })));
+const SetupWizard = lazy(() => import('../wizard/SetupWizard').then((m) => ({ default: m.SetupWizard })));
+
+function TabSpinner() {
+  return (
+    <div className="flex items-center justify-center h-64">
+      <div className="h-6 w-6 rounded-full border-2 border-accent border-t-transparent animate-spin" />
+    </div>
+  );
+}
 
 export function AppShell() {
   const { t } = useTranslation();
@@ -40,7 +50,11 @@ export function AppShell() {
   ];
 
   if (wizardVisible) {
-    return <SetupWizard onComplete={() => setShowWizard(false)} />;
+    return (
+      <Suspense fallback={<TabSpinner />}>
+        <SetupWizard onComplete={() => setShowWizard(false)} />
+      </Suspense>
+    );
   }
 
   const handleNewProject = () => {
@@ -134,11 +148,13 @@ export function AppShell() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {activeTab === 'requirements' && <RequirementsTable />}
-        {activeTab === 'tests' && <TestsTable />}
-        {activeTab === 'dashboard' && <EvaluationDashboard />}
-        {activeTab === 'reports' && <ReportGenerator />}
-        {activeTab === 'settings' && <ProviderSettings />}
+        <Suspense fallback={<TabSpinner />}>
+          {activeTab === 'requirements' && <RequirementsTable />}
+          {activeTab === 'tests' && <TestsTable />}
+          {activeTab === 'dashboard' && <EvaluationDashboard />}
+          {activeTab === 'reports' && <ReportGenerator />}
+          {activeTab === 'settings' && <ProviderSettings />}
+        </Suspense>
       </main>
 
       <ConfirmDialog
@@ -169,7 +185,9 @@ export function AppShell() {
               </button>
             </div>
             <div className="flex-1 overflow-y-auto px-6 py-4">
-              <AuditTrailViewer />
+              <Suspense fallback={<TabSpinner />}>
+                <AuditTrailViewer />
+              </Suspense>
             </div>
           </div>
         </div>

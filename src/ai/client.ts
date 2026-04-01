@@ -1,13 +1,33 @@
 import type { CompletionRequest, CompletionResponse } from './types';
 import { resolveProvider } from './provider';
 import { useLLMStore } from '../store/useLLMStore';
+import { isProxyEnabled, proxyComplete } from './proxy';
 
 /**
  * Unified AI completion client.
+ *
+ * When a server proxy is configured (VITE_AI_PROXY_URL), requests route
+ * through the backend — keeping API keys off the client.
+ *
+ * Otherwise, falls back to direct browser-to-API calls using the
+ * locally-configured providers.
+ */
+export async function complete(req: CompletionRequest): Promise<CompletionResponse> {
+  // Prefer server-side proxy when available
+  if (isProxyEnabled()) {
+    return proxyComplete(req);
+  }
+
+  // Direct client-side call (development / standalone mode)
+  return directComplete(req);
+}
+
+/**
+ * Direct browser-to-API completion.
  * Routes requests to the appropriate provider based on purpose,
  * handles Anthropic and OpenAI-compatible APIs, and tracks usage.
  */
-export async function complete(req: CompletionRequest): Promise<CompletionResponse> {
+async function directComplete(req: CompletionRequest): Promise<CompletionResponse> {
   const { providers, trackUsage } = useLLMStore.getState();
   const provider = resolveProvider(req.purpose, providers);
 

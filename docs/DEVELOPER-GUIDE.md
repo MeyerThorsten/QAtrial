@@ -12,10 +12,14 @@ Guide for developers extending and customizing QAtrial.
 4. [Adding a New Module](#4-adding-a-new-module)
 5. [Adding a New Language](#5-adding-a-new-language)
 6. [Adding a New AI Prompt](#6-adding-a-new-ai-prompt)
-7. [Adding a New Dashboard View](#7-adding-a-new-dashboard-view)
-8. [Adding a New Report Type](#8-adding-a-new-report-type)
-9. [Code Conventions](#9-code-conventions)
-10. [Testing Checklist](#10-testing-checklist)
+7. [Adding AI Validators](#7-adding-ai-validators)
+8. [Writing Connectors](#8-writing-connectors)
+9. [Creating New Stores](#9-creating-new-stores)
+10. [Adding a New Dashboard View](#10-adding-a-new-dashboard-view)
+11. [Adding a New Report Type](#11-adding-a-new-report-type)
+12. [Code Conventions](#12-code-conventions)
+13. [Test Infrastructure](#13-test-infrastructure)
+14. [Testing Checklist](#14-testing-checklist)
 
 ---
 
@@ -48,6 +52,9 @@ The dev server starts at `http://localhost:5173` with hot module replacement (HM
 | `npm run preview` | Preview production build locally |
 | `npm run lint` | Run ESLint on source files |
 | `npm run type-check` | Run TypeScript compiler in check mode |
+| `npm run test` | Run all tests with Vitest |
+| `npm run test:watch` | Run tests in watch mode |
+| `npm run test:coverage` | Run tests with coverage report |
 
 ### Dev Server Configuration
 
@@ -155,6 +162,8 @@ In every locale file (`public/locales/{lang}/common.json`), add the country name
 ### Template Content Guidelines
 
 - Each requirement should have a clear, specific `title` and detailed `description`
+- **Include a `templateId`** (v2.0.0): A stable identifier for deduplication across locales (e.g., `"br-anvisa-rdc658-compliance"`). Falls back to title matching if omitted for backward compatibility.
+- **Include a `source`** (v2.0.0): Origin of the template (e.g., `"br/base"`, `"br/overlays/pharma"`)
 - Use `regulatoryRef` to cite the exact regulatory clause
 - Assign `riskLevel` based on the criticality to the regulatory framework
 - Use descriptive, lowercase, hyphenated `tags` for linking (e.g., `"data-integrity"`, `"anvisa-compliance"`)
@@ -519,7 +528,214 @@ const PURPOSE_LABELS: Record<LLMPurpose, string> = {
 
 ---
 
-## 7. Adding a New Dashboard View
+## 7. Adding AI Validators
+
+### Overview
+
+AI response validation (`src/ai/validation.ts`) ensures that LLM outputs conform to expected schemas before being used in the application.
+
+### How to Add a Validator for a New Prompt
+
+1. Define a JSON schema for the expected response:
+
+```typescript
+const myResponseSchema = {
+  type: 'object',
+  required: ['field1', 'field2', 'confidence'],
+  properties: {
+    field1: { type: 'string' },
+    field2: { type: 'number', minimum: 0, maximum: 100 },
+    confidence: { type: 'number', minimum: 0, maximum: 1 },
+  },
+};
+```
+
+2. Use `safeParse()` in your prompt function:
+
+```typescript
+import { safeParse, ValidationError } from '../validation';
+
+export async function myPromptFunction(ctx: MyContext): Promise<MyResult> {
+  const prompt = buildMyPrompt(ctx);
+  const response = await complete({ prompt, purpose: 'my_purpose' });
+
+  const parsed = safeParse(response.text, myResponseSchema);
+  return { ...parsed, generatedBy: response.model };
+}
+```
+
+3. The `safeParse` function:
+   - Strips markdown code fences (`` ```json `` / `` ``` ``)
+   - Calls `JSON.parse()`
+   - Validates against the schema
+   - Throws `ValidationError` with detailed violations on failure
+
+### Retry Logic
+
+The validation layer supports automatic retry when validation fails. Configure retry behavior:
+
+```typescript
+import { completeWithValidation } from '../validation';
+
+const result = await completeWithValidation({
+  prompt,
+  purpose: 'my_purpose',
+  schema: myResponseSchema,
+  maxRetries: 3,  // Default: 2
+});
+```
+
+On validation failure, the system retries with an amended prompt that includes the validation errors, guiding the LLM toward a correct response.
+
+---
+
+## 8. Writing Connectors
+
+### Overview
+
+The connector framework (`src/connectors/types.ts`) allows integration with external systems. Each connector implements the `Connector` interface.
+
+### Step-by-Step
+
+#### 1. Create a connector implementation
+
+```typescript
+// src/connectors/jira.ts
+import type { Connector, ConnectorConfig, SyncRecord } from './types';
+
+export class JiraConnector implements Connector {
+  id = 'jira-connector';
+  type = 'jira' as const;
+  name = 'Jira';
+
+  private config: ConnectorConfig | null = null;
+
+  async connect(config: ConnectorConfig): Promise<boolean> {
+    this.config = config;
+    // Validate credentials, establish connection
+    return true;
+  }
+
+  async disconnect(): Promise<void> {
+    this.config = null;
+  }
+
+  async sync(direction: SyncRecord['direction']): Promise<SyncRecord> {
+    // Implement sync logic: fetch from Jira API, map fields, create/update records
+    return { /* SyncRecord */ } as SyncRecord;
+  }
+
+  async testConnection(): Promise<{ ok: boolean; message: string }> {
+    // Send a lightweight API call to verify connectivity
+    return { ok: true, message: 'Connected to Jira' };
+  }
+}
+```
+
+#### 2. Register the connector
+
+```typescript
+import { connectorRegistry } from './types';
+import { JiraConnector } from './jira';
+
+connectorRegistry.registerConnector(new JiraConnector());
+```
+
+#### 3. Add field mappings
+
+Field mappings define how QAtrial fields correspond to external system fields:
+
+```typescript
+const mappings: FieldMapping[] = [
+  { sourceField: 'title', targetField: 'summary' },
+  { sourceField: 'description', targetField: 'description' },
+  { sourceField: 'status', targetField: 'status', transform: 'statusMap' },
+  { sourceField: 'riskLevel', targetField: 'priority', transform: 'riskToPriority' },
+];
+```
+
+#### 4. Add ConnectorType
+
+If adding a new connector type, add it to the `ConnectorType` union in `src/connectors/types.ts`.
+
+### Connector State
+
+Connector configurations and sync records are managed by `useConnectorStore`. The store handles:
+- Adding/updating/removing connector configurations
+- Recording sync history
+- Tracking sync status (pending, in_progress, completed, failed)
+
+---
+
+## 9. Creating New Stores
+
+### Zustand Store Pattern
+
+All QAtrial stores follow the same pattern with localStorage persistence:
+
+```typescript
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+
+interface MyState {
+  items: MyItem[];
+  addItem: (item: Omit<MyItem, 'id' | 'createdAt'>) => void;
+  updateItem: (id: string, data: Partial<MyItem>) => void;
+  deleteItem: (id: string) => void;
+  getById: (id: string) => MyItem | undefined;
+}
+
+export const useMyStore = create<MyState>()(
+  persist(
+    (set, get) => ({
+      items: [],
+
+      addItem: (data) => set((state) => ({
+        items: [...state.items, {
+          ...data,
+          id: crypto.randomUUID(),
+          createdAt: new Date().toISOString(),
+        }],
+      })),
+
+      updateItem: (id, data) => set((state) => ({
+        items: state.items.map((item) =>
+          item.id === id ? { ...item, ...data, updatedAt: new Date().toISOString() } : item
+        ),
+      })),
+
+      deleteItem: (id) => set((state) => ({
+        items: state.items.filter((item) => item.id !== id),
+      })),
+
+      getById: (id) => get().items.find((item) => item.id === id),
+    }),
+    { name: 'qatrial:my-store' }
+  )
+);
+```
+
+### Naming Conventions
+
+- Store file: `src/store/useMyStore.ts`
+- Export name: `useMyStore`
+- Persistence key: `qatrial:my-store` (kebab-case)
+- State interface: `MyState`
+
+### Checklist for New Stores
+
+1. Define the state interface with all fields and actions
+2. Use `persist` middleware with a `qatrial:` prefixed key
+3. Use `crypto.randomUUID()` for IDs or the `generateId()` utility for sequential IDs
+4. Add ISO 8601 timestamps for `createdAt` and `updatedAt`
+5. Implement audit trail logging for CRUD operations using `useAuditStore`
+6. Add the store to the Architecture documentation (store table)
+7. Add the localStorage key to the User Guide (data persistence table)
+8. Write tests in `src/store/__tests__/useMyStore.test.ts`
+
+---
+
+## 10. Adding a New Dashboard View
 
 ### Component Pattern
 
@@ -597,7 +813,7 @@ const tabs: { id: DashboardTab; labelKey: string }[] = [
 
 ---
 
-## 8. Adding a New Report Type
+## 11. Adding a New Report Type
 
 ### Report Section Structure
 
@@ -720,7 +936,7 @@ const summary = `Total: ${requirements.length}\n` +
 
 ---
 
-## 9. Code Conventions
+## 12. Code Conventions
 
 ### TypeScript Patterns
 
@@ -767,20 +983,111 @@ const summary = `Total: ${requirements.length}\n` +
 
 ---
 
-## 10. Testing Checklist
+## 13. Test Infrastructure
+
+### Framework
+
+QAtrial v2.0.0 uses **Vitest** with **React Testing Library** and **jsdom** for automated testing.
+
+### Configuration
+
+Test configuration is in `vitest.config.ts` at the project root:
+
+```typescript
+import { defineConfig } from 'vitest/config';
+
+export default defineConfig({
+  test: {
+    environment: 'jsdom',
+    globals: true,
+    setupFiles: ['./src/test/setup.ts'],
+  },
+});
+```
+
+### Writing Tests
+
+#### Store Tests
+
+Test files go in `__tests__` directories next to the source:
+
+```typescript
+// src/store/__tests__/useAuthStore.test.ts
+import { describe, it, expect, beforeEach } from 'vitest';
+import { useAuthStore } from '../useAuthStore';
+
+describe('useAuthStore', () => {
+  beforeEach(() => {
+    // Reset store state between tests
+    useAuthStore.setState({ user: null });
+  });
+
+  it('should register a new user', () => {
+    const { register } = useAuthStore.getState();
+    register('Test User', 'test@example.com', 'password', 'qa_engineer');
+    const { user } = useAuthStore.getState();
+    expect(user).not.toBeNull();
+    expect(user?.name).toBe('Test User');
+    expect(user?.role).toBe('qa_engineer');
+  });
+});
+```
+
+#### Component Tests
+
+```typescript
+// src/components/requirements/__tests__/RequirementsTable.test.tsx
+import { describe, it, expect } from 'vitest';
+import { render, screen } from '@testing-library/react';
+import { RequirementsTable } from '../RequirementsTable';
+
+describe('RequirementsTable', () => {
+  it('should render the requirements table', () => {
+    render(<RequirementsTable />);
+    expect(screen.getByRole('table')).toBeInTheDocument();
+  });
+});
+```
+
+### Running Tests
+
+```bash
+npm run test              # Run all tests once
+npm run test:watch        # Watch mode (re-run on file changes)
+npm run test:coverage     # Generate coverage report
+```
+
+### Test File Naming
+
+- Store tests: `src/store/__tests__/useMyStore.test.ts`
+- Component tests: `src/components/feature/__tests__/MyComponent.test.tsx`
+- Utility tests: `src/lib/__tests__/myUtil.test.ts`
+- AI tests: `src/ai/__tests__/validation.test.ts`
+
+---
+
+## 14. Testing Checklist
 
 ### Manual Testing Workflow
 
-QAtrial does not currently have automated tests. Use this manual checklist when making changes:
+In addition to automated tests, use this manual checklist when making changes:
+
+### Authentication and RBAC
+
+- [ ] **Registration:** Register a new user with each role. Verify role is saved.
+- [ ] **Login/Logout:** Log in and out. Verify audit trail entries for login/logout.
+- [ ] **Permissions:** Verify each role's permissions (e.g., auditor cannot edit requirements).
+- [ ] **Signature Re-auth:** Apply a signature, verify password prompt. Apply another within 15 minutes, verify no prompt.
 
 ### Core Functionality
 
 - [ ] **New Project Wizard:** Complete all 6 steps. Verify requirements and tests are created correctly.
 - [ ] **Load Demo:** Load at least 2 different country demos. Verify all fields are populated.
-- [ ] **Requirements CRUD:** Create, edit, delete a requirement. Verify audit trail entries.
+- [ ] **Requirements CRUD:** Create, edit, delete a requirement. Verify audit trail entries with real user identity.
 - [ ] **Tests CRUD:** Create, edit, delete a test. Verify linked requirements are preserved.
 - [ ] **Linking:** Link and unlink tests to requirements. Verify the traceability matrix updates.
 - [ ] **Referential Integrity:** Delete a requirement linked to a test. Verify the link is removed from the test.
+- [ ] **Auto-logging:** Verify all CRUD operations produce audit entries automatically.
 
 ### Dashboard
 
@@ -804,12 +1111,29 @@ QAtrial does not currently have automated tests. Use this manual checklist when 
 - [ ] **Audit Trail:** Open audit trail. Filter by date. Export as CSV.
 - [ ] **Change Control:** Verify strict verticals (pharma, medical_devices, biotech) get full change control config.
 
+### Evidence and CAPA
+
+- [ ] **Evidence Attachments:** Add evidence to a requirement. Verify completeness tracking updates.
+- [ ] **CAPA Lifecycle:** Create a CAPA record and advance through all lifecycle stages.
+- [ ] **PDF Export:** Generate a report and export as PDF. Verify cover page, TOC, and signatures.
+
+### Connectors
+
+- [ ] **Add Connector:** Configure a connector. Test connection. Verify configuration is saved.
+- [ ] **Sync:** Run a sync operation. Verify sync records are created.
+
 ### Data Management
 
 - [ ] **Export:** Export project data. Verify JSON structure.
 - [ ] **Import:** Import a previously exported file. Verify all data loads correctly.
 - [ ] **Theme:** Toggle between light and dark mode. Verify all components render correctly.
 - [ ] **Language:** Switch to at least 2 non-English languages. Verify no missing translations in core views.
+
+### Automated Tests
+
+- [ ] **Run Tests:** `npm run test` passes with no failures.
+- [ ] **New Store Tests:** Any new store has corresponding tests in `__tests__/`.
+- [ ] **AI Validation Tests:** Validation schemas are tested for edge cases.
 
 ### Key Verification Points
 

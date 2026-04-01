@@ -15,6 +15,7 @@ export const templateSet: CountryTemplateSet = {
     // CNIL (Commission Nationale de l'Informatique et des Libertés)
     // -----------------------------------------------------------------------
     {
+      templateId: 'fr:data-protection:req-01',
       title: 'CNIL Data Protection Compliance',
       description:
         'Processing of personal data in France shall comply with CNIL guidelines supplementing the GDPR. Key CNIL-specific requirements include: compliance with CNIL deliberations and guidelines, use of CNIL reference frameworks (référentiels) for specific sectors, appointment of a DPO (Délégué à la protection des données) where required, CNIL registration/notification where mandated, and adherence to CNIL cookie consent guidelines (no cookie wall, equal reject/accept buttons).',
@@ -24,6 +25,7 @@ export const templateSet: CountryTemplateSet = {
       regulatoryRef: 'Loi Informatique et Libertés (modified); CNIL Guidelines',
     },
     {
+      templateId: 'fr:privacy:req-01',
       title: 'CNIL Cookie and Tracker Guidelines',
       description:
         'Cookie and tracker implementation shall comply with CNIL guidelines on cookies and other trackers (délibération n°2020-091). Requirements include: no cookie wall (access to service must not be conditional on consent), "Continue without accepting" option equally visible as accept, consent must be specific per purpose, consent records must be retained, consent must be refreshed every 6 months maximum, and no cookie shall be deposited before valid consent.',
@@ -33,6 +35,7 @@ export const templateSet: CountryTemplateSet = {
       regulatoryRef: 'CNIL Délibération n°2020-091; Article 82 Loi Informatique et Libertés',
     },
     {
+      templateId: 'fr:security:req-01',
       title: 'CNIL Security Recommendations',
       description:
         'Data security measures shall align with CNIL security recommendations (Guide de la sécurité des données personnelles). The guide covers: user awareness, authentication management, access rights management, tracing and log management, workstation security, mobile device security, network protection, server security, subcontracting, archiving, software development, encryption, and physical security.',
@@ -46,6 +49,7 @@ export const templateSet: CountryTemplateSet = {
     // ANSSI (Agence Nationale de la Sécurité des Systèmes d'Information)
     // -----------------------------------------------------------------------
     {
+      templateId: 'fr:cybersecurity:req-01',
       title: 'ANSSI Cybersecurity Requirements',
       description:
         'Information systems shall align with ANSSI guidelines and, where applicable, achieve SecNumCloud or ANSSI CSPN certification. For operators of essential services (OES) and operators of vital importance (OIV), compliance with ANSSI rules is mandatory. Requirements include: information system mapping, access control, system hardening, security monitoring, incident detection and response, and regular security audits per the ANSSI guide d\'hygiène informatique.',
@@ -55,6 +59,7 @@ export const templateSet: CountryTemplateSet = {
       regulatoryRef: 'ANSSI Guide d\'hygiène informatique; LPM (Loi de Programmation Militaire)',
     },
     {
+      templateId: 'fr:cloud-security:req-01',
       title: 'ANSSI SecNumCloud Qualification for Cloud Services',
       description:
         'Cloud services processing sensitive data for French public entities or OIV shall seek SecNumCloud qualification from ANSSI. SecNumCloud requirements include: data hosting within the EU, governance by EU-based entities (protection against extraterritorial laws), ISO 27001 certification, comprehensive security controls, incident response, and business continuity. The qualification covers IaaS, PaaS, and SaaS service models.',
@@ -68,6 +73,7 @@ export const templateSet: CountryTemplateSet = {
     // RGAA (Référentiel Général d'Amélioration de l'Accessibilité)
     // -----------------------------------------------------------------------
     {
+      templateId: 'fr:accessibility:req-01',
       title: 'RGAA Accessibility Compliance',
       description:
         'Digital services shall conform to the RGAA (Référentiel Général d\'Amélioration de l\'Accessibilité) version 4.1, which operationalizes EN 301 549 / WCAG 2.1 Level AA for France. Requirements include: publishing an accessibility statement (déclaration d\'accessibilité), achieving and maintaining the target compliance rate, establishing a multi-year accessibility improvement plan (schéma pluriannuel), and providing a contact mechanism for accessibility issues.',
@@ -81,6 +87,7 @@ export const templateSet: CountryTemplateSet = {
     // NF Certification
     // -----------------------------------------------------------------------
     {
+      templateId: 'fr:standards:req-01',
       title: 'NF Certification and AFNOR Standards',
       description:
         'Where applicable, products and services shall comply with NF standards (normes françaises) managed by AFNOR. For software and IT services, relevant standards include: NF EN ISO/IEC 27001 for information security, NF Logiciel for software quality, and sector-specific NF marks. NF certification provides market confidence and may be required for public sector procurement in France.',
@@ -94,6 +101,7 @@ export const templateSet: CountryTemplateSet = {
     // Hébergement de Données de Santé (HDS)
     // -----------------------------------------------------------------------
     {
+      templateId: 'fr:healthcare:req-01',
       title: 'HDS — Health Data Hosting Certification',
       description:
         'If the system hosts personal health data (données de santé) for French healthcare, the hosting provider must hold HDS (Hébergeur de Données de Santé) certification per Article L.1111-8 of the Code de la santé publique. HDS certification requires ISO 27001 certification plus specific health data protection controls covering: physical security, data management, backup/recovery, confidentiality, and contractual obligations.',
@@ -107,6 +115,7 @@ export const templateSet: CountryTemplateSet = {
     // RGS (Référentiel Général de Sécurité)
     // -----------------------------------------------------------------------
     {
+      templateId: 'fr:public-sector-security:req-01',
       title: 'RGS — General Security Framework for Public Services',
       description:
         'Information systems providing online public services shall comply with the RGS (Référentiel Général de Sécurité). Requirements include: security risk analysis, implementation of security controls proportionate to risk, use of qualified security products and services (per ANSSI qualification), electronic certificate management, and periodic security audits. The RGS defines three security levels based on impact.',
@@ -119,6 +128,7 @@ export const templateSet: CountryTemplateSet = {
 
   tests: [
     {
+      templateId: 'fr:privacy:tst-01',
       title: 'Verify CNIL Cookie Compliance',
       description:
         'Test cookie implementation per CNIL guidelines. Verify: no cookies are deposited before consent, no cookie wall exists, the "Continue without accepting" option is as visible as "Accept all", consent is granular per purpose, consent is stored with timestamp, consent refresh occurs within 6 months, and the cookie policy is written in French and accessible.',
@@ -127,6 +137,7 @@ export const templateSet: CountryTemplateSet = {
       linkedReqTags: ['cnil', 'cookies', 'trackers'],
     },
     {
+      templateId: 'fr:security:tst-01',
       title: 'Verify CNIL Security Recommendations',
       description:
         'Assess security controls against the CNIL security guide. Verify: user authentication meets CNIL recommendations (password length/complexity), access rights follow least-privilege principle, logging captures security events and is retained appropriately, encryption is applied per CNIL guidance, and a data breach response procedure enables notification within 72 hours.',
@@ -135,6 +146,7 @@ export const templateSet: CountryTemplateSet = {
       linkedReqTags: ['cnil', 'security-guide', 'data-security'],
     },
     {
+      templateId: 'fr:cybersecurity:tst-01',
       title: 'Verify ANSSI Cyber Hygiene Controls',
       description:
         'Assess the system against the ANSSI guide d\'hygiène informatique (42 measures). Verify a sample covering: system inventory is maintained, accounts are managed with least privilege, systems are hardened per ANSSI guidelines, security updates are applied promptly, network segmentation is implemented, and incident detection capabilities are operational.',
@@ -143,6 +155,7 @@ export const templateSet: CountryTemplateSet = {
       linkedReqTags: ['anssi', 'secnumcloud', 'oiv'],
     },
     {
+      templateId: 'fr:accessibility:tst-01',
       title: 'Verify RGAA Accessibility Compliance',
       description:
         'Perform accessibility testing per RGAA 4.1 methodology. Test a representative sample of pages against the 106 RGAA criteria. Verify: the accessibility statement (déclaration d\'accessibilité) is published with required elements, compliance rate is calculated correctly, a multi-year improvement plan exists, and a feedback mechanism for accessibility issues is functional and monitored.',
@@ -151,6 +164,7 @@ export const templateSet: CountryTemplateSet = {
       linkedReqTags: ['rgaa', 'accessibility', 'declaration-accessibilite'],
     },
     {
+      templateId: 'fr:healthcare:tst-01',
       title: 'Verify HDS Certification for Health Data',
       description:
         'If hosting health data, verify: the hosting provider holds current HDS certification, the certification scope covers the services used, ISO 27001 certification is maintained, health data protection controls are implemented per the HDS reference framework, and the hosting contract includes all required HDS clauses.',
@@ -159,6 +173,7 @@ export const templateSet: CountryTemplateSet = {
       linkedReqTags: ['hds', 'health-data', 'hosting-certification'],
     },
     {
+      templateId: 'fr:cloud-security:tst-01',
       title: 'Verify SecNumCloud Qualification',
       description:
         'If using cloud services for sensitive data, verify: the cloud provider holds current ANSSI SecNumCloud qualification, the qualification scope covers the service model used (IaaS/PaaS/SaaS), data is hosted within the EU, governance structure protects against extraterritorial access, and complementary customer controls are implemented.',
@@ -167,6 +182,7 @@ export const templateSet: CountryTemplateSet = {
       linkedReqTags: ['anssi', 'secnumcloud', 'cloud-qualification'],
     },
     {
+      templateId: 'fr:public-sector-security:tst-01',
       title: 'Verify RGS Compliance for Public Services',
       description:
         'If providing online public services, verify: security risk analysis is documented, security controls are proportionate to the identified risk level, qualified security products are used where required, electronic certificates comply with RGS requirements, and periodic security audits are conducted and findings are remediated.',

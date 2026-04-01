@@ -24,17 +24,37 @@ function generateAuditId(): string {
   return `audit-${Date.now()}-${auditIdCounter}`;
 }
 
+/**
+ * Lazy reference to auth store to avoid circular dependency.
+ * Set by useAuthStore on module init via setAuthStoreRef().
+ */
+let authStoreRef: (() => { id: string; name: string } | null) | null = null;
+
+/** Called by useAuthStore to inject itself, breaking circular deps. */
+export function setAuthStoreRef(getter: () => { id: string; name: string } | null): void {
+  authStoreRef = getter;
+}
+
+function getCurrentUser(): { id: string; name: string } {
+  if (authStoreRef) {
+    const user = authStoreRef();
+    if (user) return user;
+  }
+  return { id: 'system', name: 'System' };
+}
+
 export const useAuditStore = create<AuditState>()(
   persist(
     (set, get) => ({
       entries: [],
 
       log: (action, entityType, entityId, previousValue?, newValue?, reason?) => {
+        const user = getCurrentUser();
         const entry: AuditEntry = {
           id: generateAuditId(),
           timestamp: new Date().toISOString(),
-          userId: 'current-user',
-          userName: 'Current User',
+          userId: user.id,
+          userName: user.name,
           action,
           entityType,
           entityId,

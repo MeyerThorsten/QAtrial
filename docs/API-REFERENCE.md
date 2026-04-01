@@ -8,9 +8,12 @@ Reference documentation for all stores, hooks, utilities, and types.
 
 1. [Stores](#1-stores)
 2. [AI Client](#2-ai-client)
-3. [Template System](#3-template-system)
-4. [Utilities](#4-utilities)
-5. [Type Reference](#5-type-reference)
+3. [AI Validation](#3-ai-validation)
+4. [Template System](#4-template-system)
+5. [Connector Types](#5-connector-types)
+6. [PDF Export](#6-pdf-export)
+7. [Utilities](#7-utilities)
+8. [Type Reference](#8-type-reference)
 
 ---
 
@@ -276,6 +279,258 @@ This is a custom hook, not a Zustand store.
 
 ---
 
+### useAuthStore
+
+**File:** `src/store/useAuthStore.ts`
+**Persistence Key:** `qatrial:auth`
+
+#### State Shape
+
+```typescript
+interface AuthState {
+  user: UserProfile | null;
+  signatureVerifiedAt: number | null;  // Timestamp of last password re-auth
+}
+
+interface UserProfile {
+  id: string;
+  name: string;
+  email: string;
+  role: UserRole;
+  createdAt: string;
+}
+
+type UserRole = 'admin' | 'qa_manager' | 'qa_engineer' | 'auditor' | 'reviewer';
+```
+
+#### Actions
+
+| Action | Signature | Description |
+|--------|-----------|-------------|
+| `login` | `(email: string, password: string) => boolean` | Authenticates a user and sets the current session. Returns `true` on success. Logs `login` audit event. |
+| `logout` | `() => void` | Clears the current user session. Logs `logout` audit event. |
+| `register` | `(name: string, email: string, password: string, role: UserRole) => void` | Creates a new user profile and logs them in. |
+| `verifyForSignature` | `(password: string) => boolean` | Re-authenticates the user for signing. Sets a 15-minute validity window. |
+| `isSignatureValid` | `() => boolean` | Returns `true` if the signature re-authentication window (15 minutes) is still active. |
+| `hasPermission` | `(action: string) => boolean` | Checks if the current user's role has permission for the given action via `ROLE_PERMISSIONS`. |
+
+#### ROLE_PERMISSIONS
+
+A static matrix mapping each `UserRole` to an array of permitted action strings. Used by `hasPermission()`.
+
+---
+
+### useRiskStore
+
+**File:** `src/store/useRiskStore.ts`
+**Persistence Key:** `qatrial:risks`
+
+#### State Shape
+
+```typescript
+interface RiskState {
+  assessments: RiskAssessment[];
+}
+```
+
+#### Actions
+
+| Action | Signature | Description |
+|--------|-----------|-------------|
+| `addAssessment` | `(assessment: Omit<RiskAssessment, 'id'>) => void` | Creates a new risk assessment with auto-generated ID. |
+| `updateAssessment` | `(id: string, data: Partial<RiskAssessment>) => void` | Updates fields on an existing assessment. |
+| `deleteAssessment` | `(id: string) => void` | Removes a risk assessment. |
+| `getForRequirement` | `(requirementId: string) => RiskAssessment \| undefined` | Returns the latest assessment for a requirement. |
+| `getAllForRequirement` | `(requirementId: string) => RiskAssessment[]` | Returns all assessments (history) for a requirement. |
+
+---
+
+### useCAPAStore
+
+**File:** `src/store/useCAPAStore.ts`
+**Persistence Key:** `qatrial:capa`
+
+#### State Shape
+
+```typescript
+interface CAPAState {
+  records: CAPARecord[];
+}
+
+interface CAPARecord {
+  id: string;
+  title: string;
+  description: string;
+  status: CAPAStatus;
+  linkedTestId?: string;
+  linkedRequirementId?: string;
+  rootCause?: string;
+  containment?: string;
+  correctiveAction?: string;
+  preventiveAction?: string;
+  effectivenessCheck?: string;
+  createdAt: string;
+  updatedAt: string;
+  closedAt?: string;
+}
+
+type CAPAStatus = 'open' | 'investigation' | 'in_progress' | 'verification' | 'resolved' | 'closed';
+```
+
+#### Actions
+
+| Action | Signature | Description |
+|--------|-----------|-------------|
+| `addRecord` | `(record: Omit<CAPARecord, 'id' \| 'createdAt' \| 'updatedAt'>) => void` | Creates a new CAPA record. |
+| `updateRecord` | `(id: string, data: Partial<CAPARecord>) => void` | Updates an existing CAPA record. |
+| `deleteRecord` | `(id: string) => void` | Removes a CAPA record. |
+| `advanceStatus` | `(id: string) => void` | Moves the CAPA to the next lifecycle stage. |
+| `getByStatus` | `(status: CAPAStatus) => CAPARecord[]` | Returns all records with the given status. |
+
+---
+
+### useGapStore
+
+**File:** `src/store/useGapStore.ts`
+**Persistence Key:** `qatrial:gaps`
+
+#### State Shape
+
+```typescript
+interface GapState {
+  runs: GapAnalysisRun[];
+}
+
+interface GapAnalysisRun {
+  id: string;
+  timestamp: string;
+  standards: string[];
+  gaps: AIGapAnalysis[];
+  readinessScore: number;
+  reviewStatus: 'pending' | 'reviewed' | 'approved';
+  reviewedBy?: string;
+}
+```
+
+#### Actions
+
+| Action | Signature | Description |
+|--------|-----------|-------------|
+| `addRun` | `(run: Omit<GapAnalysisRun, 'id'>) => void` | Stores a new gap analysis run. |
+| `updateReviewStatus` | `(id: string, status: GapAnalysisRun['reviewStatus'], reviewedBy?: string) => void` | Updates the review status of a run. |
+| `getLatestRun` | `() => GapAnalysisRun \| undefined` | Returns the most recent gap analysis run. |
+| `deleteRun` | `(id: string) => void` | Removes a gap analysis run. |
+
+---
+
+### useEvidenceStore
+
+**File:** `src/store/useEvidenceStore.ts`
+**Persistence Key:** `qatrial:evidence`
+
+#### State Shape
+
+```typescript
+interface EvidenceState {
+  attachments: EvidenceAttachment[];
+}
+
+interface EvidenceAttachment {
+  id: string;
+  requirementId: string;
+  type: 'document' | 'screenshot' | 'test_result' | 'approval' | 'other';
+  description: string;
+  reference: string;
+  createdAt: string;
+  createdBy: string;
+}
+```
+
+#### Actions
+
+| Action | Signature | Description |
+|--------|-----------|-------------|
+| `addAttachment` | `(attachment: Omit<EvidenceAttachment, 'id' \| 'createdAt'>) => void` | Adds an evidence attachment. |
+| `deleteAttachment` | `(id: string) => void` | Removes an evidence attachment. |
+| `getForRequirement` | `(requirementId: string) => EvidenceAttachment[]` | Returns all evidence for a requirement. |
+| `getCompletenessScore` | `() => number` | Returns the percentage of requirements with complete evidence (0-100). |
+
+---
+
+### useAIHistoryStore
+
+**File:** `src/store/useAIHistoryStore.ts`
+**Persistence Key:** `qatrial:ai-history`
+
+#### State Shape
+
+```typescript
+interface AIHistoryState {
+  artifacts: AIArtifact[];
+  usageStats: AIUsageStats;
+}
+
+interface AIArtifact {
+  id: string;
+  type: 'test_generation' | 'risk_classification' | 'gap_analysis' | 'capa_suggestion' | 'report_narrative';
+  prompt: string;
+  response: string;
+  model: string;
+  providerId: string;
+  timestamp: string;
+  accepted: boolean;
+  entityId?: string;
+}
+
+interface AIUsageStats {
+  totalCalls: number;
+  totalInputTokens: number;
+  totalOutputTokens: number;
+  byPurpose: Record<string, { calls: number; inputTokens: number; outputTokens: number }>;
+}
+```
+
+#### Actions
+
+| Action | Signature | Description |
+|--------|-----------|-------------|
+| `addArtifact` | `(artifact: Omit<AIArtifact, 'id'>) => void` | Records an AI artifact for provenance. |
+| `markAccepted` | `(id: string, accepted: boolean) => void` | Updates the accepted status of an artifact. |
+| `getForEntity` | `(entityId: string) => AIArtifact[]` | Returns all AI artifacts for an entity. |
+| `getReRunHistory` | `(type: string, entityId: string) => AIArtifact[]` | Returns re-run history for an entity and type. |
+| `getUsageStats` | `() => AIUsageStats` | Returns aggregated usage statistics. |
+
+---
+
+### useConnectorStore
+
+**File:** `src/store/useConnectorStore.ts`
+**Persistence Key:** `qatrial:connectors`
+
+#### State Shape
+
+```typescript
+interface ConnectorState {
+  configs: ConnectorConfig[];
+  syncRecords: SyncRecord[];
+}
+```
+
+See [Connector Types](#5-connector-types) for `ConnectorConfig` and `SyncRecord` type definitions.
+
+#### Actions
+
+| Action | Signature | Description |
+|--------|-----------|-------------|
+| `addConfig` | `(config: Omit<ConnectorConfig, 'id'>) => void` | Adds a new connector configuration. |
+| `updateConfig` | `(id: string, data: Partial<ConnectorConfig>) => void` | Updates an existing connector configuration. |
+| `removeConfig` | `(id: string) => void` | Removes a connector configuration. |
+| `addSyncRecord` | `(record: Omit<SyncRecord, 'id'>) => void` | Records a sync operation. |
+| `getConfigById` | `(id: string) => ConnectorConfig \| undefined` | Returns a connector config by ID. |
+| `getSyncHistory` | `(connectorId: string) => SyncRecord[]` | Returns sync history for a connector. |
+
+---
+
 ## 2. AI Client
 
 ### complete()
@@ -343,7 +598,77 @@ function resolveProvider(purpose: LLMPurpose, providers: LLMProvider[]): LLMProv
 
 ---
 
-## 3. Template System
+## 3. AI Validation
+
+### safeParse()
+
+**File:** `src/ai/validation.ts`
+
+```typescript
+function safeParse<T>(text: string, schema: JSONSchema): T
+```
+
+Parses AI response text into a validated object.
+
+#### Behavior
+
+1. Strips markdown code fences (`` ```json `` and `` ``` ``) from the response
+2. Calls `JSON.parse()` on the cleaned text
+3. Validates the parsed object against the provided JSON schema
+4. Returns the validated object cast to type `T`
+5. Throws `ValidationError` if validation fails
+
+---
+
+### completeWithValidation()
+
+**File:** `src/ai/validation.ts`
+
+```typescript
+async function completeWithValidation<T>(options: {
+  prompt: string;
+  purpose: LLMPurpose;
+  schema: JSONSchema;
+  maxRetries?: number;
+}): Promise<T>
+```
+
+Combines `complete()` with `safeParse()` and automatic retry logic.
+
+#### Parameters
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `prompt` | `string` | Yes | The prompt to send |
+| `purpose` | `LLMPurpose` | Yes | AI purpose for routing |
+| `schema` | `JSONSchema` | Yes | Expected response schema |
+| `maxRetries` | `number` | No | Maximum retry attempts (default: 2) |
+
+#### Behavior
+
+1. Calls `complete()` with the prompt
+2. Runs `safeParse()` on the response
+3. On `ValidationError`, retries with an amended prompt including the error details
+4. Returns the validated result or throws after exhausting retries
+
+---
+
+### ValidationError
+
+**File:** `src/ai/validation.ts`
+
+```typescript
+class ValidationError extends Error {
+  violations: string[];
+  rawText: string;
+}
+```
+
+Custom error class thrown when AI response validation fails. Contains the list of schema violations and the raw response text for debugging.
+
+---
+
+## 4. Template System
 
 ### composeTemplate()
 
@@ -427,12 +752,14 @@ Array of 15+ module definitions. Each contains:
 
 ```typescript
 interface TemplateRequirement {
-  title: string;          // Deduplication key
+  title: string;          // Deduplication fallback key
   description: string;    // Full requirement text
   category: string;       // Grouping (e.g., "Data Integrity")
   tags: string[];         // For filtering and test linking
   riskLevel: RiskLevel;   // "critical" | "high" | "medium" | "low"
   regulatoryRef?: string; // e.g., "21 CFR 11.10(e)"
+  templateId?: string;    // Stable deduplication key (v2.0.0, preferred over title)
+  source?: string;        // Origin of the template (v2.0.0, e.g., "eu/base")
 }
 ```
 
@@ -440,17 +767,126 @@ interface TemplateRequirement {
 
 ```typescript
 interface TemplateTest {
-  title: string;            // Deduplication key
+  title: string;            // Deduplication fallback key
   description: string;      // Test procedure
   category: string;         // Grouping (e.g., "Functional")
   tags: string[];           // For filtering
   linkedReqTags: string[];  // Tags matching requirement.tags for linking
+  templateId?: string;      // Stable deduplication key (v2.0.0, preferred over title)
+  source?: string;          // Origin of the template (v2.0.0)
 }
 ```
 
 ---
 
-## 4. Utilities
+## 5. Connector Types
+
+### ConnectorConfig
+
+**File:** `src/connectors/types.ts`
+
+```typescript
+interface ConnectorConfig {
+  id: string;
+  name: string;
+  type: ConnectorType;
+  baseUrl: string;
+  credentials: Record<string, string>;
+  fieldMappings: FieldMapping[];
+  enabled: boolean;
+}
+
+type ConnectorType = 'jira' | 'azure_devops' | 'csv' | 'custom';
+```
+
+### Connector Interface
+
+```typescript
+interface Connector {
+  id: string;
+  type: ConnectorType;
+  name: string;
+  connect(config: ConnectorConfig): Promise<boolean>;
+  disconnect(): Promise<void>;
+  sync(direction: SyncRecord['direction']): Promise<SyncRecord>;
+  testConnection(): Promise<{ ok: boolean; message: string }>;
+}
+```
+
+### SyncRecord
+
+```typescript
+interface SyncRecord {
+  id: string;
+  connectorId: string;
+  direction: 'import' | 'export' | 'bidirectional';
+  status: 'pending' | 'in_progress' | 'completed' | 'failed';
+  itemsSynced: number;
+  errors: string[];
+  startedAt: string;
+  completedAt?: string;
+}
+```
+
+### FieldMapping
+
+```typescript
+interface FieldMapping {
+  sourceField: string;
+  targetField: string;
+  transform?: string;
+}
+```
+
+### connectorRegistry
+
+```typescript
+const connectorRegistry: {
+  registerConnector(connector: Connector): void;
+  getConnector(type: ConnectorType): Connector | undefined;
+}
+```
+
+Global registry for connector implementations. Call `registerConnector()` to register a new connector type, and `getConnector()` to retrieve it.
+
+---
+
+## 6. PDF Export
+
+### exportReportAsPDF()
+
+**File:** `src/lib/pdfExport.ts`
+
+```typescript
+async function exportReportAsPDF(options: {
+  project: ProjectMeta;
+  sections: ReportSection[];
+  signatures?: ElectronicSignature[];
+  filename?: string;
+}): Promise<void>
+```
+
+Generates and downloads a PDF document from report sections.
+
+#### Parameters
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `project` | `ProjectMeta` | Yes | Project metadata for the cover page |
+| `sections` | `ReportSection[]` | Yes | Report content sections |
+| `signatures` | `ElectronicSignature[]` | No | Signatures to include in signature blocks |
+| `filename` | `string` | No | Output filename (defaults to `{project.name}-report-{date}.pdf`) |
+
+#### Generated PDF Structure
+
+1. **Cover page:** Project name, version, date, owner, company
+2. **Table of contents:** Section titles with page numbers
+3. **Report sections:** Each section rendered with heading, content, and AI-generated badge if applicable
+4. **Signature blocks:** Formal sign-off area with signer name, role, date, and meaning (when signatures are provided)
+
+---
+
+## 7. Utilities
 
 ### generateId()
 
@@ -535,7 +971,7 @@ Computes dashboard metrics based on current requirements and tests, with optiona
 
 ---
 
-## 5. Type Reference
+## 8. Type Reference
 
 All types are defined in `src/types/index.ts`.
 
@@ -559,8 +995,11 @@ All types are defined in `src/types/index.ts`.
 | `LLMPurpose` | `'all' \| 'test_generation' \| 'gap_analysis' \| 'risk_classification' \| 'report_narrative' \| 'requirement_decomp' \| 'capa'` |
 | `RiskTaxonomyType` | `'iso14971' \| 'ichQ9' \| 'fmea' \| 'gamp5' \| 'generic'` |
 | `SafetyClassType` | `'iec62304' \| 'gamp5cat' \| 'sil' \| 'none'` |
-| `AuditAction` | `'create' \| 'update' \| 'delete' \| 'status_change' \| 'link' \| 'unlink' \| 'approve' \| 'reject' \| 'sign' \| 'export' \| 'generate_report'` |
+| `AuditAction` | `'create' \| 'update' \| 'delete' \| 'status_change' \| 'link' \| 'unlink' \| 'approve' \| 'reject' \| 'sign' \| 'export' \| 'generate_report' \| 'ai_generate' \| 'ai_accept' \| 'ai_reject' \| 'login' \| 'logout' \| 'import'` |
 | `ReportType` | `'validation_summary' \| 'traceability_matrix' \| 'gap_analysis' \| 'risk_assessment' \| 'executive_brief' \| 'submission_package'` |
+| `UserRole` | `'admin' \| 'qa_manager' \| 'qa_engineer' \| 'auditor' \| 'reviewer'` |
+| `CAPAStatus` | `'open' \| 'investigation' \| 'in_progress' \| 'verification' \| 'resolved' \| 'closed'` |
+| `ConnectorType` | `'jira' \| 'azure_devops' \| 'csv' \| 'custom'` |
 | `ViewTab` | `'requirements' \| 'tests' \| 'dashboard' \| 'reports' \| 'settings'` |
 
 ### Risk Assessment Types

@@ -53,7 +53,8 @@ async function safeImport<T>(path: string): Promise<T | null> {
 }
 
 /**
- * Deduplicate an array of requirements by title.
+ * Deduplicate an array of requirements by stable templateId.
+ * Falls back to title-based dedup for legacy templates without templateId.
  * When duplicates are found, the later entry wins (overlay overrides base).
  */
 function deduplicateRequirements(
@@ -61,19 +62,22 @@ function deduplicateRequirements(
 ): TemplateRequirement[] {
   const map = new Map<string, TemplateRequirement>();
   for (const req of reqs) {
-    map.set(req.title, req);
+    const key = req.templateId || `__title:${req.title}`;
+    map.set(key, req);
   }
   return Array.from(map.values());
 }
 
 /**
- * Deduplicate an array of tests by title.
+ * Deduplicate an array of tests by stable templateId.
+ * Falls back to title-based dedup for legacy templates without templateId.
  * When duplicates are found, the later entry wins.
  */
 function deduplicateTests(tests: TemplateTest[]): TemplateTest[] {
   const map = new Map<string, TemplateTest>();
   for (const test of tests) {
-    map.set(test.title, test);
+    const key = test.templateId || `__title:${test.title}`;
+    map.set(key, test);
   }
   return Array.from(map.values());
 }
