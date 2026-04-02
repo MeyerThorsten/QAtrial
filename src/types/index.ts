@@ -123,7 +123,7 @@ export interface DashboardFilters {
   testStatus: TestStatus | 'All';
 }
 
-export type ViewTab = 'requirements' | 'tests' | 'dashboard' | 'reports' | 'settings';
+export type ViewTab = 'requirements' | 'tests' | 'dashboard' | 'reports' | 'settings' | 'design_control';
 
 // ── Templates ─────────────────────────────────────────────────────────────────
 
@@ -311,4 +311,115 @@ export interface ModuleConfig {
   description: string;
   requirementCount: number;
   testCount: number;
+}
+
+// ── Design Control ───────────────────────────────────────────────────────────
+
+export type DesignPhase = 'user_needs' | 'design_input' | 'design_output' | 'verification' | 'validation' | 'transfer' | 'released';
+
+export interface DesignControlItem {
+  id: string;
+  projectId: string;
+  phase: DesignPhase;
+  title: string;
+  description: string;
+  status: 'draft' | 'in_review' | 'approved' | 'rejected';
+  linkedRequirementIds: string[];
+  linkedTestIds: string[];
+  attachments: string[]; // file references
+  approvedBy?: string;
+  approvedAt?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type DocumentRecordType = 'DHF' | 'DMR' | 'DHR';
+
+export interface DocumentRecord {
+  id: string;
+  projectId: string;
+  type: DocumentRecordType;
+  title: string;
+  description: string;
+  version: string;
+  status: 'draft' | 'active' | 'superseded' | 'obsolete';
+  sections: DocumentSection[];
+  linkedDesignItems: string[]; // DesignControlItem IDs
+  linkedRequirementIds: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface DocumentSection {
+  id: string;
+  title: string;
+  content: string; // markdown
+  order: number;
+  linkedArtifacts: string[]; // requirement/test/design item IDs
+}
+
+// ── Custom Fields ────────────────────────────────────────────────────────────
+
+export type CustomFieldType = 'text' | 'number' | 'date' | 'select' | 'multi_select' | 'boolean' | 'url';
+
+export interface CustomFieldDefinition {
+  id: string;
+  name: string;
+  type: CustomFieldType;
+  options?: string[]; // for select/multi_select
+  required: boolean;
+  appliesTo: ('requirement' | 'test' | 'capa' | 'design_item')[];
+  defaultValue?: string;
+}
+
+// ── Workflow Engine ──────────────────────────────────────────────────────────
+
+export type WorkflowStepType = 'approval' | 'review' | 'sign' | 'notify' | 'auto_check';
+
+export interface WorkflowDefinition {
+  id: string;
+  name: string;
+  trigger: 'on_status_change' | 'on_create' | 'on_edit' | 'manual';
+  entityType: string;
+  steps: WorkflowStep[];
+  enabled: boolean;
+}
+
+export interface WorkflowStep {
+  id: string;
+  name: string;
+  type: WorkflowStepType;
+  assigneeRole?: string;
+  requiredApprovers: number;
+  slaHours?: number;
+  escalateTo?: string;
+  conditions?: { field: string; operator: string; value: string }[];
+}
+
+export interface WorkflowInstance {
+  id: string;
+  workflowId: string;
+  entityType: string;
+  entityId: string;
+  currentStepIndex: number;
+  status: 'active' | 'completed' | 'cancelled' | 'escalated';
+  approvals: { stepId: string; userId: string; action: 'approved' | 'rejected'; timestamp: string; reason?: string }[];
+  startedAt: string;
+  completedAt?: string;
+}
+
+// ── Notifications ────────────────────────────────────────────────────────────
+
+export type NotificationType = 'approval_needed' | 'task_overdue' | 'capa_deadline' | 'workflow_escalation' | 'audit_reminder' | 'status_change' | 'mention';
+
+export interface Notification {
+  id: string;
+  type: NotificationType;
+  title: string;
+  message: string;
+  entityType?: string;
+  entityId?: string;
+  userId: string;
+  read: boolean;
+  createdAt: string;
 }

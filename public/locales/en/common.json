@@ -8,7 +8,8 @@
     "tests": "Tests",
     "dashboard": "Evaluation",
     "reports": "Reports",
-    "settings": "Settings"
+    "settings": "Settings",
+    "designControl": "Design Control"
   },
   "wizard": {
     "title": "New Project",
@@ -479,6 +480,107 @@
       "photo": "Photo",
       "document": "Document",
       "other": "Other"
+    }
+  },
+  "designControl": {
+    "title": "Design Control",
+    "description": "Manage design phases from User Needs through Release with full traceability.",
+    "phases": {
+      "userNeeds": "User Needs",
+      "designInput": "Design Input",
+      "designOutput": "Design Output",
+      "verification": "Verification",
+      "validation": "Validation",
+      "transfer": "Transfer",
+      "released": "Released"
+    },
+    "statuses": {
+      "draft": "Draft",
+      "in_review": "In Review",
+      "approved": "Approved",
+      "rejected": "Rejected"
+    },
+    "phase": "Phase",
+    "status": "Status",
+    "addItem": "Add Item",
+    "titlePlaceholder": "Enter item title...",
+    "descriptionPlaceholder": "Enter description...",
+    "linkedRequirements": "Linked Requirements",
+    "linkedTests": "Linked Tests",
+    "advancePhase": "Advance to Next Phase",
+    "documentRecords": "Document Records",
+    "dhf": "Design History File (DHF)",
+    "dmr": "Device Master Record (DMR)",
+    "dhr": "Device History Record (DHR)",
+    "addDocument": "Add Document",
+    "version": "Version",
+    "sections": "Sections",
+    "linkedDesignItems": "Linked Design Items"
+  },
+  "customFields": {
+    "title": "Custom Fields",
+    "addField": "Add Custom Field",
+    "fieldName": "Field Name",
+    "fieldType": "Field Type",
+    "options": "Options",
+    "required": "Required",
+    "appliesTo": "Applies To",
+    "defaultValue": "Default Value",
+    "types": {
+      "text": "Text",
+      "number": "Number",
+      "date": "Date",
+      "select": "Select",
+      "multi_select": "Multi-Select",
+      "boolean": "Boolean",
+      "url": "URL"
+    }
+  },
+  "workflow": {
+    "title": "Workflows",
+    "addWorkflow": "Add Workflow",
+    "workflowName": "Workflow Name",
+    "trigger": "Trigger",
+    "entityType": "Entity Type",
+    "steps": "Steps",
+    "enabled": "Enabled",
+    "startWorkflow": "Start Workflow",
+    "approve": "Approve",
+    "reject": "Reject",
+    "pendingApprovals": "Pending Approvals",
+    "activeWorkflows": "Active Workflows",
+    "completed": "Completed",
+    "cancelled": "Cancelled",
+    "escalated": "Escalated",
+    "triggers": {
+      "on_status_change": "On Status Change",
+      "on_create": "On Create",
+      "on_edit": "On Edit",
+      "manual": "Manual"
+    },
+    "stepTypes": {
+      "approval": "Approval",
+      "review": "Review",
+      "sign": "Sign",
+      "notify": "Notify",
+      "auto_check": "Auto Check"
+    },
+    "requiredApprovers": "Required Approvers",
+    "slaHours": "SLA (hours)",
+    "reason": "Reason"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "markAllRead": "Mark all read",
+    "empty": "No notifications",
+    "types": {
+      "approval_needed": "Approval Needed",
+      "task_overdue": "Task Overdue",
+      "capa_deadline": "CAPA Deadline",
+      "workflow_escalation": "Workflow Escalation",
+      "audit_reminder": "Audit Reminder",
+      "status_change": "Status Change",
+      "mention": "Mention"
     }
   },
   "connectors": {

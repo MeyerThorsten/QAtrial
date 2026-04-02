@@ -49,6 +49,89 @@ interface ProviderFormData {
   enabled: boolean;
 }
 
+interface ProviderPreset {
+  id: string;
+  name: string;
+  type: LLMProviderType;
+  baseUrl: string;
+  models: string[];
+  defaultModel: string;
+  temperature: number;
+  maxTokens: number;
+  needsApiKey: boolean;
+  description: string;
+}
+
+const PRESETS: ProviderPreset[] = [
+  {
+    id: 'anthropic',
+    name: 'Anthropic',
+    type: 'anthropic',
+    baseUrl: 'https://api.anthropic.com',
+    models: ['claude-sonnet-4-20250514', 'claude-opus-4-20250514', 'claude-haiku-4-20250506'],
+    defaultModel: 'claude-sonnet-4-20250514',
+    temperature: 0.2,
+    maxTokens: 4096,
+    needsApiKey: true,
+    description: 'Claude models — best for regulatory precision and structured output',
+  },
+  {
+    id: 'openai',
+    name: 'OpenAI',
+    type: 'openai-compatible',
+    baseUrl: 'https://api.openai.com/v1',
+    models: ['gpt-4.1', 'gpt-4.1-mini', 'gpt-4.1-nano', 'gpt-4o', 'gpt-4o-mini', 'o3-mini'],
+    defaultModel: 'gpt-4.1',
+    temperature: 0.2,
+    maxTokens: 4096,
+    needsApiKey: true,
+    description: 'GPT models — fast, widely supported',
+  },
+  {
+    id: 'openrouter',
+    name: 'OpenRouter',
+    type: 'openai-compatible',
+    baseUrl: 'https://openrouter.ai/api/v1',
+    models: [
+      'anthropic/claude-sonnet-4', 'anthropic/claude-haiku-4',
+      'openai/gpt-4.1', 'openai/gpt-4o',
+      'google/gemini-2.5-pro', 'google/gemini-2.5-flash',
+      'meta-llama/llama-4-maverick',
+      'deepseek/deepseek-r1',
+      'qwen/qwen3-235b-a22b',
+    ],
+    defaultModel: 'anthropic/claude-sonnet-4',
+    temperature: 0.2,
+    maxTokens: 4096,
+    needsApiKey: true,
+    description: 'Unified API for 200+ models — pay per token, no subscriptions',
+  },
+  {
+    id: 'ollama',
+    name: 'Ollama (Local)',
+    type: 'openai-compatible',
+    baseUrl: 'http://localhost:11434/v1',
+    models: ['llama3.1:8b', 'llama3.1:70b', 'qwen2.5:14b', 'mistral:7b', 'gemma2:9b', 'deepseek-r1:14b'],
+    defaultModel: 'llama3.1:8b',
+    temperature: 0.3,
+    maxTokens: 2048,
+    needsApiKey: false,
+    description: 'Run models locally — no API key needed, data stays on your machine',
+  },
+  {
+    id: 'lmstudio',
+    name: 'LM Studio (Local)',
+    type: 'openai-compatible',
+    baseUrl: 'http://localhost:1234/v1',
+    models: ['local-model'],
+    defaultModel: 'local-model',
+    temperature: 0.3,
+    maxTokens: 2048,
+    needsApiKey: false,
+    description: 'LM Studio local server — use whatever model you have loaded',
+  },
+];
+
 const emptyForm: ProviderFormData = {
   id: '',
   name: '',
@@ -57,8 +140,8 @@ const emptyForm: ProviderFormData = {
   apiKey: '',
   model: '',
   purpose: ['all'],
-  maxTokens: 2000,
-  temperature: 0.3,
+  maxTokens: 4096,
+  temperature: 0.2,
   priority: 1,
   enabled: true,
 };
@@ -79,16 +162,23 @@ export function ProviderSettings() {
     Record<string, { ok: boolean; latencyMs: number; error?: string }>
   >({});
   const [testing, setTesting] = useState<string | null>(null);
+  const [activePreset, setActivePreset] = useState<string | null>(null);
+
+  const currentPreset = activePreset ? PRESETS.find((p) => p.id === activePreset) ?? null : null;
 
   function openAdd() {
     setEditingId(null);
     setForm(emptyForm);
+    setActivePreset(null);
     setModalOpen(true);
   }
 
   function openEdit(provider: LLMProvider) {
     setEditingId(provider.id);
     setForm({ ...provider });
+    // Try to match to a preset for model dropdown
+    const match = PRESETS.find((p) => p.baseUrl === provider.baseUrl);
+    setActivePreset(match?.id ?? null);
     setModalOpen(true);
   }
 
@@ -352,6 +442,46 @@ export function ProviderSettings() {
 
             {/* Modal body */}
             <div className="px-6 py-4 space-y-4">
+              {/* Quick presets — only for new providers */}
+              {!editingId && (
+                <div>
+                  <label className="block text-xs font-medium text-text-secondary mb-2">
+                    Quick Setup
+                  </label>
+                  <div className="grid grid-cols-5 gap-1.5">
+                    {PRESETS.map((preset) => (
+                      <button
+                        key={preset.id}
+                        onClick={() => {
+                          setForm((f) => ({
+                            ...f,
+                            name: preset.name,
+                            type: preset.type,
+                            baseUrl: preset.baseUrl,
+                            model: preset.defaultModel,
+                            temperature: preset.temperature,
+                            maxTokens: preset.maxTokens,
+                          }));
+                          setActivePreset(preset.id);
+                        }}
+                        className={`px-2 py-2 text-xs font-medium rounded-lg border transition-colors text-center ${
+                          activePreset === preset.id
+                            ? 'border-accent bg-accent-subtle text-accent'
+                            : 'border-border bg-surface-tertiary text-text-secondary hover:border-accent/50'
+                        }`}
+                      >
+                        {preset.name}
+                      </button>
+                    ))}
+                  </div>
+                  {activePreset && (
+                    <p className="text-[11px] text-text-tertiary mt-1.5">
+                      {PRESETS.find((p) => p.id === activePreset)?.description}
+                    </p>
+                  )}
+                </div>
+              )}
+
               {/* Name */}
               <div>
                 <label className="block text-xs font-medium text-text-secondary mb-1">
@@ -385,6 +515,7 @@ export function ProviderSettings() {
                             ? ''
                             : f.baseUrl,
                     }));
+                    setActivePreset(null);
                   }}
                   className="w-full px-3 py-2 bg-input-bg border border-input-border rounded-lg text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-colors"
                 >
@@ -402,7 +533,7 @@ export function ProviderSettings() {
                   type="text"
                   value={form.baseUrl}
                   onChange={(e) => setForm((f) => ({ ...f, baseUrl: e.target.value }))}
-                  placeholder="https://api.anthropic.com"
+                  placeholder={form.type === 'anthropic' ? 'https://api.anthropic.com' : 'https://api.openai.com/v1'}
                   className="w-full px-3 py-2 bg-input-bg border border-input-border rounded-lg text-sm text-text-primary placeholder:text-text-tertiary focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-colors font-mono"
                 />
               </div>
@@ -411,28 +542,43 @@ export function ProviderSettings() {
               <div>
                 <label className="block text-xs font-medium text-text-secondary mb-1">
                   API Key
+                  {currentPreset && !currentPreset.needsApiKey && (
+                    <span className="ml-2 text-[10px] text-text-tertiary font-normal">(not required for local)</span>
+                  )}
                 </label>
                 <input
                   type="password"
                   value={form.apiKey}
                   onChange={(e) => setForm((f) => ({ ...f, apiKey: e.target.value }))}
-                  placeholder="sk-..."
+                  placeholder={currentPreset && !currentPreset.needsApiKey ? 'Not required' : 'sk-...'}
                   className="w-full px-3 py-2 bg-input-bg border border-input-border rounded-lg text-sm text-text-primary placeholder:text-text-tertiary focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-colors font-mono"
                 />
               </div>
 
-              {/* Model */}
+              {/* Model — dropdown if preset has models, otherwise text input */}
               <div>
                 <label className="block text-xs font-medium text-text-secondary mb-1">
                   Model
                 </label>
-                <input
-                  type="text"
-                  value={form.model}
-                  onChange={(e) => setForm((f) => ({ ...f, model: e.target.value }))}
-                  placeholder="e.g. claude-sonnet-4-20250514"
-                  className="w-full px-3 py-2 bg-input-bg border border-input-border rounded-lg text-sm text-text-primary placeholder:text-text-tertiary focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-colors font-mono"
-                />
+                {currentPreset && currentPreset.models.length > 1 ? (
+                  <select
+                    value={form.model}
+                    onChange={(e) => setForm((f) => ({ ...f, model: e.target.value }))}
+                    className="w-full px-3 py-2 bg-input-bg border border-input-border rounded-lg text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-colors font-mono"
+                  >
+                    {currentPreset.models.map((m) => (
+                      <option key={m} value={m}>{m}</option>
+                    ))}
+                  </select>
+                ) : (
+                  <input
+                    type="text"
+                    value={form.model}
+                    onChange={(e) => setForm((f) => ({ ...f, model: e.target.value }))}
+                    placeholder="e.g. claude-sonnet-4-20250514"
+                    className="w-full px-3 py-2 bg-input-bg border border-input-border rounded-lg text-sm text-text-primary placeholder:text-text-tertiary focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-colors font-mono"
+                  />
+                )}
               </div>
 
               {/* Purposes (multi-select checkboxes) */}

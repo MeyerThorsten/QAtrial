@@ -1,10 +1,11 @@
 import { useState, lazy, Suspense } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ClipboardList, FlaskConical, BarChart3, FolderPlus, ScrollText, X, FileText, Settings } from 'lucide-react';
+import { ClipboardList, FlaskConical, BarChart3, FolderPlus, ScrollText, X, FileText, Settings, Layers } from 'lucide-react';
 import { ImportExportBar } from '../shared/ImportExportBar';
 import { ThemeToggle } from '../shared/ThemeToggle';
 import { LanguageSelector } from '../shared/LanguageSelector';
 import { ConfirmDialog } from '../shared/ConfirmDialog';
+import { NotificationBell } from '../shared/NotificationBell';
 import { useProjectStore } from '../../store/useProjectStore';
 import { useRequirementsStore } from '../../store/useRequirementsStore';
 import { useTestsStore } from '../../store/useTestsStore';
@@ -17,6 +18,7 @@ const EvaluationDashboard = lazy(() => import('../dashboard/EvaluationDashboard'
 const AuditTrailViewer = lazy(() => import('../audit/AuditTrailViewer').then((m) => ({ default: m.AuditTrailViewer })));
 const ReportGenerator = lazy(() => import('../reports/ReportGenerator').then((m) => ({ default: m.ReportGenerator })));
 const ProviderSettings = lazy(() => import('../ai/ProviderSettings').then((m) => ({ default: m.ProviderSettings })));
+const DesignControlView = lazy(() => import('../design/DesignControlView'));
 const SetupWizard = lazy(() => import('../wizard/SetupWizard').then((m) => ({ default: m.SetupWizard })));
 
 function TabSpinner() {
@@ -47,6 +49,7 @@ export function AppShell() {
     { id: 'tests', label: t('nav.tests'), icon: <FlaskConical className="w-4 h-4" /> },
     { id: 'dashboard', label: t('nav.dashboard'), icon: <BarChart3 className="w-4 h-4" /> },
     { id: 'reports', label: t('nav.reports'), icon: <FileText className="w-4 h-4" /> },
+    { id: 'design_control', label: t('nav.designControl'), icon: <Layers className="w-4 h-4" /> },
   ];
 
   if (wizardVisible) {
@@ -98,6 +101,7 @@ export function AppShell() {
               )}
             </div>
             <div className="flex items-center gap-2">
+              <NotificationBell />
               <button
                 onClick={() => setShowAuditTrail(true)}
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-text-secondary bg-surface border border-border rounded-lg hover:bg-surface-hover transition-colors"
@@ -153,6 +157,7 @@ export function AppShell() {
           {activeTab === 'tests' && <TestsTable />}
           {activeTab === 'dashboard' && <EvaluationDashboard />}
           {activeTab === 'reports' && <ReportGenerator />}
+          {activeTab === 'design_control' && <DesignControlView />}
           {activeTab === 'settings' && <ProviderSettings />}
         </Suspense>
       </main>

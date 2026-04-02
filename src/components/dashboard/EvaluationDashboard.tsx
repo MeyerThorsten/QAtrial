@@ -17,9 +17,10 @@ import { EvidenceCompleteness } from './EvidenceCompleteness';
 import { CAPAFunnel } from './CAPAFunnel';
 import { TrendCharts } from './TrendCharts';
 import { PortfolioDashboard } from './PortfolioDashboard';
+import { ISO13485Assessment } from './ISO13485Assessment';
 import type { DashboardFilters } from '../../types';
 
-type DashboardTab = 'overview' | 'compliance' | 'risk' | 'evidence' | 'capa' | 'trends' | 'portfolio';
+type DashboardTab = 'overview' | 'compliance' | 'iso13485' | 'risk' | 'evidence' | 'capa' | 'trends' | 'portfolio';
 
 export function EvaluationDashboard() {
   const { t } = useTranslation();
@@ -56,6 +57,7 @@ export function EvaluationDashboard() {
   const tabs: { id: DashboardTab; labelKey: string }[] = [
     { id: 'overview', labelKey: 'dashboard.tabOverview' },
     { id: 'compliance', labelKey: 'dashboard.tabCompliance' },
+    { id: 'iso13485', labelKey: 'ISO 13485' },
     { id: 'risk', labelKey: 'dashboard.tabRisk' },
     { id: 'evidence', labelKey: 'dashboard.tabEvidence' },
     { id: 'capa', labelKey: 'dashboard.tabCAPA' },
@@ -115,6 +117,9 @@ export function EvaluationDashboard() {
           <GapAnalysisView />
         </div>
       )}
+
+      {/* ISO 13485 tab */}
+      {activeTab === 'iso13485' && <ISO13485Assessment />}
 
       {/* Risk tab */}
       {activeTab === 'risk' && <RiskMatrixView />}
