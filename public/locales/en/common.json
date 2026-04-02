@@ -709,5 +709,48 @@
     "lastSync": "Last synced: {{time}}",
     "fieldMappings": "Field Mappings",
     "syncDirection": "Sync Direction"
+  },
+  "sso": {
+    "signInWithSso": "Sign in with SSO",
+    "orEmail": "or sign in with email",
+    "enabled": "SSO Enabled",
+    "disabled": "SSO Not Configured",
+    "provider": "Provider: {{name}}"
+  },
+  "webhooks": {
+    "title": "Webhooks",
+    "addWebhook": "Add Webhook",
+    "name": "Name",
+    "url": "URL",
+    "secret": "Secret",
+    "events": "Events",
+    "enabled": "Enabled",
+    "test": "Test",
+    "lastTriggered": "Last triggered",
+    "noWebhooks": "No webhooks configured"
+  },
+  "integrations": {
+    "title": "Integrations",
+    "jira": "Jira",
+    "github": "GitHub",
+    "connected": "Connected",
+    "disconnected": "Not Connected",
+    "connect": "Connect",
+    "disconnect": "Disconnect",
+    "syncNow": "Sync Now",
+    "lastSync": "Last sync: {{date}}",
+    "baseUrl": "Jira Base URL",
+    "apiToken": "API Token",
+    "projectKey": "Project Key",
+    "owner": "Repository Owner",
+    "repo": "Repository Name",
+    "token": "Personal Access Token"
+  },
+  "settings": {
+    "title": "Settings",
+    "aiProviders": "AI Providers",
+    "webhooks": "Webhooks",
+    "integrations": "Integrations",
+    "sso": "Single Sign-On"
   }
 }

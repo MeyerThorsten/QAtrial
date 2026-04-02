@@ -488,5 +488,48 @@
     "incomplete": "Unvollständig",
     "duplicateRisk": "Mögliches Duplikat",
     "missingCriteria": "Fehlende Kriterien"
+  },
+  "sso": {
+    "signInWithSso": "Mit SSO anmelden",
+    "orEmail": "oder mit E-Mail anmelden",
+    "enabled": "SSO aktiviert",
+    "disabled": "SSO nicht konfiguriert",
+    "provider": "Anbieter: {{name}}"
+  },
+  "webhooks": {
+    "title": "Webhooks",
+    "addWebhook": "Webhook hinzuf\u00fcgen",
+    "name": "Name",
+    "url": "URL",
+    "secret": "Geheimschl\u00fcssel",
+    "events": "Ereignisse",
+    "enabled": "Aktiviert",
+    "test": "Testen",
+    "lastTriggered": "Zuletzt ausgel\u00f6st",
+    "noWebhooks": "Keine Webhooks konfiguriert"
+  },
+  "integrations": {
+    "title": "Integrationen",
+    "jira": "Jira",
+    "github": "GitHub",
+    "connected": "Verbunden",
+    "disconnected": "Nicht verbunden",
+    "connect": "Verbinden",
+    "disconnect": "Trennen",
+    "syncNow": "Jetzt synchronisieren",
+    "lastSync": "Letzte Synchronisierung: {{date}}",
+    "baseUrl": "Jira Basis-URL",
+    "apiToken": "API-Token",
+    "projectKey": "Projektschl\u00fcssel",
+    "owner": "Repository-Besitzer",
+    "repo": "Repository-Name",
+    "token": "Pers\u00f6nliches Zugriffstoken"
+  },
+  "settings": {
+    "title": "Einstellungen",
+    "aiProviders": "KI-Anbieter",
+    "webhooks": "Webhooks",
+    "integrations": "Integrationen",
+    "sso": "Single Sign-On"
   }
 }

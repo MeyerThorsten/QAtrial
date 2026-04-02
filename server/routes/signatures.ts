@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 import { prisma } from '../index.js';
 import { authMiddleware, getUser } from '../middleware/auth.js';
 import { logAudit } from '../services/audit.service.js';
+import { dispatchWebhook } from '../services/webhook.service.js';
 import * as bcrypt from 'bcryptjs';
 
 const signatures = new Hono();
@@ -67,6 +68,10 @@ signatures.post('/', async (c) => {
       },
       reason,
     });
+
+    if (user.orgId) {
+      dispatchWebhook(user.orgId, 'signature.created', { signature });
+    }
 
     return c.json({ signature }, 201);
   } catch (error: any) {

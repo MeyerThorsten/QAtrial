@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 import { prisma } from '../index.js';
 import { authMiddleware, getUser, JwtPayload } from '../middleware/auth.js';
 import { logAudit } from '../services/audit.service.js';
+import { dispatchWebhook } from '../services/webhook.service.js';
 
 const tests = new Hono();
 
@@ -63,6 +64,10 @@ tests.post('/', async (c) => {
       newValue: test,
     });
 
+    if (user.orgId) {
+      dispatchWebhook(user.orgId, 'test.created', { test });
+    }
+
     return c.json({ test }, 201);
   } catch (error: any) {
     console.error('Create test error:', error);
@@ -116,6 +121,11 @@ tests.put('/:id', async (c) => {
       previousValue: existing,
       newValue: test,
     });
+
+    if (user.orgId) {
+      const event = test.status === 'Failed' ? 'test.failed' : 'test.updated';
+      dispatchWebhook(user.orgId, event, { test, previous: existing });
+    }
 
     return c.json({ test });
   } catch (error: any) {

@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    ports:
+      - "3001:3001"
+    environment:
+      - DATABASE_URL=postgresql://qatrial:qatrial@db:5432/qatrial
+      - JWT_SECRET=${JWT_SECRET:-qatrial-production-secret-change-me}
+      - AI_PROVIDER_TYPE=${AI_PROVIDER_TYPE:-}
+      - AI_PROVIDER_URL=${AI_PROVIDER_URL:-}
+      - AI_PROVIDER_KEY=${AI_PROVIDER_KEY:-}
+      - AI_PROVIDER_MODEL=${AI_PROVIDER_MODEL:-}
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - uploads:/app/uploads
+    restart: unless-stopped
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_USER=qatrial
+      - POSTGRES_PASSWORD=qatrial
+      - POSTGRES_DB=qatrial
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U qatrial"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  uploads:

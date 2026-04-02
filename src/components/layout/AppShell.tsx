@@ -24,7 +24,7 @@ const TestsTable = lazy(() => import('../tests/TestsTable').then((m) => ({ defau
 const EvaluationDashboard = lazy(() => import('../dashboard/EvaluationDashboard').then((m) => ({ default: m.EvaluationDashboard })));
 const AuditTrailViewer = lazy(() => import('../audit/AuditTrailViewer').then((m) => ({ default: m.AuditTrailViewer })));
 const ReportGenerator = lazy(() => import('../reports/ReportGenerator').then((m) => ({ default: m.ReportGenerator })));
-const ProviderSettings = lazy(() => import('../ai/ProviderSettings').then((m) => ({ default: m.ProviderSettings })));
+const SettingsPage = lazy(() => import('../settings/SettingsPage').then((m) => ({ default: m.SettingsPage })));
 const DesignControlView = lazy(() => import('../design/DesignControlView'));
 const SetupWizard = lazy(() => import('../wizard/SetupWizard').then((m) => ({ default: m.SetupWizard })));
 
@@ -225,7 +225,7 @@ export function AppShell() {
           {activeTab === 'dashboard' && <EvaluationDashboard />}
           {activeTab === 'reports' && <ReportGenerator />}
           {activeTab === 'design_control' && <DesignControlView />}
-          {activeTab === 'settings' && <ProviderSettings />}
+          {activeTab === 'settings' && <SettingsPage />}
         </Suspense>
       </main>
 

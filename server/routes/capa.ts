@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 import { prisma } from '../index.js';
 import { authMiddleware, getUser, JwtPayload } from '../middleware/auth.js';
 import { logAudit } from '../services/audit.service.js';
+import { dispatchWebhook } from '../services/webhook.service.js';
 
 const capa = new Hono();
 
@@ -72,6 +73,10 @@ capa.post('/', async (c) => {
       newValue: item,
     });
 
+    if (user.orgId) {
+      dispatchWebhook(user.orgId, 'capa.created', { capa: item });
+    }
+
     return c.json({ capa: item }, 201);
   } catch (error: any) {
     console.error('Create CAPA error:', error);
@@ -140,6 +145,11 @@ capa.put('/:id', async (c) => {
       previousValue: existing,
       newValue: item,
     });
+
+    if (user.orgId) {
+      const webhookEvent = action === 'status_change' ? 'capa.status_changed' : 'capa.status_changed';
+      dispatchWebhook(user.orgId, webhookEvent, { capa: item, previous: existing });
+    }
 
     return c.json({ capa: item });
   } catch (error: any) {

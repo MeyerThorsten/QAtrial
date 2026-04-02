@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 import { prisma } from '../index.js';
 import { authMiddleware, getUser, JwtPayload } from '../middleware/auth.js';
 import { logAudit } from '../services/audit.service.js';
+import { dispatchWebhook } from '../services/webhook.service.js';
 
 const requirements = new Hono();
 
@@ -66,6 +67,10 @@ requirements.post('/', async (c) => {
       newValue: requirement,
     });
 
+    if (user.orgId) {
+      dispatchWebhook(user.orgId, 'requirement.created', { requirement });
+    }
+
     return c.json({ requirement }, 201);
   } catch (error: any) {
     console.error('Create requirement error:', error);
@@ -123,6 +128,10 @@ requirements.put('/:id', async (c) => {
       newValue: requirement,
     });
 
+    if (user.orgId) {
+      dispatchWebhook(user.orgId, 'requirement.updated', { requirement, previous: existing });
+    }
+
     return c.json({ requirement });
   } catch (error: any) {
     console.error('Update requirement error:', error);
@@ -164,6 +173,10 @@ requirements.delete('/:id', async (c) => {
       entityId: id,
       previousValue: existing,
     });
+
+    if (user.orgId) {
+      dispatchWebhook(user.orgId, 'requirement.deleted', { id, requirement: existing });
+    }
 
     return c.json({ message: 'Requirement deleted' });
   } catch (error: any) {

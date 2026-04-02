@@ -1,7 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../hooks/useAuth';
-import { Eye, EyeOff, Loader2 } from 'lucide-react';
+import { Eye, EyeOff, Loader2, Shield } from 'lucide-react';
+import { apiFetch } from '../../lib/apiClient';
+
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
 export function LoginPage() {
   const { t } = useTranslation();
@@ -15,6 +18,68 @@ export function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+
+  // SSO state
+  const [ssoEnabled, setSsoEnabled] = useState(false);
+  const [ssoLoading, setSsoLoading] = useState(true);
+  const [ssoExchanging, setSsoExchanging] = useState(false);
+
+  // Check SSO config on mount
+  useEffect(() => {
+    fetch(`${API_BASE}/auth/sso/config`)
+      .then((res) => res.json())
+      .then((data: { enabled: boolean }) => {
+        setSsoEnabled(data.enabled);
+      })
+      .catch(() => {
+        setSsoEnabled(false);
+      })
+      .finally(() => {
+        setSsoLoading(false);
+      });
+  }, []);
+
+  // Handle SSO callback: if URL contains #sso_token=..., exchange it
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (!hash.includes('sso_token=')) return;
+
+    const token = hash.split('sso_token=')[1]?.split('&')[0];
+    if (!token) return;
+
+    // Clean the hash from the URL
+    window.history.replaceState(null, '', window.location.pathname);
+
+    setSsoExchanging(true);
+    apiFetch<{
+      user: { id: string; email: string; name: string; role: string; orgId: string };
+      accessToken: string;
+      refreshToken: string;
+    }>('/auth/sso/token', {
+      method: 'POST',
+      body: JSON.stringify({ token }),
+    })
+      .then((res) => {
+        // Store tokens and reload — the AuthProvider will pick them up
+        localStorage.setItem('qatrial:token', res.accessToken);
+        localStorage.setItem('qatrial:refresh-token', res.refreshToken);
+        window.location.reload();
+      })
+      .catch((err) => {
+        setError(err.message || 'SSO authentication failed');
+        setSsoExchanging(false);
+      });
+  }, []);
+
+  // Check for SSO error in query params
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const ssoError = params.get('sso_error');
+    if (ssoError) {
+      setError(decodeURIComponent(ssoError));
+      window.history.replaceState(null, '', window.location.pathname);
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,10 +108,25 @@ export function LoginPage() {
     }
   };
 
+  const handleSsoLogin = () => {
+    window.location.href = `${API_BASE}/auth/sso/login`;
+  };
+
   const toggleMode = () => {
     setMode((m) => (m === 'login' ? 'register' : 'login'));
     setError(null);
   };
+
+  if (ssoExchanging) {
+    return (
+      <div className="min-h-screen bg-surface-secondary flex items-center justify-center p-4">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin text-accent mx-auto mb-3" />
+          <p className="text-sm text-text-secondary">Completing SSO sign-in...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-surface-secondary flex items-center justify-center p-4">
@@ -64,6 +144,24 @@ export function LoginPage() {
 
         {/* Card */}
         <div className="bg-surface rounded-xl border border-border shadow-lg p-6">
+          {/* SSO Button */}
+          {!ssoLoading && ssoEnabled && mode === 'login' && (
+            <>
+              <button
+                onClick={handleSsoLogin}
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-text-primary bg-surface-secondary border border-border rounded-lg hover:bg-surface-hover transition-colors mb-4"
+              >
+                <Shield className="w-4 h-4 text-accent" />
+                {t('sso.signInWithSso')}
+              </button>
+              <div className="flex items-center gap-3 mb-4">
+                <div className="flex-1 h-px bg-border" />
+                <span className="text-xs text-text-tertiary">{t('sso.orEmail')}</span>
+                <div className="flex-1 h-px bg-border" />
+              </div>
+            </>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Name (register only) */}
             {mode === 'register' && (

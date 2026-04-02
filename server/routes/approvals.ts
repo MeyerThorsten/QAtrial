@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 import { prisma } from '../index.js';
 import { authMiddleware, getUser } from '../middleware/auth.js';
 import { logAudit } from '../services/audit.service.js';
+import { dispatchWebhook } from '../services/webhook.service.js';
 
 const approvals = new Hono();
 
@@ -94,6 +95,10 @@ approvals.post('/request', async (c) => {
       newValue: { entityType, entityId, status: 'pending' },
     });
 
+    if (user.orgId) {
+      dispatchWebhook(user.orgId, 'approval.requested', { approval });
+    }
+
     return c.json({ approval }, 201);
   } catch (error: any) {
     console.error('Request approval error:', error);
@@ -154,6 +159,11 @@ approvals.put('/:id/review', async (c) => {
       previousValue: { status: 'pending' },
       newValue: { status: action, reason },
     });
+
+    if (user.orgId) {
+      const webhookEvent = action === 'approved' ? 'approval.approved' : 'approval.rejected';
+      dispatchWebhook(user.orgId, webhookEvent, { approval });
+    }
 
     return c.json({ approval });
   } catch (error: any) {

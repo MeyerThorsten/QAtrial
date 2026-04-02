@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 import { prisma } from '../index.js';
 import { authMiddleware, getUser, requireRole } from '../middleware/auth.js';
 import { logAudit } from '../services/audit.service.js';
+import { dispatchWebhook } from '../services/webhook.service.js';
 import * as fs from 'fs';
 import * as path from 'path';
 import { randomUUID } from 'crypto';
@@ -81,6 +82,10 @@ evidence.post('/upload', async (c) => {
       entityId: record.id,
       newValue: { fileName: file.name, entityType, entityId },
     });
+
+    if (user.orgId) {
+      dispatchWebhook(user.orgId, 'evidence.uploaded', { evidence: record });
+    }
 
     return c.json({ evidence: record }, 201);
   } catch (error: any) {
