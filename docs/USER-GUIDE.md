@@ -7,7 +7,7 @@ Complete end-user guide for QAtrial, the regulated quality workspace for GxP-com
 ## Table of Contents
 
 1. [Getting Started](#1-getting-started)
-2. [User Registration and Login](#2-user-registration-and-login)
+2. [Authentication & User Management](#2-authentication--user-management)
 3. [Project Setup Wizard](#3-project-setup-wizard-6-steps)
 4. [Requirements Management](#4-requirements-management)
 5. [Test Management](#5-test-management)
@@ -33,8 +33,9 @@ Complete end-user guide for QAtrial, the regulated quality workspace for GxP-com
 | Node.js | 18.0 or later |
 | npm | 9.0 or later |
 | Screen | 1280x720 minimum (1920x1080 recommended) |
+| PostgreSQL | 14.0 or later (required for backend mode) |
 
-### Installation and Running
+### Installation and Running (Frontend Only / Demo Mode)
 
 ```bash
 git clone https://github.com/MeyerThorsten/QAtrial.git
@@ -43,11 +44,53 @@ npm install
 npm run dev
 ```
 
-The development server starts on `http://localhost:5173` by default.
+The development server starts on `http://localhost:5173` by default. In this mode, all data is stored in your browser's `localStorage`.
+
+### Installation and Running (Full Stack with Backend)
+
+For multi-user, team-based usage with persistent database storage:
+
+```bash
+git clone https://github.com/MeyerThorsten/QAtrial.git
+cd QAtrial
+npm install
+
+# 1. Install PostgreSQL (if not already installed)
+#    macOS: brew install postgresql && brew services start postgresql
+#    Linux: sudo apt install postgresql && sudo systemctl start postgresql
+
+# 2. Create the database
+createdb qatrial
+
+# 3. Set environment variables (add to your .env or shell profile)
+export DATABASE_URL="postgresql://localhost:5432/qatrial"
+export JWT_SECRET="your-secret-key-change-in-production"
+
+# 4. Generate Prisma client and push schema to database
+npm run db:generate
+npm run db:push
+
+# 5. Start the backend server (in one terminal)
+npm run server:dev
+
+# 6. Start the frontend (in another terminal)
+npm run dev
+```
+
+The backend API runs on `http://localhost:3001`. The frontend connects to it automatically when the `VITE_API_URL` environment variable is set (defaults to `http://localhost:3001/api`).
+
+### Environment Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `DATABASE_URL` | `postgresql://localhost:5432/qatrial` | PostgreSQL connection string |
+| `JWT_SECRET` | `qatrial-dev-secret-change-in-production` | Secret key for signing JWT tokens. **Change this in production.** |
+| `VITE_API_URL` | `http://localhost:3001/api` | API base URL used by the frontend to connect to the backend |
+| `VITE_AI_PROXY_URL` | (none) | Optional server-side AI proxy endpoint for keeping API keys secure |
 
 ### First Launch Experience
 
-When you open QAtrial for the first time, you are presented with a **login/registration screen**. After creating an account and logging in, the application detects that no project data exists and automatically presents the **Setup Wizard**. All data is stored locally in your browser's `localStorage`.
+When you open QAtrial for the first time, you are presented with a **login/registration screen**. After creating an account and logging in, the application detects that no project data exists and automatically presents the **Setup Wizard**.
 
 The header bar shows:
 - **QAtrial** branding with the project name (once created)
@@ -78,9 +121,28 @@ To switch languages, click the **Language Selector** dropdown in the header bar.
 
 ---
 
-## 2. User Registration and Login
+## 2. Authentication & User Management
 
-### Creating an Account
+### Operating Modes
+
+QAtrial supports two operating modes for authentication:
+
+| Mode | When Active | How It Works |
+|------|-------------|--------------|
+| **localStorage Mode** (standalone/demo) | Backend server is not running | User accounts are stored in browser `localStorage` via `useAuthStore`. Data is local to the browser. |
+| **API Mode** (production/team) | Backend server is running and `VITE_API_URL` is set | User accounts are stored in PostgreSQL. JWT tokens are used for authentication. Multi-user across devices. |
+
+### Creating an Account (API Mode)
+
+1. On the login screen, click **Register**
+2. Fill in your details:
+   - **Full Name** (required): Your display name for audit trails and signatures
+   - **Email** (required): Used as your login identifier (must be unique)
+   - **Password** (required): Minimum 8 characters. Hashed with bcrypt before storage.
+3. Click **Register**
+4. On first registration, an Organization and default Workspace are automatically created for you, and you are assigned the **Admin** role.
+
+### Creating an Account (localStorage Mode)
 
 1. On the login screen, click **Register**
 2. Fill in your details:
@@ -92,6 +154,16 @@ To switch languages, click the **Language Selector** dropdown in the header bar.
 
 ### User Roles
 
+**Backend (API Mode) Roles:**
+
+| Role | Permissions |
+|------|-------------|
+| **Admin** | Full access to all features, user management, invite users, change roles |
+| **Editor** | Create, edit, and delete requirements, tests, CAPA, risks. Cannot manage users. |
+| **Viewer** | Read-only access to all data. Cannot create or modify records. |
+
+**Client-side Roles (localStorage Mode):**
+
 | Role | Permissions |
 |------|-------------|
 | **Admin** | Full access to all features, user management, system configuration |
@@ -102,13 +174,32 @@ To switch languages, click the **Language Selector** dropdown in the header bar.
 
 ### Logging In
 
+**API Mode:**
+1. Enter your **Email** and **Password**
+2. Click **Login**
+3. The server returns a JWT access token (valid 24 hours) and a refresh token (valid 7 days)
+4. The access token is stored in `localStorage` under `qatrial:token` and sent with every API request
+5. When the access token expires, it is automatically refreshed using the refresh token
+
+**localStorage Mode:**
 1. Enter your **Email** and **Password**
 2. Click **Login**
 3. Your session persists in `localStorage` under `qatrial:auth` until you log out
 
+### Inviting Users (API Mode, Admin Only)
+
+1. Navigate to **Settings** or the user management area
+2. Click **Invite User**
+3. Enter the new user's email and assign a role (Admin, Editor, or Viewer)
+4. The invited user can then register with that email
+
+### Changing User Roles (API Mode, Admin Only)
+
+Admins can change any user's role via the `PUT /api/users/:id/role` endpoint or through the user management UI.
+
 ### Logging Out
 
-Click the **user menu** in the header and select **Logout**. A logout event is recorded in the audit trail.
+Click the **user menu** in the header and select **Logout**. A logout event is recorded in the audit trail. In API mode, the stored token is removed from localStorage.
 
 ### Signature Re-Authentication
 
@@ -240,14 +331,14 @@ Click **Create Project** to finalize. The wizard closes and you arrive at the Re
    - **Status**: Draft (default), Active, or Closed
 4. Click **Save**
 
-The requirement is assigned an auto-generated ID (e.g., REQ-001, REQ-002).
+The requirement is assigned an auto-generated ID (e.g., REQ-001, REQ-002). In API mode, IDs are generated per-project on the server.
 
 ### Editing and Deleting
 
 - **Edit:** Click the pencil icon on any requirement row. The edit modal opens with all fields pre-filled. Modify and save.
 - **Delete:** Click the trash icon. A confirmation dialog warns that all links to tests will also be removed. Confirm to delete.
 
-When a requirement is deleted, the system automatically removes its ID from the `linkedRequirementIds` of all tests that reference it, maintaining referential integrity.
+When a requirement is deleted, the system automatically removes its ID from the `linkedRequirementIds` of all tests that reference it, maintaining referential integrity. In API mode, the backend handles this cleanup server-side.
 
 ### Status Workflow
 
@@ -665,7 +756,7 @@ The **Evidence Score** on the dashboard shows the percentage of requirements mee
 
 ### Overview
 
-The CAPA (Corrective and Preventive Action) system in v2.0.0 has been expanded with a full lifecycle managed by `useCAPAStore`.
+The CAPA (Corrective and Preventive Action) system has a full lifecycle managed by `useCAPAStore` on the client and the `/api/capa` routes on the server.
 
 ### CAPA Lifecycle
 
@@ -681,6 +772,8 @@ open --> investigation --> in_progress --> verification --> resolved --> closed
 | **verification** | Effectiveness of actions being verified |
 | **resolved** | Actions verified as effective |
 | **closed** | CAPA formally closed with documented evidence |
+
+**Status transition enforcement:** In API mode, the backend enforces valid status transitions. You cannot skip stages (e.g., jump directly from "open" to "resolved"). Each transition is logged in the audit trail.
 
 ### Creating a CAPA Record
 
@@ -698,7 +791,7 @@ open --> investigation --> in_progress --> verification --> resolved --> closed
 - Use the CAPA dashboard to view all records by status
 - Advance records through the lifecycle stages
 - Each status transition is logged in the audit trail
-- CAPA records are stored via `useCAPAStore` with the `CAPARecord` type
+- CAPA records are stored via `useCAPAStore` (client) or in PostgreSQL (API mode)
 
 ---
 
@@ -706,7 +799,7 @@ open --> investigation --> in_progress --> verification --> resolved --> closed
 
 ### Electronic Signatures
 
-Electronic signatures in QAtrial follow the 21 CFR Part 11 and EU Annex 11 model. In v2.0.0, signatures use the **real user identity** from `useAuthStore`.
+Electronic signatures in QAtrial follow the 21 CFR Part 11 and EU Annex 11 model. Signatures use the **real user identity** from `useAuthStore` (localStorage mode) or from the JWT token (API mode).
 
 **When to use:** Apply a signature when formally authoring, reviewing, approving, verifying, or rejecting a requirement, test, or report section.
 
@@ -733,7 +826,7 @@ The signature is permanently recorded in the audit trail with the signer's name,
 
 ### Audit Trail
 
-QAtrial maintains a comprehensive audit trail of all actions. Access it via the **Audit Trail** button in the header.
+QAtrial maintains a comprehensive audit trail of all actions. In API mode, audit entries are stored in an **append-only PostgreSQL table** (`AuditLog`) that cannot be modified or deleted through the API. Access the audit trail via the **Audit Trail** button in the header.
 
 **Viewing:**
 - Entries are displayed in a timeline format, newest first
@@ -745,12 +838,14 @@ QAtrial maintains a comprehensive audit trail of all actions. Access it via the 
 - Use the date range picker (From/To) to narrow the time window
 - Default view shows the last 30 days
 - When viewing from a specific entity, only that entity's audit entries are shown
+- In API mode, filter by project, entity type, action, or date range via query parameters
 
 **Exporting:**
 - **Export Trail (CSV):** Downloads all filtered entries as a CSV file with columns: Timestamp, Action, User, Entity Type, Entity ID, Previous Value, New Value, Reason, Signature Meaning, Signer
 - **Export Trail (PDF):** Opens the browser print dialog for the current view
+- In API mode, use `GET /api/audit/export?format=csv` for server-side CSV export
 
-**Auto-logging (v2.0.0):** All requirement and test CRUD operations are now automatically logged to the audit trail with the real user identity from `useAuthStore`. You do not need to manually trigger audit entries for standard operations.
+**Auto-logging:** All requirement, test, CAPA, risk, and project CRUD operations are automatically logged to the audit trail with the real user identity. In API mode, the backend's `logAudit()` service function records every change with previous and new values as JSON.
 
 **Tracked actions:**
 
@@ -797,7 +892,7 @@ For all other verticals, change control starts with default (lenient) settings t
 
 ### Overview
 
-QAtrial v2.0.0 introduces a connector framework for integrating with external systems. Connectors allow you to import requirements from and export data to tools like Jira, Azure DevOps, or CSV files.
+QAtrial introduces a connector framework for integrating with external systems. Connectors allow you to import requirements from and export data to tools like Jira, Azure DevOps, or CSV files.
 
 ### Configuring a Connector
 
@@ -853,6 +948,10 @@ Sync records are stored in `useConnectorStore` and can be reviewed for troublesh
 
 ### Data Persistence
 
+QAtrial supports two persistence modes:
+
+**localStorage Mode (Standalone/Demo)**
+
 All data is stored in the browser's `localStorage` under these keys:
 
 | Key | Contents |
@@ -874,6 +973,24 @@ All data is stored in the browser's `localStorage` under these keys:
 | `qatrial:connectors` | Connector configurations and sync records |
 
 Data persists across browser sessions. Clearing browser data or localStorage will erase all project data.
+
+**PostgreSQL Mode (Production/Team)**
+
+When the backend server is running, data is stored in PostgreSQL across 10 database models:
+
+| Model | Contents |
+|-------|----------|
+| `User` | User accounts with email, password hash, name, role, organization |
+| `Organization` | Company/team container for multi-tenant isolation |
+| `Workspace` | Project grouping within an organization |
+| `Project` | Project metadata including country, vertical, modules, type |
+| `Requirement` | Requirements with seqId (REQ-NNN), linked to a project |
+| `Test` | Tests with seqId (TST-NNN), linked requirement IDs, linked to a project |
+| `Risk` | Risk assessments with severity, likelihood, detectability, auto-computed score |
+| `CAPA` | CAPA records with full lifecycle state |
+| `AuditLog` | Append-only audit log with timestamp, user, action, entity, previous/new values |
+
+In PostgreSQL mode, data persists across browser sessions and devices. Multiple users can work on the same project simultaneously. The JWT access token is stored in `localStorage` under `qatrial:token`.
 
 ### Theme Switching
 

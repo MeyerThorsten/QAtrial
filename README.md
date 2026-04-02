@@ -5,7 +5,7 @@ A country-aware, GxP-aware, AI-assisted quality and validation platform for regu
 ## Core Model
 
 ```
-Country (jurisdiction) × Vertical (domain) × Project Type (execution) × Modules (quality controls)
+Country (jurisdiction) x Vertical (domain) x Project Type (execution) x Modules (quality controls)
 ```
 
 ## Features
@@ -50,32 +50,45 @@ US, Germany, UK, France, Japan, South Korea, Canada, Mexico, China, India, Italy
 ### 7 Dashboard Views
 1. **Overview**: Coverage metrics, status charts, traceability matrix, orphaned items
 2. **Compliance**: Weighted readiness score + gap analysis heatmap
-3. **Risk**: Interactive 5×5 severity × likelihood matrix
+3. **Risk**: Interactive 5x5 severity x likelihood matrix
 4. **Evidence**: Per-requirement evidence completeness tracking
 5. **CAPA**: Failed test funnel with AI corrective action suggestions
 6. **Trends**: Status distributions, risk distribution, coverage by category
 7. **Portfolio**: Multi-project overview with readiness scores
 
 ### Report Generation
-- Validation Summary Report (VSR) — 7-section audit-ready report
-- Executive Compliance Brief — AI-generated one-pager
-- Regulatory Submission Package — formatted per authority (FDA 510(k), EU MDR, PMDA STED)
+- Validation Summary Report (VSR) -- 7-section audit-ready report
+- Executive Compliance Brief -- AI-generated one-pager
+- Regulatory Submission Package -- formatted per authority (FDA 510(k), EU MDR, PMDA STED)
 - Traceability Matrix, Gap Analysis, Risk Assessment exports
 
 ### Compliance Features
 - **Electronic Signatures**: 21 CFR Part 11 / EU Annex 11 compliant with real identity verification, re-authentication for signatures, and 15-minute verification window
-- **Audit Trail**: Automatic event logging on all CRUD operations, full timeline with diffs, signatures, CSV/PDF export
+- **Audit Trail**: Automatic event logging on all CRUD operations, full timeline with diffs, signatures, CSV/PDF export. Server-backed append-only audit log in PostgreSQL.
 - **Change Control**: Configurable per vertical (auto-revert on change, approval workflows)
 - **Evidence Management**: Attach evidence files to requirements, tests, and CAPA records with completeness tracking
 - **Risk Assessments**: Persisted risk assessment entities with full lifecycle and audit trail
-- **CAPA Records**: Durable CAPA records with lifecycle states (open → investigation → in_progress → verification → resolved → closed)
+- **CAPA Records**: Durable CAPA records with lifecycle states (open -> investigation -> in_progress -> verification -> resolved -> closed)
 
 ### Authentication & RBAC
-- User registration and login with role-based access control
-- 5 roles: Admin, QA Manager, QA Engineer, Auditor (read-only), Reviewer
+- User registration and login with JWT-based authentication (24h access tokens + 7d refresh tokens)
+- Server-side password hashing with bcrypt (12 rounds)
+- 3 backend roles: Admin, Editor, Viewer (server-enforced via middleware)
+- 5 client-side roles: Admin, QA Manager, QA Engineer, Auditor (read-only), Reviewer
 - Role-based permission matrix for all operations
 - Signature verification with password re-authentication
 - Session management with configurable timeouts
+- Organization and workspace scoping for multi-tenant isolation
+
+### Backend Server (v3.0.0)
+- **Hono** TypeScript-first HTTP framework on Node.js
+- **PostgreSQL** database via **Prisma ORM v7** (10 models)
+- **JWT authentication** with access/refresh token pair
+- **REST API** with 30+ endpoints across 8 route groups
+- **Append-only audit log** in PostgreSQL with CSV export
+- **CAPA lifecycle enforcement** with valid status transition checks
+- **Auto-generated sequential IDs** (REQ-NNN, TST-NNN) per project
+- **Multi-user, multi-organization** support with workspace scoping
 
 ### AI System Enhancements
 - **JSON Schema Validation**: All AI responses validated against expected schemas with automatic retry/repair
@@ -105,46 +118,79 @@ Light and dark mode with full design system (CSS custom properties, Tailwind tok
 | Vite | Build Tool |
 | Tailwind CSS 4 | Styling |
 | Vitest | Test Framework |
-| Zustand | State Management (14 stores) |
+| Zustand | State Management (20 stores on client) |
 | TanStack Table v8 | Tables |
 | Recharts | Charts |
 | react-i18next | Internationalization |
 | Lucide React | Icons |
+| **Hono** | **Backend HTTP Framework** |
+| **Prisma v7** | **ORM / Database Client** |
+| **PostgreSQL** | **Relational Database** |
+| **JSON Web Tokens** | **Authentication (access + refresh tokens)** |
+| **bcryptjs** | **Password Hashing** |
 
 ## Project Structure
 
 ```
-src/
-├── ai/                          # AI system
-│   ├── types.ts, provider.ts, client.ts
-│   └── prompts/                 # 6 AI prompt templates
-├── templates/                   # Template composition
-│   ├── types.ts, registry.ts, composer.ts
-│   ├── verticals/               # 5 industry vertical templates
-│   ├── modules/                 # 15 quality module definitions
-│   └── regions/                 # 6 country + EU base + overlays
-├── connectors/                  # External QMS/ALM connector interfaces
-├── store/                       # 14 Zustand stores (req, test, audit, auth, risk, CAPA, gap, evidence, AI history, connectors, ...)
-├── i18n/                        # i18next configuration
-├── hooks/                       # Custom hooks
-├── lib/                         # Constants, ID generator, approval helpers
-├── types/                       # All TypeScript types (50+ types)
-├── components/
-│   ├── layout/                  # AppShell
-│   ├── wizard/                  # 6-step setup wizard
-│   ├── requirements/            # Requirements table + modal
-│   ├── tests/                   # Tests table + modal
-│   ├── dashboard/               # 14 dashboard components
-│   ├── ai/                      # AI panels (test gen, risk, settings)
-│   ├── reports/                 # Report generator + preview
-│   ├── audit/                   # Audit trail + signature modal
-│   └── shared/                  # Shared components
-└── public/locales/              # 12 complete translation files
+QAtrial/
+├── server/                          # Backend server
+│   ├── index.ts                     # Hono server entry point (port 3001)
+│   ├── prisma/
+│   │   ├── schema.prisma            # PostgreSQL schema (10 models)
+│   │   └── prisma.config.ts         # Prisma 7 migration config
+│   ├── generated/prisma/            # Generated Prisma client
+│   ├── middleware/
+│   │   └── auth.ts                  # JWT auth + RBAC middleware
+│   ├── services/
+│   │   └── audit.service.ts         # Append-only audit logging
+│   └── routes/
+│       ├── auth.ts                  # Register, login, refresh, me
+│       ├── projects.ts              # Project CRUD
+│       ├── requirements.ts          # Requirement CRUD + auto seqId
+│       ├── tests.ts                 # Test CRUD + auto seqId
+│       ├── capa.ts                  # CAPA CRUD + lifecycle enforcement
+│       ├── risks.ts                 # Risk CRUD + auto scoring
+│       ├── audit.ts                 # Read-only audit queries + CSV export
+│       └── users.ts                 # User management (admin)
+├── src/
+│   ├── ai/                          # AI system
+│   │   ├── types.ts, provider.ts, client.ts
+│   │   └── prompts/                 # 6 AI prompt templates
+│   ├── templates/                   # Template composition
+│   │   ├── types.ts, registry.ts, composer.ts
+│   │   ├── verticals/               # 5 industry vertical templates
+│   │   ├── modules/                 # 15 quality module definitions
+│   │   └── regions/                 # 6 country + EU base + overlays
+│   ├── connectors/                  # External QMS/ALM connector interfaces
+│   ├── store/                       # 20 Zustand stores (client-side state)
+│   ├── i18n/                        # i18next configuration
+│   ├── hooks/                       # Custom hooks
+│   ├── lib/                         # Constants, ID generator, approval helpers, apiClient
+│   │   └── apiClient.ts             # Authenticated API fetch wrapper (Bearer token injection)
+│   ├── types/                       # All TypeScript types (50+ types)
+│   ├── components/
+│   │   ├── layout/                  # AppShell
+│   │   ├── wizard/                  # 6-step setup wizard
+│   │   ├── requirements/            # Requirements table + modal
+│   │   ├── tests/                   # Tests table + modal
+│   │   ├── dashboard/               # 14 dashboard components
+│   │   ├── ai/                      # AI panels (test gen, risk, settings)
+│   │   ├── reports/                 # Report generator + preview
+│   │   ├── audit/                   # Audit trail + signature modal
+│   │   └── shared/                  # Shared components
+│   └── public/locales/              # 12 complete translation files
+├── docs/                            # Documentation
+├── package.json
+├── tsconfig.json
+├── vite.config.ts                   # Build config with manual chunks
+└── vitest.config.ts                 # Test runner configuration
 ```
 
-**100+ TypeScript source files, 18,000+ lines of code, 12 translation files (425+ keys each)**
+**100+ TypeScript source files, 20,000+ lines of code, 12 translation files (425+ keys each), 10 database models, 30+ API endpoints**
 
 ## Installation
+
+### Frontend Only (Demo/Standalone Mode)
 
 ```bash
 git clone https://github.com/MeyerThorsten/QAtrial.git
@@ -153,14 +199,81 @@ npm install
 npm run dev
 ```
 
+The frontend dev server starts on `http://localhost:5173`. In this mode all data is stored in `localStorage`.
+
+### Full Stack (Frontend + Backend)
+
+```bash
+git clone https://github.com/MeyerThorsten/QAtrial.git
+cd QAtrial
+npm install
+
+# 1. Install and start PostgreSQL (if not already running)
+#    macOS: brew install postgresql && brew services start postgresql
+#    Linux: sudo apt install postgresql && sudo systemctl start postgresql
+
+# 2. Create the database
+createdb qatrial
+
+# 3. Set environment variables
+export DATABASE_URL="postgresql://localhost:5432/qatrial"
+export JWT_SECRET="your-secret-key-change-in-production"
+
+# 4. Generate Prisma client and push schema
+npm run db:generate
+npm run db:push
+
+# 5. Start the backend server (port 3001)
+npm run server:dev
+
+# 6. In another terminal, start the frontend (port 5173)
+npm run dev
+```
+
+### Running the Backend
+
+The backend runs on `http://localhost:3001` and exposes a REST API under `/api/`.
+
+```bash
+# Start backend with auto-reload on file changes
+npm run server:dev
+
+# Or start without watch mode
+npm run server
+
+# Verify the server is running
+curl http://localhost:3001/api/health
+# => {"status":"ok","version":"3.0.0"}
+```
+
+**Available backend scripts:**
+
+| Script | Description |
+|--------|-------------|
+| `npm run server` | Start the backend server |
+| `npm run server:dev` | Start with file watching (auto-reload) |
+| `npm run db:generate` | Generate Prisma client from schema |
+| `npm run db:migrate` | Run Prisma migrations |
+| `npm run db:push` | Push schema directly to database |
+| `npm run db:studio` | Open Prisma Studio GUI for database browsing |
+
+**Environment variables:**
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `DATABASE_URL` | `postgresql://localhost:5432/qatrial` | PostgreSQL connection string |
+| `JWT_SECRET` | `qatrial-dev-secret-change-in-production` | Secret for signing JWT tokens |
+| `VITE_API_URL` | `http://localhost:3001/api` | API base URL for the frontend |
+| `VITE_AI_PROXY_URL` | (none) | Optional AI proxy endpoint |
+
 ## Setup Wizard (6 steps)
 
-1. **Country** — Select jurisdiction (37 countries)
-2. **Industry Vertical** — Select GxP domain (optional)
-3. **Metadata** — Project name, description, owner, version
-4. **Project Type** — Software, Embedded, QMS, Validation, Clinical, Compliance, Supplier Quality
-5. **Quality Modules** — Select composable quality controls
-6. **Preview** — Review and customize generated requirements + tests
+1. **Country** -- Select jurisdiction (37 countries)
+2. **Industry Vertical** -- Select GxP domain (optional)
+3. **Metadata** -- Project name, description, owner, version
+4. **Project Type** -- Software, Embedded, QMS, Validation, Clinical, Compliance, Supplier Quality
+5. **Quality Modules** -- Select composable quality controls
+6. **Preview** -- Review and customize generated requirements + tests
 
 ## AI Provider Configuration
 
@@ -172,11 +285,11 @@ Go to Settings (gear icon) to configure LLM providers:
 
 ## Documentation
 
-- [User Guide](docs/USER-GUIDE.md) — Complete end-user documentation
-- [Architecture](docs/ARCHITECTURE.md) — Technical architecture overview
-- [Developer Guide](docs/DEVELOPER-GUIDE.md) — How to extend QAtrial (add countries, verticals, languages)
-- [API Reference](docs/API-REFERENCE.md) — Stores, hooks, utilities, type definitions
-- [Regulatory Reference](docs/REGULATORY-REFERENCE.md) — Standards and frameworks by country and vertical
+- [User Guide](docs/USER-GUIDE.md) -- Complete end-user documentation
+- [Architecture](docs/ARCHITECTURE.md) -- Technical architecture overview
+- [Developer Guide](docs/DEVELOPER-GUIDE.md) -- How to extend QAtrial (add countries, verticals, languages)
+- [API Reference](docs/API-REFERENCE.md) -- REST API, stores, hooks, utilities, type definitions
+- [Regulatory Reference](docs/REGULATORY-REFERENCE.md) -- Standards and frameworks by country and vertical
 
 ## Contributing
 
