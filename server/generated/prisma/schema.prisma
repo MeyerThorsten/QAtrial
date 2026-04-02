@@ -1,0 +1,135 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+model User {
+  id           String        @id @default(uuid())
+  email        String        @unique
+  passwordHash String
+  name         String
+  role         String        @default("editor")
+  orgId        String?
+  org          Organization? @relation(fields: [orgId], references: [id])
+  createdAt    DateTime      @default(now())
+}
+
+model Organization {
+  id         String      @id @default(uuid())
+  name       String
+  users      User[]
+  workspaces Workspace[]
+  createdAt  DateTime    @default(now())
+}
+
+model Workspace {
+  id        String       @id @default(uuid())
+  name      String
+  orgId     String
+  org       Organization @relation(fields: [orgId], references: [id])
+  projects  Project[]
+  createdAt DateTime     @default(now())
+}
+
+model Project {
+  id           String        @id @default(uuid())
+  workspaceId  String
+  workspace    Workspace     @relation(fields: [workspaceId], references: [id])
+  name         String
+  description  String        @default("")
+  owner        String        @default("")
+  version      String        @default("1.0")
+  country      String        @default("")
+  vertical     String?
+  modules      String[]      @default([])
+  type         String        @default("software")
+  requirements Requirement[]
+  tests        Test[]
+  risks        Risk[]
+  capas        CAPA[]
+  auditLogs    AuditLog[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+model Requirement {
+  id            String   @id @default(uuid())
+  projectId     String
+  project       Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  seqId         String
+  title         String
+  description   String   @default("")
+  status        String   @default("Draft")
+  tags          String[] @default([])
+  riskLevel     String?
+  regulatoryRef String?
+  evidenceHints String[] @default([])
+  createdBy     String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Test {
+  id                   String   @id @default(uuid())
+  projectId            String
+  project              Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  seqId                String
+  title                String
+  description          String   @default("")
+  status               String   @default("Not Run")
+  linkedRequirementIds String[] @default([])
+  createdBy            String?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+}
+
+model Risk {
+  id            String   @id @default(uuid())
+  projectId     String
+  project       Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  requirementId String
+  severity      Int
+  likelihood    Int
+  detectability Int?
+  riskScore     Int
+  riskLevel     String
+  mitigation    String?
+  residualRisk  Int?
+  classifiedBy  String   @default("manual")
+  createdAt     DateTime @default(now())
+}
+
+model CAPA {
+  id                 String   @id @default(uuid())
+  projectId          String
+  project            Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  title              String
+  status             String   @default("open")
+  rootCause          String?
+  containment        String?
+  correctiveAction   String?
+  preventiveAction   String?
+  effectivenessCheck String?
+  linkedTestId       String?
+  createdBy          String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+model AuditLog {
+  id            String   @id @default(uuid())
+  projectId     String
+  project       Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  timestamp     DateTime @default(now())
+  userId        String
+  action        String
+  entityType    String
+  entityId      String
+  previousValue Json?
+  newValue      Json?
+  reason        String?
+}
