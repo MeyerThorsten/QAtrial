@@ -10,6 +10,10 @@ import capaRoutes from './routes/capa.js';
 import riskRoutes from './routes/risks.js';
 import auditRoutes from './routes/audit.js';
 import userRoutes from './routes/users.js';
+import evidenceRoutes from './routes/evidence.js';
+import approvalRoutes from './routes/approvals.js';
+import signatureRoutes from './routes/signatures.js';
+import exportRoutes from './routes/export.js';
 
 const app = new Hono();
 const prisma = new PrismaClient();
@@ -29,6 +33,10 @@ app.route('/api/capa', capaRoutes);
 app.route('/api/risks', riskRoutes);
 app.route('/api/audit', auditRoutes);
 app.route('/api/users', userRoutes);
+app.route('/api/evidence', evidenceRoutes);
+app.route('/api/approvals', approvalRoutes);
+app.route('/api/signatures', signatureRoutes);
+app.route('/api/export', exportRoutes);
 
 app.get('/api/health', (c) => c.json({ status: 'ok', version: '3.0.0' }));
 

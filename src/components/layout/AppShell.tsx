@@ -1,6 +1,6 @@
 import { useState, lazy, Suspense } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ClipboardList, FlaskConical, BarChart3, FolderPlus, ScrollText, X, FileText, Settings, Layers } from 'lucide-react';
+import { ClipboardList, FlaskConical, BarChart3, FolderPlus, ScrollText, X, FileText, Settings, Layers, LogOut, Users } from 'lucide-react';
 import { ImportExportBar } from '../shared/ImportExportBar';
 import { ThemeToggle } from '../shared/ThemeToggle';
 import { LanguageSelector } from '../shared/LanguageSelector';
@@ -9,6 +9,10 @@ import { NotificationBell } from '../shared/NotificationBell';
 import { useProjectStore } from '../../store/useProjectStore';
 import { useRequirementsStore } from '../../store/useRequirementsStore';
 import { useTestsStore } from '../../store/useTestsStore';
+import { useAuth } from '../../hooks/useAuth';
+import { useAppMode } from '../../hooks/useAppMode';
+import { WorkspaceManager } from '../auth/WorkspaceManager';
+import { MigrateDataButton } from '../auth/MigrateDataButton';
 import type { ViewTab } from '../../types';
 
 // Lazy-loaded components for code splitting
@@ -37,9 +41,14 @@ export function AppShell() {
   const requirements = useRequirementsStore((s) => s.requirements);
   const tests = useTestsStore((s) => s.tests);
 
+  const { user, isAuthenticated, logout } = useAuth();
+  const { mode } = useAppMode();
+  const isServerMode = mode === 'server';
+
   const [showWizard, setShowWizard] = useState(false);
   const [confirmNewProject, setConfirmNewProject] = useState(false);
   const [showAuditTrail, setShowAuditTrail] = useState(false);
+  const [showTeam, setShowTeam] = useState(false);
 
   const hasData = project !== null || requirements.length > 0 || tests.length > 0;
   const wizardVisible = showWizard || !hasData;
@@ -101,6 +110,9 @@ export function AppShell() {
               )}
             </div>
             <div className="flex items-center gap-2">
+              {/* Server mode: migrate data button */}
+              {isServerMode && isAuthenticated && <MigrateDataButton />}
+
               <NotificationBell />
               <button
                 onClick={() => setShowAuditTrail(true)}
@@ -109,6 +121,18 @@ export function AppShell() {
                 <ScrollText className="w-4 h-4" />
                 {t('audit.title')}
               </button>
+
+              {/* Server mode: team button */}
+              {isServerMode && isAuthenticated && (
+                <button
+                  onClick={() => setShowTeam(true)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-text-secondary bg-surface border border-border rounded-lg hover:bg-surface-hover transition-colors"
+                >
+                  <Users className="w-4 h-4" />
+                  {t('auth.team')}
+                </button>
+              )}
+
               <button
                 onClick={() => setActiveTab('settings')}
                 className={`p-1.5 rounded-lg transition-colors ${
@@ -130,6 +154,25 @@ export function AppShell() {
                 {t('app.newProject')}
               </button>
               <ImportExportBar />
+
+              {/* Server mode: user display + logout */}
+              {isServerMode && isAuthenticated && user && (
+                <div className="flex items-center gap-2 ml-1 pl-2 border-l border-border">
+                  <div className="w-7 h-7 rounded-full bg-gradient-to-br from-gradient-start to-gradient-end flex items-center justify-center text-white text-xs font-bold shrink-0">
+                    {user.name.charAt(0).toUpperCase()}
+                  </div>
+                  <span className="text-sm text-text-secondary hidden sm:inline max-w-[100px] truncate">
+                    {user.name}
+                  </span>
+                  <button
+                    onClick={logout}
+                    className="p-1.5 rounded-lg text-text-tertiary hover:text-red-500 hover:bg-red-500/10 transition-colors"
+                    title={t('auth.logout')}
+                  >
+                    <LogOut className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
             </div>
           </div>
           <nav className="-mb-px flex gap-1">
@@ -197,6 +240,9 @@ export function AppShell() {
           </div>
         </div>
       )}
+
+      {/* Team / Workspace Modal */}
+      <WorkspaceManager open={showTeam} onClose={() => setShowTeam(false)} />
     </div>
   );
 }

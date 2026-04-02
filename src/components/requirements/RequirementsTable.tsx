@@ -11,16 +11,20 @@ import {
   flexRender,
   type SortingState,
 } from '@tanstack/react-table';
-import { Plus, Pencil, Trash2, ArrowUpDown, Search, Sparkles, ShieldAlert, ShieldCheck } from 'lucide-react';
+import { Plus, Pencil, Trash2, ArrowUpDown, Search, Sparkles, ShieldAlert, ShieldCheck, Paperclip, Clock } from 'lucide-react';
 import { useRequirementsStore } from '../../store/useRequirementsStore';
 import { useTestsStore } from '../../store/useTestsStore';
 import { useLLMStore } from '../../store/useLLMStore';
 import { useAuditStore } from '../../store/useAuditStore';
+import { useEvidenceStore } from '../../store/useEvidenceStore';
+import { useProjectStore } from '../../store/useProjectStore';
 import { StatusBadge } from '../shared/StatusBadge';
 import { ConfirmDialog } from '../shared/ConfirmDialog';
 import { EmptyState } from '../shared/EmptyState';
 import { RequirementModal } from './RequirementModal';
 import { SignatureModal } from '../audit/SignatureModal';
+import { EvidencePanel } from '../evidence/EvidencePanel';
+import { ApprovalPanel } from '../approval/ApprovalPanel';
 import { TestGenerationPanel } from '../ai/TestGenerationPanel';
 import { RiskClassificationPanel } from '../ai/RiskClassificationPanel';
 import { isApproved } from '../../lib/approvalHelpers';
@@ -47,6 +51,10 @@ export function RequirementsTable() {
   const [testGenReqId, setTestGenReqId] = useState<string | null>(null);
   const [riskClassReqId, setRiskClassReqId] = useState<string | null>(null);
   const [signReq, setSignReq] = useState<Requirement | null>(null);
+  const [evidenceReq, setEvidenceReq] = useState<Requirement | null>(null);
+  const [approvalReq, setApprovalReq] = useState<Requirement | null>(null);
+  const evidenceAttachments = useEvidenceStore((s) => s.attachments);
+  const project = useProjectStore((s) => s.project);
 
   const data = useMemo(
     () =>
@@ -110,55 +118,81 @@ export function RequirementsTable() {
       columnHelper.display({
         id: 'actions',
         header: '',
-        cell: ({ row }) => (
-          <div className="flex items-center gap-1">
-            {/* Sign button — only for Active requirements that are not yet approved */}
-            {row.original.status === 'Active' && !isApproved(row.original.id) && (
+        cell: ({ row }) => {
+          const evCount = evidenceAttachments.filter((a) => a.entityId === row.original.id).length;
+          return (
+            <div className="flex items-center gap-1">
+              {/* Evidence button */}
               <button
-                onClick={() => setSignReq(row.original)}
-                className="p-1.5 text-text-tertiary hover:text-accent rounded-lg hover:bg-accent-subtle transition-colors"
-                title={t('changeControl.approve')}
+                onClick={() => setEvidenceReq(row.original)}
+                className="relative p-1.5 text-text-tertiary hover:text-accent rounded-lg hover:bg-accent-subtle transition-colors"
+                title={t('evidence.title')}
               >
-                <ShieldCheck className="w-3.5 h-3.5" />
+                <Paperclip className="w-3.5 h-3.5" />
+                {evCount > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-accent text-white text-[9px] font-bold flex items-center justify-center">
+                    {evCount}
+                  </span>
+                )}
               </button>
-            )}
-            {hasAnyProvider && (
-              <>
+              {/* Approval quick actions */}
+              {row.original.status === 'Active' && !isApproved(row.original.id) && (
                 <button
-                  onClick={() => setTestGenReqId(row.original.id)}
+                  onClick={() => setApprovalReq(row.original)}
                   className="p-1.5 text-text-tertiary hover:text-accent rounded-lg hover:bg-accent-subtle transition-colors"
-                  title={t('requirements.generateTests')}
+                  title={t('approval.requestApproval')}
                 >
-                  <Sparkles className="w-3.5 h-3.5" />
+                  <Clock className="w-3.5 h-3.5" />
                 </button>
+              )}
+              {/* Sign button — only for Active requirements that are not yet approved */}
+              {row.original.status === 'Active' && !isApproved(row.original.id) && (
                 <button
-                  onClick={() => setRiskClassReqId(row.original.id)}
+                  onClick={() => setSignReq(row.original)}
                   className="p-1.5 text-text-tertiary hover:text-accent rounded-lg hover:bg-accent-subtle transition-colors"
-                  title={t('requirements.classifyRisk')}
+                  title={t('changeControl.approve')}
                 >
-                  <ShieldAlert className="w-3.5 h-3.5" />
+                  <ShieldCheck className="w-3.5 h-3.5" />
                 </button>
-              </>
-            )}
-            <button
-              onClick={() => { setEditingReq(row.original); setModalOpen(true); }}
-              className="p-1.5 text-text-tertiary hover:text-accent rounded-lg hover:bg-accent-subtle transition-colors"
-            >
-              <Pencil className="w-3.5 h-3.5" />
-            </button>
-            <button
-              onClick={() => setDeleteId(row.original.id)}
-              className="p-1.5 text-text-tertiary hover:text-danger rounded-lg hover:bg-danger-subtle transition-colors"
-            >
-              <Trash2 className="w-3.5 h-3.5" />
-            </button>
-          </div>
-        ),
-        size: hasAnyProvider ? 170 : 110,
+              )}
+              {hasAnyProvider && (
+                <>
+                  <button
+                    onClick={() => setTestGenReqId(row.original.id)}
+                    className="p-1.5 text-text-tertiary hover:text-accent rounded-lg hover:bg-accent-subtle transition-colors"
+                    title={t('requirements.generateTests')}
+                  >
+                    <Sparkles className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    onClick={() => setRiskClassReqId(row.original.id)}
+                    className="p-1.5 text-text-tertiary hover:text-accent rounded-lg hover:bg-accent-subtle transition-colors"
+                    title={t('requirements.classifyRisk')}
+                  >
+                    <ShieldAlert className="w-3.5 h-3.5" />
+                  </button>
+                </>
+              )}
+              <button
+                onClick={() => { setEditingReq(row.original); setModalOpen(true); }}
+                className="p-1.5 text-text-tertiary hover:text-accent rounded-lg hover:bg-accent-subtle transition-colors"
+              >
+                <Pencil className="w-3.5 h-3.5" />
+              </button>
+              <button
+                onClick={() => setDeleteId(row.original.id)}
+                className="p-1.5 text-text-tertiary hover:text-danger rounded-lg hover:bg-danger-subtle transition-colors"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          );
+        },
+        size: hasAnyProvider ? 220 : 160,
       }),
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [t, hasAnyProvider, auditEntries]
+    [t, hasAnyProvider, auditEntries, evidenceAttachments]
   );
 
   const table = useReactTable({
@@ -282,6 +316,25 @@ export function RequirementsTable() {
           setSignReq(null);
         }}
         onCancel={() => setSignReq(null)}
+      />
+
+      {/* Evidence Panel */}
+      <EvidencePanel
+        open={evidenceReq !== null}
+        entityType="requirement"
+        entityId={evidenceReq?.id ?? ''}
+        projectId={project?.name ?? 'default'}
+        onClose={() => setEvidenceReq(null)}
+      />
+
+      {/* Approval Panel */}
+      <ApprovalPanel
+        open={approvalReq !== null}
+        entityType="requirement"
+        entityId={approvalReq?.id ?? ''}
+        projectId={project?.name ?? 'default'}
+        currentStatus={approvalReq?.status ?? 'Draft'}
+        onClose={() => setApprovalReq(null)}
       />
     </div>
   );

@@ -58,6 +58,21 @@ export type CAPA = $Result.DefaultSelection<Prisma.$CAPAPayload>
  * 
  */
 export type AuditLog = $Result.DefaultSelection<Prisma.$AuditLogPayload>
+/**
+ * Model Evidence
+ * 
+ */
+export type Evidence = $Result.DefaultSelection<Prisma.$EvidencePayload>
+/**
+ * Model Approval
+ * 
+ */
+export type Approval = $Result.DefaultSelection<Prisma.$ApprovalPayload>
+/**
+ * Model Signature
+ * 
+ */
+export type Signature = $Result.DefaultSelection<Prisma.$SignaturePayload>
 
 /**
  * ##  Prisma Client ʲˢ
@@ -269,6 +284,36 @@ export class PrismaClient<
     * ```
     */
   get auditLog(): Prisma.AuditLogDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.evidence`: Exposes CRUD operations for the **Evidence** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Evidences
+    * const evidences = await prisma.evidence.findMany()
+    * ```
+    */
+  get evidence(): Prisma.EvidenceDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.approval`: Exposes CRUD operations for the **Approval** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Approvals
+    * const approvals = await prisma.approval.findMany()
+    * ```
+    */
+  get approval(): Prisma.ApprovalDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.signature`: Exposes CRUD operations for the **Signature** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Signatures
+    * const signatures = await prisma.signature.findMany()
+    * ```
+    */
+  get signature(): Prisma.SignatureDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -711,7 +756,10 @@ export namespace Prisma {
     Test: 'Test',
     Risk: 'Risk',
     CAPA: 'CAPA',
-    AuditLog: 'AuditLog'
+    AuditLog: 'AuditLog',
+    Evidence: 'Evidence',
+    Approval: 'Approval',
+    Signature: 'Signature'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -727,7 +775,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "organization" | "workspace" | "project" | "requirement" | "test" | "risk" | "cAPA" | "auditLog"
+      modelProps: "user" | "organization" | "workspace" | "project" | "requirement" | "test" | "risk" | "cAPA" | "auditLog" | "evidence" | "approval" | "signature"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -1397,6 +1445,228 @@ export namespace Prisma {
           }
         }
       }
+      Evidence: {
+        payload: Prisma.$EvidencePayload<ExtArgs>
+        fields: Prisma.EvidenceFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.EvidenceFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EvidencePayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.EvidenceFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EvidencePayload>
+          }
+          findFirst: {
+            args: Prisma.EvidenceFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EvidencePayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.EvidenceFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EvidencePayload>
+          }
+          findMany: {
+            args: Prisma.EvidenceFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EvidencePayload>[]
+          }
+          create: {
+            args: Prisma.EvidenceCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EvidencePayload>
+          }
+          createMany: {
+            args: Prisma.EvidenceCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.EvidenceCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EvidencePayload>[]
+          }
+          delete: {
+            args: Prisma.EvidenceDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EvidencePayload>
+          }
+          update: {
+            args: Prisma.EvidenceUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EvidencePayload>
+          }
+          deleteMany: {
+            args: Prisma.EvidenceDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.EvidenceUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.EvidenceUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EvidencePayload>[]
+          }
+          upsert: {
+            args: Prisma.EvidenceUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EvidencePayload>
+          }
+          aggregate: {
+            args: Prisma.EvidenceAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateEvidence>
+          }
+          groupBy: {
+            args: Prisma.EvidenceGroupByArgs<ExtArgs>
+            result: $Utils.Optional<EvidenceGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.EvidenceCountArgs<ExtArgs>
+            result: $Utils.Optional<EvidenceCountAggregateOutputType> | number
+          }
+        }
+      }
+      Approval: {
+        payload: Prisma.$ApprovalPayload<ExtArgs>
+        fields: Prisma.ApprovalFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.ApprovalFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ApprovalPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.ApprovalFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ApprovalPayload>
+          }
+          findFirst: {
+            args: Prisma.ApprovalFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ApprovalPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.ApprovalFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ApprovalPayload>
+          }
+          findMany: {
+            args: Prisma.ApprovalFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ApprovalPayload>[]
+          }
+          create: {
+            args: Prisma.ApprovalCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ApprovalPayload>
+          }
+          createMany: {
+            args: Prisma.ApprovalCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.ApprovalCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ApprovalPayload>[]
+          }
+          delete: {
+            args: Prisma.ApprovalDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ApprovalPayload>
+          }
+          update: {
+            args: Prisma.ApprovalUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ApprovalPayload>
+          }
+          deleteMany: {
+            args: Prisma.ApprovalDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.ApprovalUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.ApprovalUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ApprovalPayload>[]
+          }
+          upsert: {
+            args: Prisma.ApprovalUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ApprovalPayload>
+          }
+          aggregate: {
+            args: Prisma.ApprovalAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateApproval>
+          }
+          groupBy: {
+            args: Prisma.ApprovalGroupByArgs<ExtArgs>
+            result: $Utils.Optional<ApprovalGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.ApprovalCountArgs<ExtArgs>
+            result: $Utils.Optional<ApprovalCountAggregateOutputType> | number
+          }
+        }
+      }
+      Signature: {
+        payload: Prisma.$SignaturePayload<ExtArgs>
+        fields: Prisma.SignatureFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.SignatureFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SignaturePayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.SignatureFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SignaturePayload>
+          }
+          findFirst: {
+            args: Prisma.SignatureFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SignaturePayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.SignatureFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SignaturePayload>
+          }
+          findMany: {
+            args: Prisma.SignatureFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SignaturePayload>[]
+          }
+          create: {
+            args: Prisma.SignatureCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SignaturePayload>
+          }
+          createMany: {
+            args: Prisma.SignatureCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.SignatureCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SignaturePayload>[]
+          }
+          delete: {
+            args: Prisma.SignatureDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SignaturePayload>
+          }
+          update: {
+            args: Prisma.SignatureUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SignaturePayload>
+          }
+          deleteMany: {
+            args: Prisma.SignatureDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.SignatureUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.SignatureUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SignaturePayload>[]
+          }
+          upsert: {
+            args: Prisma.SignatureUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SignaturePayload>
+          }
+          aggregate: {
+            args: Prisma.SignatureAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateSignature>
+          }
+          groupBy: {
+            args: Prisma.SignatureGroupByArgs<ExtArgs>
+            result: $Utils.Optional<SignatureGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.SignatureCountArgs<ExtArgs>
+            result: $Utils.Optional<SignatureCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -1514,6 +1784,9 @@ export namespace Prisma {
     risk?: RiskOmit
     cAPA?: CAPAOmit
     auditLog?: AuditLogOmit
+    evidence?: EvidenceOmit
+    approval?: ApprovalOmit
+    signature?: SignatureOmit
   }
 
   /* Types for Logging */
@@ -1670,6 +1943,9 @@ export namespace Prisma {
     risks: number
     capas: number
     auditLogs: number
+    evidences: number
+    approvals: number
+    signatures: number
   }
 
   export type ProjectCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -1678,6 +1954,9 @@ export namespace Prisma {
     risks?: boolean | ProjectCountOutputTypeCountRisksArgs
     capas?: boolean | ProjectCountOutputTypeCountCapasArgs
     auditLogs?: boolean | ProjectCountOutputTypeCountAuditLogsArgs
+    evidences?: boolean | ProjectCountOutputTypeCountEvidencesArgs
+    approvals?: boolean | ProjectCountOutputTypeCountApprovalsArgs
+    signatures?: boolean | ProjectCountOutputTypeCountSignaturesArgs
   }
 
   // Custom InputTypes
@@ -1724,6 +2003,27 @@ export namespace Prisma {
    */
   export type ProjectCountOutputTypeCountAuditLogsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: AuditLogWhereInput
+  }
+
+  /**
+   * ProjectCountOutputType without action
+   */
+  export type ProjectCountOutputTypeCountEvidencesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: EvidenceWhereInput
+  }
+
+  /**
+   * ProjectCountOutputType without action
+   */
+  export type ProjectCountOutputTypeCountApprovalsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ApprovalWhereInput
+  }
+
+  /**
+   * ProjectCountOutputType without action
+   */
+  export type ProjectCountOutputTypeCountSignaturesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: SignatureWhereInput
   }
 
 
@@ -5218,6 +5518,9 @@ export namespace Prisma {
     risks?: boolean | Project$risksArgs<ExtArgs>
     capas?: boolean | Project$capasArgs<ExtArgs>
     auditLogs?: boolean | Project$auditLogsArgs<ExtArgs>
+    evidences?: boolean | Project$evidencesArgs<ExtArgs>
+    approvals?: boolean | Project$approvalsArgs<ExtArgs>
+    signatures?: boolean | Project$signaturesArgs<ExtArgs>
     _count?: boolean | ProjectCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["project"]>
 
@@ -5276,6 +5579,9 @@ export namespace Prisma {
     risks?: boolean | Project$risksArgs<ExtArgs>
     capas?: boolean | Project$capasArgs<ExtArgs>
     auditLogs?: boolean | Project$auditLogsArgs<ExtArgs>
+    evidences?: boolean | Project$evidencesArgs<ExtArgs>
+    approvals?: boolean | Project$approvalsArgs<ExtArgs>
+    signatures?: boolean | Project$signaturesArgs<ExtArgs>
     _count?: boolean | ProjectCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type ProjectIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -5294,6 +5600,9 @@ export namespace Prisma {
       risks: Prisma.$RiskPayload<ExtArgs>[]
       capas: Prisma.$CAPAPayload<ExtArgs>[]
       auditLogs: Prisma.$AuditLogPayload<ExtArgs>[]
+      evidences: Prisma.$EvidencePayload<ExtArgs>[]
+      approvals: Prisma.$ApprovalPayload<ExtArgs>[]
+      signatures: Prisma.$SignaturePayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -5708,6 +6017,9 @@ export namespace Prisma {
     risks<T extends Project$risksArgs<ExtArgs> = {}>(args?: Subset<T, Project$risksArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$RiskPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     capas<T extends Project$capasArgs<ExtArgs> = {}>(args?: Subset<T, Project$capasArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CAPAPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     auditLogs<T extends Project$auditLogsArgs<ExtArgs> = {}>(args?: Subset<T, Project$auditLogsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AuditLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    evidences<T extends Project$evidencesArgs<ExtArgs> = {}>(args?: Subset<T, Project$evidencesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EvidencePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    approvals<T extends Project$approvalsArgs<ExtArgs> = {}>(args?: Subset<T, Project$approvalsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ApprovalPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    signatures<T extends Project$signaturesArgs<ExtArgs> = {}>(args?: Subset<T, Project$signaturesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SignaturePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -6267,6 +6579,78 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: AuditLogScalarFieldEnum | AuditLogScalarFieldEnum[]
+  }
+
+  /**
+   * Project.evidences
+   */
+  export type Project$evidencesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Evidence
+     */
+    select?: EvidenceSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Evidence
+     */
+    omit?: EvidenceOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EvidenceInclude<ExtArgs> | null
+    where?: EvidenceWhereInput
+    orderBy?: EvidenceOrderByWithRelationInput | EvidenceOrderByWithRelationInput[]
+    cursor?: EvidenceWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: EvidenceScalarFieldEnum | EvidenceScalarFieldEnum[]
+  }
+
+  /**
+   * Project.approvals
+   */
+  export type Project$approvalsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Approval
+     */
+    select?: ApprovalSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Approval
+     */
+    omit?: ApprovalOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ApprovalInclude<ExtArgs> | null
+    where?: ApprovalWhereInput
+    orderBy?: ApprovalOrderByWithRelationInput | ApprovalOrderByWithRelationInput[]
+    cursor?: ApprovalWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ApprovalScalarFieldEnum | ApprovalScalarFieldEnum[]
+  }
+
+  /**
+   * Project.signatures
+   */
+  export type Project$signaturesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Signature
+     */
+    select?: SignatureSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Signature
+     */
+    omit?: SignatureOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SignatureInclude<ExtArgs> | null
+    where?: SignatureWhereInput
+    orderBy?: SignatureOrderByWithRelationInput | SignatureOrderByWithRelationInput[]
+    cursor?: SignatureWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: SignatureScalarFieldEnum | SignatureScalarFieldEnum[]
   }
 
   /**
@@ -12063,6 +12447,3530 @@ export namespace Prisma {
 
 
   /**
+   * Model Evidence
+   */
+
+  export type AggregateEvidence = {
+    _count: EvidenceCountAggregateOutputType | null
+    _avg: EvidenceAvgAggregateOutputType | null
+    _sum: EvidenceSumAggregateOutputType | null
+    _min: EvidenceMinAggregateOutputType | null
+    _max: EvidenceMaxAggregateOutputType | null
+  }
+
+  export type EvidenceAvgAggregateOutputType = {
+    fileSize: number | null
+    version: number | null
+  }
+
+  export type EvidenceSumAggregateOutputType = {
+    fileSize: number | null
+    version: number | null
+  }
+
+  export type EvidenceMinAggregateOutputType = {
+    id: string | null
+    projectId: string | null
+    entityType: string | null
+    entityId: string | null
+    fileName: string | null
+    fileSize: number | null
+    mimeType: string | null
+    storagePath: string | null
+    description: string | null
+    version: number | null
+    uploadedBy: string | null
+    createdAt: Date | null
+  }
+
+  export type EvidenceMaxAggregateOutputType = {
+    id: string | null
+    projectId: string | null
+    entityType: string | null
+    entityId: string | null
+    fileName: string | null
+    fileSize: number | null
+    mimeType: string | null
+    storagePath: string | null
+    description: string | null
+    version: number | null
+    uploadedBy: string | null
+    createdAt: Date | null
+  }
+
+  export type EvidenceCountAggregateOutputType = {
+    id: number
+    projectId: number
+    entityType: number
+    entityId: number
+    fileName: number
+    fileSize: number
+    mimeType: number
+    storagePath: number
+    description: number
+    version: number
+    uploadedBy: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type EvidenceAvgAggregateInputType = {
+    fileSize?: true
+    version?: true
+  }
+
+  export type EvidenceSumAggregateInputType = {
+    fileSize?: true
+    version?: true
+  }
+
+  export type EvidenceMinAggregateInputType = {
+    id?: true
+    projectId?: true
+    entityType?: true
+    entityId?: true
+    fileName?: true
+    fileSize?: true
+    mimeType?: true
+    storagePath?: true
+    description?: true
+    version?: true
+    uploadedBy?: true
+    createdAt?: true
+  }
+
+  export type EvidenceMaxAggregateInputType = {
+    id?: true
+    projectId?: true
+    entityType?: true
+    entityId?: true
+    fileName?: true
+    fileSize?: true
+    mimeType?: true
+    storagePath?: true
+    description?: true
+    version?: true
+    uploadedBy?: true
+    createdAt?: true
+  }
+
+  export type EvidenceCountAggregateInputType = {
+    id?: true
+    projectId?: true
+    entityType?: true
+    entityId?: true
+    fileName?: true
+    fileSize?: true
+    mimeType?: true
+    storagePath?: true
+    description?: true
+    version?: true
+    uploadedBy?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type EvidenceAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Evidence to aggregate.
+     */
+    where?: EvidenceWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Evidences to fetch.
+     */
+    orderBy?: EvidenceOrderByWithRelationInput | EvidenceOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: EvidenceWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Evidences from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Evidences.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned Evidences
+    **/
+    _count?: true | EvidenceCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: EvidenceAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: EvidenceSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: EvidenceMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: EvidenceMaxAggregateInputType
+  }
+
+  export type GetEvidenceAggregateType<T extends EvidenceAggregateArgs> = {
+        [P in keyof T & keyof AggregateEvidence]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateEvidence[P]>
+      : GetScalarType<T[P], AggregateEvidence[P]>
+  }
+
+
+
+
+  export type EvidenceGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: EvidenceWhereInput
+    orderBy?: EvidenceOrderByWithAggregationInput | EvidenceOrderByWithAggregationInput[]
+    by: EvidenceScalarFieldEnum[] | EvidenceScalarFieldEnum
+    having?: EvidenceScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: EvidenceCountAggregateInputType | true
+    _avg?: EvidenceAvgAggregateInputType
+    _sum?: EvidenceSumAggregateInputType
+    _min?: EvidenceMinAggregateInputType
+    _max?: EvidenceMaxAggregateInputType
+  }
+
+  export type EvidenceGroupByOutputType = {
+    id: string
+    projectId: string
+    entityType: string
+    entityId: string
+    fileName: string
+    fileSize: number
+    mimeType: string
+    storagePath: string
+    description: string
+    version: number
+    uploadedBy: string
+    createdAt: Date
+    _count: EvidenceCountAggregateOutputType | null
+    _avg: EvidenceAvgAggregateOutputType | null
+    _sum: EvidenceSumAggregateOutputType | null
+    _min: EvidenceMinAggregateOutputType | null
+    _max: EvidenceMaxAggregateOutputType | null
+  }
+
+  type GetEvidenceGroupByPayload<T extends EvidenceGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<EvidenceGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof EvidenceGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], EvidenceGroupByOutputType[P]>
+            : GetScalarType<T[P], EvidenceGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type EvidenceSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    projectId?: boolean
+    entityType?: boolean
+    entityId?: boolean
+    fileName?: boolean
+    fileSize?: boolean
+    mimeType?: boolean
+    storagePath?: boolean
+    description?: boolean
+    version?: boolean
+    uploadedBy?: boolean
+    createdAt?: boolean
+    project?: boolean | ProjectDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["evidence"]>
+
+  export type EvidenceSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    projectId?: boolean
+    entityType?: boolean
+    entityId?: boolean
+    fileName?: boolean
+    fileSize?: boolean
+    mimeType?: boolean
+    storagePath?: boolean
+    description?: boolean
+    version?: boolean
+    uploadedBy?: boolean
+    createdAt?: boolean
+    project?: boolean | ProjectDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["evidence"]>
+
+  export type EvidenceSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    projectId?: boolean
+    entityType?: boolean
+    entityId?: boolean
+    fileName?: boolean
+    fileSize?: boolean
+    mimeType?: boolean
+    storagePath?: boolean
+    description?: boolean
+    version?: boolean
+    uploadedBy?: boolean
+    createdAt?: boolean
+    project?: boolean | ProjectDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["evidence"]>
+
+  export type EvidenceSelectScalar = {
+    id?: boolean
+    projectId?: boolean
+    entityType?: boolean
+    entityId?: boolean
+    fileName?: boolean
+    fileSize?: boolean
+    mimeType?: boolean
+    storagePath?: boolean
+    description?: boolean
+    version?: boolean
+    uploadedBy?: boolean
+    createdAt?: boolean
+  }
+
+  export type EvidenceOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "projectId" | "entityType" | "entityId" | "fileName" | "fileSize" | "mimeType" | "storagePath" | "description" | "version" | "uploadedBy" | "createdAt", ExtArgs["result"]["evidence"]>
+  export type EvidenceInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    project?: boolean | ProjectDefaultArgs<ExtArgs>
+  }
+  export type EvidenceIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    project?: boolean | ProjectDefaultArgs<ExtArgs>
+  }
+  export type EvidenceIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    project?: boolean | ProjectDefaultArgs<ExtArgs>
+  }
+
+  export type $EvidencePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "Evidence"
+    objects: {
+      project: Prisma.$ProjectPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      projectId: string
+      entityType: string
+      entityId: string
+      fileName: string
+      fileSize: number
+      mimeType: string
+      storagePath: string
+      description: string
+      version: number
+      uploadedBy: string
+      createdAt: Date
+    }, ExtArgs["result"]["evidence"]>
+    composites: {}
+  }
+
+  type EvidenceGetPayload<S extends boolean | null | undefined | EvidenceDefaultArgs> = $Result.GetResult<Prisma.$EvidencePayload, S>
+
+  type EvidenceCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<EvidenceFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: EvidenceCountAggregateInputType | true
+    }
+
+  export interface EvidenceDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['Evidence'], meta: { name: 'Evidence' } }
+    /**
+     * Find zero or one Evidence that matches the filter.
+     * @param {EvidenceFindUniqueArgs} args - Arguments to find a Evidence
+     * @example
+     * // Get one Evidence
+     * const evidence = await prisma.evidence.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends EvidenceFindUniqueArgs>(args: SelectSubset<T, EvidenceFindUniqueArgs<ExtArgs>>): Prisma__EvidenceClient<$Result.GetResult<Prisma.$EvidencePayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one Evidence that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {EvidenceFindUniqueOrThrowArgs} args - Arguments to find a Evidence
+     * @example
+     * // Get one Evidence
+     * const evidence = await prisma.evidence.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends EvidenceFindUniqueOrThrowArgs>(args: SelectSubset<T, EvidenceFindUniqueOrThrowArgs<ExtArgs>>): Prisma__EvidenceClient<$Result.GetResult<Prisma.$EvidencePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Evidence that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EvidenceFindFirstArgs} args - Arguments to find a Evidence
+     * @example
+     * // Get one Evidence
+     * const evidence = await prisma.evidence.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends EvidenceFindFirstArgs>(args?: SelectSubset<T, EvidenceFindFirstArgs<ExtArgs>>): Prisma__EvidenceClient<$Result.GetResult<Prisma.$EvidencePayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Evidence that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EvidenceFindFirstOrThrowArgs} args - Arguments to find a Evidence
+     * @example
+     * // Get one Evidence
+     * const evidence = await prisma.evidence.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends EvidenceFindFirstOrThrowArgs>(args?: SelectSubset<T, EvidenceFindFirstOrThrowArgs<ExtArgs>>): Prisma__EvidenceClient<$Result.GetResult<Prisma.$EvidencePayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more Evidences that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EvidenceFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all Evidences
+     * const evidences = await prisma.evidence.findMany()
+     * 
+     * // Get first 10 Evidences
+     * const evidences = await prisma.evidence.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const evidenceWithIdOnly = await prisma.evidence.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends EvidenceFindManyArgs>(args?: SelectSubset<T, EvidenceFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EvidencePayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a Evidence.
+     * @param {EvidenceCreateArgs} args - Arguments to create a Evidence.
+     * @example
+     * // Create one Evidence
+     * const Evidence = await prisma.evidence.create({
+     *   data: {
+     *     // ... data to create a Evidence
+     *   }
+     * })
+     * 
+     */
+    create<T extends EvidenceCreateArgs>(args: SelectSubset<T, EvidenceCreateArgs<ExtArgs>>): Prisma__EvidenceClient<$Result.GetResult<Prisma.$EvidencePayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many Evidences.
+     * @param {EvidenceCreateManyArgs} args - Arguments to create many Evidences.
+     * @example
+     * // Create many Evidences
+     * const evidence = await prisma.evidence.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends EvidenceCreateManyArgs>(args?: SelectSubset<T, EvidenceCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many Evidences and returns the data saved in the database.
+     * @param {EvidenceCreateManyAndReturnArgs} args - Arguments to create many Evidences.
+     * @example
+     * // Create many Evidences
+     * const evidence = await prisma.evidence.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many Evidences and only return the `id`
+     * const evidenceWithIdOnly = await prisma.evidence.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends EvidenceCreateManyAndReturnArgs>(args?: SelectSubset<T, EvidenceCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EvidencePayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a Evidence.
+     * @param {EvidenceDeleteArgs} args - Arguments to delete one Evidence.
+     * @example
+     * // Delete one Evidence
+     * const Evidence = await prisma.evidence.delete({
+     *   where: {
+     *     // ... filter to delete one Evidence
+     *   }
+     * })
+     * 
+     */
+    delete<T extends EvidenceDeleteArgs>(args: SelectSubset<T, EvidenceDeleteArgs<ExtArgs>>): Prisma__EvidenceClient<$Result.GetResult<Prisma.$EvidencePayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one Evidence.
+     * @param {EvidenceUpdateArgs} args - Arguments to update one Evidence.
+     * @example
+     * // Update one Evidence
+     * const evidence = await prisma.evidence.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends EvidenceUpdateArgs>(args: SelectSubset<T, EvidenceUpdateArgs<ExtArgs>>): Prisma__EvidenceClient<$Result.GetResult<Prisma.$EvidencePayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more Evidences.
+     * @param {EvidenceDeleteManyArgs} args - Arguments to filter Evidences to delete.
+     * @example
+     * // Delete a few Evidences
+     * const { count } = await prisma.evidence.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends EvidenceDeleteManyArgs>(args?: SelectSubset<T, EvidenceDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Evidences.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EvidenceUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many Evidences
+     * const evidence = await prisma.evidence.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends EvidenceUpdateManyArgs>(args: SelectSubset<T, EvidenceUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Evidences and returns the data updated in the database.
+     * @param {EvidenceUpdateManyAndReturnArgs} args - Arguments to update many Evidences.
+     * @example
+     * // Update many Evidences
+     * const evidence = await prisma.evidence.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more Evidences and only return the `id`
+     * const evidenceWithIdOnly = await prisma.evidence.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends EvidenceUpdateManyAndReturnArgs>(args: SelectSubset<T, EvidenceUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EvidencePayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one Evidence.
+     * @param {EvidenceUpsertArgs} args - Arguments to update or create a Evidence.
+     * @example
+     * // Update or create a Evidence
+     * const evidence = await prisma.evidence.upsert({
+     *   create: {
+     *     // ... data to create a Evidence
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the Evidence we want to update
+     *   }
+     * })
+     */
+    upsert<T extends EvidenceUpsertArgs>(args: SelectSubset<T, EvidenceUpsertArgs<ExtArgs>>): Prisma__EvidenceClient<$Result.GetResult<Prisma.$EvidencePayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of Evidences.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EvidenceCountArgs} args - Arguments to filter Evidences to count.
+     * @example
+     * // Count the number of Evidences
+     * const count = await prisma.evidence.count({
+     *   where: {
+     *     // ... the filter for the Evidences we want to count
+     *   }
+     * })
+    **/
+    count<T extends EvidenceCountArgs>(
+      args?: Subset<T, EvidenceCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], EvidenceCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a Evidence.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EvidenceAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends EvidenceAggregateArgs>(args: Subset<T, EvidenceAggregateArgs>): Prisma.PrismaPromise<GetEvidenceAggregateType<T>>
+
+    /**
+     * Group by Evidence.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EvidenceGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends EvidenceGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: EvidenceGroupByArgs['orderBy'] }
+        : { orderBy?: EvidenceGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, EvidenceGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetEvidenceGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the Evidence model
+   */
+  readonly fields: EvidenceFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for Evidence.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__EvidenceClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    project<T extends ProjectDefaultArgs<ExtArgs> = {}>(args?: Subset<T, ProjectDefaultArgs<ExtArgs>>): Prisma__ProjectClient<$Result.GetResult<Prisma.$ProjectPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the Evidence model
+   */
+  interface EvidenceFieldRefs {
+    readonly id: FieldRef<"Evidence", 'String'>
+    readonly projectId: FieldRef<"Evidence", 'String'>
+    readonly entityType: FieldRef<"Evidence", 'String'>
+    readonly entityId: FieldRef<"Evidence", 'String'>
+    readonly fileName: FieldRef<"Evidence", 'String'>
+    readonly fileSize: FieldRef<"Evidence", 'Int'>
+    readonly mimeType: FieldRef<"Evidence", 'String'>
+    readonly storagePath: FieldRef<"Evidence", 'String'>
+    readonly description: FieldRef<"Evidence", 'String'>
+    readonly version: FieldRef<"Evidence", 'Int'>
+    readonly uploadedBy: FieldRef<"Evidence", 'String'>
+    readonly createdAt: FieldRef<"Evidence", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * Evidence findUnique
+   */
+  export type EvidenceFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Evidence
+     */
+    select?: EvidenceSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Evidence
+     */
+    omit?: EvidenceOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EvidenceInclude<ExtArgs> | null
+    /**
+     * Filter, which Evidence to fetch.
+     */
+    where: EvidenceWhereUniqueInput
+  }
+
+  /**
+   * Evidence findUniqueOrThrow
+   */
+  export type EvidenceFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Evidence
+     */
+    select?: EvidenceSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Evidence
+     */
+    omit?: EvidenceOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EvidenceInclude<ExtArgs> | null
+    /**
+     * Filter, which Evidence to fetch.
+     */
+    where: EvidenceWhereUniqueInput
+  }
+
+  /**
+   * Evidence findFirst
+   */
+  export type EvidenceFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Evidence
+     */
+    select?: EvidenceSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Evidence
+     */
+    omit?: EvidenceOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EvidenceInclude<ExtArgs> | null
+    /**
+     * Filter, which Evidence to fetch.
+     */
+    where?: EvidenceWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Evidences to fetch.
+     */
+    orderBy?: EvidenceOrderByWithRelationInput | EvidenceOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Evidences.
+     */
+    cursor?: EvidenceWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Evidences from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Evidences.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Evidences.
+     */
+    distinct?: EvidenceScalarFieldEnum | EvidenceScalarFieldEnum[]
+  }
+
+  /**
+   * Evidence findFirstOrThrow
+   */
+  export type EvidenceFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Evidence
+     */
+    select?: EvidenceSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Evidence
+     */
+    omit?: EvidenceOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EvidenceInclude<ExtArgs> | null
+    /**
+     * Filter, which Evidence to fetch.
+     */
+    where?: EvidenceWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Evidences to fetch.
+     */
+    orderBy?: EvidenceOrderByWithRelationInput | EvidenceOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Evidences.
+     */
+    cursor?: EvidenceWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Evidences from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Evidences.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Evidences.
+     */
+    distinct?: EvidenceScalarFieldEnum | EvidenceScalarFieldEnum[]
+  }
+
+  /**
+   * Evidence findMany
+   */
+  export type EvidenceFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Evidence
+     */
+    select?: EvidenceSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Evidence
+     */
+    omit?: EvidenceOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EvidenceInclude<ExtArgs> | null
+    /**
+     * Filter, which Evidences to fetch.
+     */
+    where?: EvidenceWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Evidences to fetch.
+     */
+    orderBy?: EvidenceOrderByWithRelationInput | EvidenceOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing Evidences.
+     */
+    cursor?: EvidenceWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Evidences from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Evidences.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Evidences.
+     */
+    distinct?: EvidenceScalarFieldEnum | EvidenceScalarFieldEnum[]
+  }
+
+  /**
+   * Evidence create
+   */
+  export type EvidenceCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Evidence
+     */
+    select?: EvidenceSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Evidence
+     */
+    omit?: EvidenceOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EvidenceInclude<ExtArgs> | null
+    /**
+     * The data needed to create a Evidence.
+     */
+    data: XOR<EvidenceCreateInput, EvidenceUncheckedCreateInput>
+  }
+
+  /**
+   * Evidence createMany
+   */
+  export type EvidenceCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many Evidences.
+     */
+    data: EvidenceCreateManyInput | EvidenceCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * Evidence createManyAndReturn
+   */
+  export type EvidenceCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Evidence
+     */
+    select?: EvidenceSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the Evidence
+     */
+    omit?: EvidenceOmit<ExtArgs> | null
+    /**
+     * The data used to create many Evidences.
+     */
+    data: EvidenceCreateManyInput | EvidenceCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EvidenceIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * Evidence update
+   */
+  export type EvidenceUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Evidence
+     */
+    select?: EvidenceSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Evidence
+     */
+    omit?: EvidenceOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EvidenceInclude<ExtArgs> | null
+    /**
+     * The data needed to update a Evidence.
+     */
+    data: XOR<EvidenceUpdateInput, EvidenceUncheckedUpdateInput>
+    /**
+     * Choose, which Evidence to update.
+     */
+    where: EvidenceWhereUniqueInput
+  }
+
+  /**
+   * Evidence updateMany
+   */
+  export type EvidenceUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update Evidences.
+     */
+    data: XOR<EvidenceUpdateManyMutationInput, EvidenceUncheckedUpdateManyInput>
+    /**
+     * Filter which Evidences to update
+     */
+    where?: EvidenceWhereInput
+    /**
+     * Limit how many Evidences to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * Evidence updateManyAndReturn
+   */
+  export type EvidenceUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Evidence
+     */
+    select?: EvidenceSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the Evidence
+     */
+    omit?: EvidenceOmit<ExtArgs> | null
+    /**
+     * The data used to update Evidences.
+     */
+    data: XOR<EvidenceUpdateManyMutationInput, EvidenceUncheckedUpdateManyInput>
+    /**
+     * Filter which Evidences to update
+     */
+    where?: EvidenceWhereInput
+    /**
+     * Limit how many Evidences to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EvidenceIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * Evidence upsert
+   */
+  export type EvidenceUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Evidence
+     */
+    select?: EvidenceSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Evidence
+     */
+    omit?: EvidenceOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EvidenceInclude<ExtArgs> | null
+    /**
+     * The filter to search for the Evidence to update in case it exists.
+     */
+    where: EvidenceWhereUniqueInput
+    /**
+     * In case the Evidence found by the `where` argument doesn't exist, create a new Evidence with this data.
+     */
+    create: XOR<EvidenceCreateInput, EvidenceUncheckedCreateInput>
+    /**
+     * In case the Evidence was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<EvidenceUpdateInput, EvidenceUncheckedUpdateInput>
+  }
+
+  /**
+   * Evidence delete
+   */
+  export type EvidenceDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Evidence
+     */
+    select?: EvidenceSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Evidence
+     */
+    omit?: EvidenceOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EvidenceInclude<ExtArgs> | null
+    /**
+     * Filter which Evidence to delete.
+     */
+    where: EvidenceWhereUniqueInput
+  }
+
+  /**
+   * Evidence deleteMany
+   */
+  export type EvidenceDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Evidences to delete
+     */
+    where?: EvidenceWhereInput
+    /**
+     * Limit how many Evidences to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * Evidence without action
+   */
+  export type EvidenceDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Evidence
+     */
+    select?: EvidenceSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Evidence
+     */
+    omit?: EvidenceOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EvidenceInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model Approval
+   */
+
+  export type AggregateApproval = {
+    _count: ApprovalCountAggregateOutputType | null
+    _min: ApprovalMinAggregateOutputType | null
+    _max: ApprovalMaxAggregateOutputType | null
+  }
+
+  export type ApprovalMinAggregateOutputType = {
+    id: string | null
+    projectId: string | null
+    entityType: string | null
+    entityId: string | null
+    status: string | null
+    requestedBy: string | null
+    reviewedBy: string | null
+    reviewedAt: Date | null
+    reason: string | null
+    signatureId: string | null
+    createdAt: Date | null
+  }
+
+  export type ApprovalMaxAggregateOutputType = {
+    id: string | null
+    projectId: string | null
+    entityType: string | null
+    entityId: string | null
+    status: string | null
+    requestedBy: string | null
+    reviewedBy: string | null
+    reviewedAt: Date | null
+    reason: string | null
+    signatureId: string | null
+    createdAt: Date | null
+  }
+
+  export type ApprovalCountAggregateOutputType = {
+    id: number
+    projectId: number
+    entityType: number
+    entityId: number
+    status: number
+    requestedBy: number
+    reviewedBy: number
+    reviewedAt: number
+    reason: number
+    signatureId: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type ApprovalMinAggregateInputType = {
+    id?: true
+    projectId?: true
+    entityType?: true
+    entityId?: true
+    status?: true
+    requestedBy?: true
+    reviewedBy?: true
+    reviewedAt?: true
+    reason?: true
+    signatureId?: true
+    createdAt?: true
+  }
+
+  export type ApprovalMaxAggregateInputType = {
+    id?: true
+    projectId?: true
+    entityType?: true
+    entityId?: true
+    status?: true
+    requestedBy?: true
+    reviewedBy?: true
+    reviewedAt?: true
+    reason?: true
+    signatureId?: true
+    createdAt?: true
+  }
+
+  export type ApprovalCountAggregateInputType = {
+    id?: true
+    projectId?: true
+    entityType?: true
+    entityId?: true
+    status?: true
+    requestedBy?: true
+    reviewedBy?: true
+    reviewedAt?: true
+    reason?: true
+    signatureId?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type ApprovalAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Approval to aggregate.
+     */
+    where?: ApprovalWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Approvals to fetch.
+     */
+    orderBy?: ApprovalOrderByWithRelationInput | ApprovalOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: ApprovalWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Approvals from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Approvals.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned Approvals
+    **/
+    _count?: true | ApprovalCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: ApprovalMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: ApprovalMaxAggregateInputType
+  }
+
+  export type GetApprovalAggregateType<T extends ApprovalAggregateArgs> = {
+        [P in keyof T & keyof AggregateApproval]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateApproval[P]>
+      : GetScalarType<T[P], AggregateApproval[P]>
+  }
+
+
+
+
+  export type ApprovalGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ApprovalWhereInput
+    orderBy?: ApprovalOrderByWithAggregationInput | ApprovalOrderByWithAggregationInput[]
+    by: ApprovalScalarFieldEnum[] | ApprovalScalarFieldEnum
+    having?: ApprovalScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: ApprovalCountAggregateInputType | true
+    _min?: ApprovalMinAggregateInputType
+    _max?: ApprovalMaxAggregateInputType
+  }
+
+  export type ApprovalGroupByOutputType = {
+    id: string
+    projectId: string
+    entityType: string
+    entityId: string
+    status: string
+    requestedBy: string
+    reviewedBy: string | null
+    reviewedAt: Date | null
+    reason: string | null
+    signatureId: string | null
+    createdAt: Date
+    _count: ApprovalCountAggregateOutputType | null
+    _min: ApprovalMinAggregateOutputType | null
+    _max: ApprovalMaxAggregateOutputType | null
+  }
+
+  type GetApprovalGroupByPayload<T extends ApprovalGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<ApprovalGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof ApprovalGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], ApprovalGroupByOutputType[P]>
+            : GetScalarType<T[P], ApprovalGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type ApprovalSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    projectId?: boolean
+    entityType?: boolean
+    entityId?: boolean
+    status?: boolean
+    requestedBy?: boolean
+    reviewedBy?: boolean
+    reviewedAt?: boolean
+    reason?: boolean
+    signatureId?: boolean
+    createdAt?: boolean
+    project?: boolean | ProjectDefaultArgs<ExtArgs>
+    signature?: boolean | Approval$signatureArgs<ExtArgs>
+  }, ExtArgs["result"]["approval"]>
+
+  export type ApprovalSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    projectId?: boolean
+    entityType?: boolean
+    entityId?: boolean
+    status?: boolean
+    requestedBy?: boolean
+    reviewedBy?: boolean
+    reviewedAt?: boolean
+    reason?: boolean
+    signatureId?: boolean
+    createdAt?: boolean
+    project?: boolean | ProjectDefaultArgs<ExtArgs>
+    signature?: boolean | Approval$signatureArgs<ExtArgs>
+  }, ExtArgs["result"]["approval"]>
+
+  export type ApprovalSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    projectId?: boolean
+    entityType?: boolean
+    entityId?: boolean
+    status?: boolean
+    requestedBy?: boolean
+    reviewedBy?: boolean
+    reviewedAt?: boolean
+    reason?: boolean
+    signatureId?: boolean
+    createdAt?: boolean
+    project?: boolean | ProjectDefaultArgs<ExtArgs>
+    signature?: boolean | Approval$signatureArgs<ExtArgs>
+  }, ExtArgs["result"]["approval"]>
+
+  export type ApprovalSelectScalar = {
+    id?: boolean
+    projectId?: boolean
+    entityType?: boolean
+    entityId?: boolean
+    status?: boolean
+    requestedBy?: boolean
+    reviewedBy?: boolean
+    reviewedAt?: boolean
+    reason?: boolean
+    signatureId?: boolean
+    createdAt?: boolean
+  }
+
+  export type ApprovalOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "projectId" | "entityType" | "entityId" | "status" | "requestedBy" | "reviewedBy" | "reviewedAt" | "reason" | "signatureId" | "createdAt", ExtArgs["result"]["approval"]>
+  export type ApprovalInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    project?: boolean | ProjectDefaultArgs<ExtArgs>
+    signature?: boolean | Approval$signatureArgs<ExtArgs>
+  }
+  export type ApprovalIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    project?: boolean | ProjectDefaultArgs<ExtArgs>
+    signature?: boolean | Approval$signatureArgs<ExtArgs>
+  }
+  export type ApprovalIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    project?: boolean | ProjectDefaultArgs<ExtArgs>
+    signature?: boolean | Approval$signatureArgs<ExtArgs>
+  }
+
+  export type $ApprovalPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "Approval"
+    objects: {
+      project: Prisma.$ProjectPayload<ExtArgs>
+      signature: Prisma.$SignaturePayload<ExtArgs> | null
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      projectId: string
+      entityType: string
+      entityId: string
+      status: string
+      requestedBy: string
+      reviewedBy: string | null
+      reviewedAt: Date | null
+      reason: string | null
+      signatureId: string | null
+      createdAt: Date
+    }, ExtArgs["result"]["approval"]>
+    composites: {}
+  }
+
+  type ApprovalGetPayload<S extends boolean | null | undefined | ApprovalDefaultArgs> = $Result.GetResult<Prisma.$ApprovalPayload, S>
+
+  type ApprovalCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<ApprovalFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: ApprovalCountAggregateInputType | true
+    }
+
+  export interface ApprovalDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['Approval'], meta: { name: 'Approval' } }
+    /**
+     * Find zero or one Approval that matches the filter.
+     * @param {ApprovalFindUniqueArgs} args - Arguments to find a Approval
+     * @example
+     * // Get one Approval
+     * const approval = await prisma.approval.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends ApprovalFindUniqueArgs>(args: SelectSubset<T, ApprovalFindUniqueArgs<ExtArgs>>): Prisma__ApprovalClient<$Result.GetResult<Prisma.$ApprovalPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one Approval that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {ApprovalFindUniqueOrThrowArgs} args - Arguments to find a Approval
+     * @example
+     * // Get one Approval
+     * const approval = await prisma.approval.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends ApprovalFindUniqueOrThrowArgs>(args: SelectSubset<T, ApprovalFindUniqueOrThrowArgs<ExtArgs>>): Prisma__ApprovalClient<$Result.GetResult<Prisma.$ApprovalPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Approval that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ApprovalFindFirstArgs} args - Arguments to find a Approval
+     * @example
+     * // Get one Approval
+     * const approval = await prisma.approval.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends ApprovalFindFirstArgs>(args?: SelectSubset<T, ApprovalFindFirstArgs<ExtArgs>>): Prisma__ApprovalClient<$Result.GetResult<Prisma.$ApprovalPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Approval that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ApprovalFindFirstOrThrowArgs} args - Arguments to find a Approval
+     * @example
+     * // Get one Approval
+     * const approval = await prisma.approval.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends ApprovalFindFirstOrThrowArgs>(args?: SelectSubset<T, ApprovalFindFirstOrThrowArgs<ExtArgs>>): Prisma__ApprovalClient<$Result.GetResult<Prisma.$ApprovalPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more Approvals that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ApprovalFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all Approvals
+     * const approvals = await prisma.approval.findMany()
+     * 
+     * // Get first 10 Approvals
+     * const approvals = await prisma.approval.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const approvalWithIdOnly = await prisma.approval.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends ApprovalFindManyArgs>(args?: SelectSubset<T, ApprovalFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ApprovalPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a Approval.
+     * @param {ApprovalCreateArgs} args - Arguments to create a Approval.
+     * @example
+     * // Create one Approval
+     * const Approval = await prisma.approval.create({
+     *   data: {
+     *     // ... data to create a Approval
+     *   }
+     * })
+     * 
+     */
+    create<T extends ApprovalCreateArgs>(args: SelectSubset<T, ApprovalCreateArgs<ExtArgs>>): Prisma__ApprovalClient<$Result.GetResult<Prisma.$ApprovalPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many Approvals.
+     * @param {ApprovalCreateManyArgs} args - Arguments to create many Approvals.
+     * @example
+     * // Create many Approvals
+     * const approval = await prisma.approval.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends ApprovalCreateManyArgs>(args?: SelectSubset<T, ApprovalCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many Approvals and returns the data saved in the database.
+     * @param {ApprovalCreateManyAndReturnArgs} args - Arguments to create many Approvals.
+     * @example
+     * // Create many Approvals
+     * const approval = await prisma.approval.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many Approvals and only return the `id`
+     * const approvalWithIdOnly = await prisma.approval.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends ApprovalCreateManyAndReturnArgs>(args?: SelectSubset<T, ApprovalCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ApprovalPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a Approval.
+     * @param {ApprovalDeleteArgs} args - Arguments to delete one Approval.
+     * @example
+     * // Delete one Approval
+     * const Approval = await prisma.approval.delete({
+     *   where: {
+     *     // ... filter to delete one Approval
+     *   }
+     * })
+     * 
+     */
+    delete<T extends ApprovalDeleteArgs>(args: SelectSubset<T, ApprovalDeleteArgs<ExtArgs>>): Prisma__ApprovalClient<$Result.GetResult<Prisma.$ApprovalPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one Approval.
+     * @param {ApprovalUpdateArgs} args - Arguments to update one Approval.
+     * @example
+     * // Update one Approval
+     * const approval = await prisma.approval.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends ApprovalUpdateArgs>(args: SelectSubset<T, ApprovalUpdateArgs<ExtArgs>>): Prisma__ApprovalClient<$Result.GetResult<Prisma.$ApprovalPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more Approvals.
+     * @param {ApprovalDeleteManyArgs} args - Arguments to filter Approvals to delete.
+     * @example
+     * // Delete a few Approvals
+     * const { count } = await prisma.approval.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends ApprovalDeleteManyArgs>(args?: SelectSubset<T, ApprovalDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Approvals.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ApprovalUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many Approvals
+     * const approval = await prisma.approval.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends ApprovalUpdateManyArgs>(args: SelectSubset<T, ApprovalUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Approvals and returns the data updated in the database.
+     * @param {ApprovalUpdateManyAndReturnArgs} args - Arguments to update many Approvals.
+     * @example
+     * // Update many Approvals
+     * const approval = await prisma.approval.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more Approvals and only return the `id`
+     * const approvalWithIdOnly = await prisma.approval.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends ApprovalUpdateManyAndReturnArgs>(args: SelectSubset<T, ApprovalUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ApprovalPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one Approval.
+     * @param {ApprovalUpsertArgs} args - Arguments to update or create a Approval.
+     * @example
+     * // Update or create a Approval
+     * const approval = await prisma.approval.upsert({
+     *   create: {
+     *     // ... data to create a Approval
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the Approval we want to update
+     *   }
+     * })
+     */
+    upsert<T extends ApprovalUpsertArgs>(args: SelectSubset<T, ApprovalUpsertArgs<ExtArgs>>): Prisma__ApprovalClient<$Result.GetResult<Prisma.$ApprovalPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of Approvals.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ApprovalCountArgs} args - Arguments to filter Approvals to count.
+     * @example
+     * // Count the number of Approvals
+     * const count = await prisma.approval.count({
+     *   where: {
+     *     // ... the filter for the Approvals we want to count
+     *   }
+     * })
+    **/
+    count<T extends ApprovalCountArgs>(
+      args?: Subset<T, ApprovalCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], ApprovalCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a Approval.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ApprovalAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends ApprovalAggregateArgs>(args: Subset<T, ApprovalAggregateArgs>): Prisma.PrismaPromise<GetApprovalAggregateType<T>>
+
+    /**
+     * Group by Approval.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ApprovalGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends ApprovalGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: ApprovalGroupByArgs['orderBy'] }
+        : { orderBy?: ApprovalGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, ApprovalGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetApprovalGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the Approval model
+   */
+  readonly fields: ApprovalFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for Approval.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__ApprovalClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    project<T extends ProjectDefaultArgs<ExtArgs> = {}>(args?: Subset<T, ProjectDefaultArgs<ExtArgs>>): Prisma__ProjectClient<$Result.GetResult<Prisma.$ProjectPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    signature<T extends Approval$signatureArgs<ExtArgs> = {}>(args?: Subset<T, Approval$signatureArgs<ExtArgs>>): Prisma__SignatureClient<$Result.GetResult<Prisma.$SignaturePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the Approval model
+   */
+  interface ApprovalFieldRefs {
+    readonly id: FieldRef<"Approval", 'String'>
+    readonly projectId: FieldRef<"Approval", 'String'>
+    readonly entityType: FieldRef<"Approval", 'String'>
+    readonly entityId: FieldRef<"Approval", 'String'>
+    readonly status: FieldRef<"Approval", 'String'>
+    readonly requestedBy: FieldRef<"Approval", 'String'>
+    readonly reviewedBy: FieldRef<"Approval", 'String'>
+    readonly reviewedAt: FieldRef<"Approval", 'DateTime'>
+    readonly reason: FieldRef<"Approval", 'String'>
+    readonly signatureId: FieldRef<"Approval", 'String'>
+    readonly createdAt: FieldRef<"Approval", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * Approval findUnique
+   */
+  export type ApprovalFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Approval
+     */
+    select?: ApprovalSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Approval
+     */
+    omit?: ApprovalOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ApprovalInclude<ExtArgs> | null
+    /**
+     * Filter, which Approval to fetch.
+     */
+    where: ApprovalWhereUniqueInput
+  }
+
+  /**
+   * Approval findUniqueOrThrow
+   */
+  export type ApprovalFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Approval
+     */
+    select?: ApprovalSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Approval
+     */
+    omit?: ApprovalOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ApprovalInclude<ExtArgs> | null
+    /**
+     * Filter, which Approval to fetch.
+     */
+    where: ApprovalWhereUniqueInput
+  }
+
+  /**
+   * Approval findFirst
+   */
+  export type ApprovalFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Approval
+     */
+    select?: ApprovalSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Approval
+     */
+    omit?: ApprovalOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ApprovalInclude<ExtArgs> | null
+    /**
+     * Filter, which Approval to fetch.
+     */
+    where?: ApprovalWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Approvals to fetch.
+     */
+    orderBy?: ApprovalOrderByWithRelationInput | ApprovalOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Approvals.
+     */
+    cursor?: ApprovalWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Approvals from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Approvals.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Approvals.
+     */
+    distinct?: ApprovalScalarFieldEnum | ApprovalScalarFieldEnum[]
+  }
+
+  /**
+   * Approval findFirstOrThrow
+   */
+  export type ApprovalFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Approval
+     */
+    select?: ApprovalSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Approval
+     */
+    omit?: ApprovalOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ApprovalInclude<ExtArgs> | null
+    /**
+     * Filter, which Approval to fetch.
+     */
+    where?: ApprovalWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Approvals to fetch.
+     */
+    orderBy?: ApprovalOrderByWithRelationInput | ApprovalOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Approvals.
+     */
+    cursor?: ApprovalWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Approvals from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Approvals.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Approvals.
+     */
+    distinct?: ApprovalScalarFieldEnum | ApprovalScalarFieldEnum[]
+  }
+
+  /**
+   * Approval findMany
+   */
+  export type ApprovalFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Approval
+     */
+    select?: ApprovalSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Approval
+     */
+    omit?: ApprovalOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ApprovalInclude<ExtArgs> | null
+    /**
+     * Filter, which Approvals to fetch.
+     */
+    where?: ApprovalWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Approvals to fetch.
+     */
+    orderBy?: ApprovalOrderByWithRelationInput | ApprovalOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing Approvals.
+     */
+    cursor?: ApprovalWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Approvals from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Approvals.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Approvals.
+     */
+    distinct?: ApprovalScalarFieldEnum | ApprovalScalarFieldEnum[]
+  }
+
+  /**
+   * Approval create
+   */
+  export type ApprovalCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Approval
+     */
+    select?: ApprovalSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Approval
+     */
+    omit?: ApprovalOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ApprovalInclude<ExtArgs> | null
+    /**
+     * The data needed to create a Approval.
+     */
+    data: XOR<ApprovalCreateInput, ApprovalUncheckedCreateInput>
+  }
+
+  /**
+   * Approval createMany
+   */
+  export type ApprovalCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many Approvals.
+     */
+    data: ApprovalCreateManyInput | ApprovalCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * Approval createManyAndReturn
+   */
+  export type ApprovalCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Approval
+     */
+    select?: ApprovalSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the Approval
+     */
+    omit?: ApprovalOmit<ExtArgs> | null
+    /**
+     * The data used to create many Approvals.
+     */
+    data: ApprovalCreateManyInput | ApprovalCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ApprovalIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * Approval update
+   */
+  export type ApprovalUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Approval
+     */
+    select?: ApprovalSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Approval
+     */
+    omit?: ApprovalOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ApprovalInclude<ExtArgs> | null
+    /**
+     * The data needed to update a Approval.
+     */
+    data: XOR<ApprovalUpdateInput, ApprovalUncheckedUpdateInput>
+    /**
+     * Choose, which Approval to update.
+     */
+    where: ApprovalWhereUniqueInput
+  }
+
+  /**
+   * Approval updateMany
+   */
+  export type ApprovalUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update Approvals.
+     */
+    data: XOR<ApprovalUpdateManyMutationInput, ApprovalUncheckedUpdateManyInput>
+    /**
+     * Filter which Approvals to update
+     */
+    where?: ApprovalWhereInput
+    /**
+     * Limit how many Approvals to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * Approval updateManyAndReturn
+   */
+  export type ApprovalUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Approval
+     */
+    select?: ApprovalSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the Approval
+     */
+    omit?: ApprovalOmit<ExtArgs> | null
+    /**
+     * The data used to update Approvals.
+     */
+    data: XOR<ApprovalUpdateManyMutationInput, ApprovalUncheckedUpdateManyInput>
+    /**
+     * Filter which Approvals to update
+     */
+    where?: ApprovalWhereInput
+    /**
+     * Limit how many Approvals to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ApprovalIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * Approval upsert
+   */
+  export type ApprovalUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Approval
+     */
+    select?: ApprovalSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Approval
+     */
+    omit?: ApprovalOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ApprovalInclude<ExtArgs> | null
+    /**
+     * The filter to search for the Approval to update in case it exists.
+     */
+    where: ApprovalWhereUniqueInput
+    /**
+     * In case the Approval found by the `where` argument doesn't exist, create a new Approval with this data.
+     */
+    create: XOR<ApprovalCreateInput, ApprovalUncheckedCreateInput>
+    /**
+     * In case the Approval was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<ApprovalUpdateInput, ApprovalUncheckedUpdateInput>
+  }
+
+  /**
+   * Approval delete
+   */
+  export type ApprovalDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Approval
+     */
+    select?: ApprovalSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Approval
+     */
+    omit?: ApprovalOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ApprovalInclude<ExtArgs> | null
+    /**
+     * Filter which Approval to delete.
+     */
+    where: ApprovalWhereUniqueInput
+  }
+
+  /**
+   * Approval deleteMany
+   */
+  export type ApprovalDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Approvals to delete
+     */
+    where?: ApprovalWhereInput
+    /**
+     * Limit how many Approvals to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * Approval.signature
+   */
+  export type Approval$signatureArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Signature
+     */
+    select?: SignatureSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Signature
+     */
+    omit?: SignatureOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SignatureInclude<ExtArgs> | null
+    where?: SignatureWhereInput
+  }
+
+  /**
+   * Approval without action
+   */
+  export type ApprovalDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Approval
+     */
+    select?: ApprovalSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Approval
+     */
+    omit?: ApprovalOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ApprovalInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model Signature
+   */
+
+  export type AggregateSignature = {
+    _count: SignatureCountAggregateOutputType | null
+    _min: SignatureMinAggregateOutputType | null
+    _max: SignatureMaxAggregateOutputType | null
+  }
+
+  export type SignatureMinAggregateOutputType = {
+    id: string | null
+    projectId: string | null
+    userId: string | null
+    userName: string | null
+    userRole: string | null
+    meaning: string | null
+    reason: string | null
+    method: string | null
+    entityType: string | null
+    entityId: string | null
+    timestamp: Date | null
+  }
+
+  export type SignatureMaxAggregateOutputType = {
+    id: string | null
+    projectId: string | null
+    userId: string | null
+    userName: string | null
+    userRole: string | null
+    meaning: string | null
+    reason: string | null
+    method: string | null
+    entityType: string | null
+    entityId: string | null
+    timestamp: Date | null
+  }
+
+  export type SignatureCountAggregateOutputType = {
+    id: number
+    projectId: number
+    userId: number
+    userName: number
+    userRole: number
+    meaning: number
+    reason: number
+    method: number
+    entityType: number
+    entityId: number
+    timestamp: number
+    _all: number
+  }
+
+
+  export type SignatureMinAggregateInputType = {
+    id?: true
+    projectId?: true
+    userId?: true
+    userName?: true
+    userRole?: true
+    meaning?: true
+    reason?: true
+    method?: true
+    entityType?: true
+    entityId?: true
+    timestamp?: true
+  }
+
+  export type SignatureMaxAggregateInputType = {
+    id?: true
+    projectId?: true
+    userId?: true
+    userName?: true
+    userRole?: true
+    meaning?: true
+    reason?: true
+    method?: true
+    entityType?: true
+    entityId?: true
+    timestamp?: true
+  }
+
+  export type SignatureCountAggregateInputType = {
+    id?: true
+    projectId?: true
+    userId?: true
+    userName?: true
+    userRole?: true
+    meaning?: true
+    reason?: true
+    method?: true
+    entityType?: true
+    entityId?: true
+    timestamp?: true
+    _all?: true
+  }
+
+  export type SignatureAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Signature to aggregate.
+     */
+    where?: SignatureWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Signatures to fetch.
+     */
+    orderBy?: SignatureOrderByWithRelationInput | SignatureOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: SignatureWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Signatures from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Signatures.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned Signatures
+    **/
+    _count?: true | SignatureCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: SignatureMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: SignatureMaxAggregateInputType
+  }
+
+  export type GetSignatureAggregateType<T extends SignatureAggregateArgs> = {
+        [P in keyof T & keyof AggregateSignature]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateSignature[P]>
+      : GetScalarType<T[P], AggregateSignature[P]>
+  }
+
+
+
+
+  export type SignatureGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: SignatureWhereInput
+    orderBy?: SignatureOrderByWithAggregationInput | SignatureOrderByWithAggregationInput[]
+    by: SignatureScalarFieldEnum[] | SignatureScalarFieldEnum
+    having?: SignatureScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: SignatureCountAggregateInputType | true
+    _min?: SignatureMinAggregateInputType
+    _max?: SignatureMaxAggregateInputType
+  }
+
+  export type SignatureGroupByOutputType = {
+    id: string
+    projectId: string
+    userId: string
+    userName: string
+    userRole: string
+    meaning: string
+    reason: string
+    method: string
+    entityType: string
+    entityId: string
+    timestamp: Date
+    _count: SignatureCountAggregateOutputType | null
+    _min: SignatureMinAggregateOutputType | null
+    _max: SignatureMaxAggregateOutputType | null
+  }
+
+  type GetSignatureGroupByPayload<T extends SignatureGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<SignatureGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof SignatureGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], SignatureGroupByOutputType[P]>
+            : GetScalarType<T[P], SignatureGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type SignatureSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    projectId?: boolean
+    userId?: boolean
+    userName?: boolean
+    userRole?: boolean
+    meaning?: boolean
+    reason?: boolean
+    method?: boolean
+    entityType?: boolean
+    entityId?: boolean
+    timestamp?: boolean
+    project?: boolean | ProjectDefaultArgs<ExtArgs>
+    approval?: boolean | Signature$approvalArgs<ExtArgs>
+  }, ExtArgs["result"]["signature"]>
+
+  export type SignatureSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    projectId?: boolean
+    userId?: boolean
+    userName?: boolean
+    userRole?: boolean
+    meaning?: boolean
+    reason?: boolean
+    method?: boolean
+    entityType?: boolean
+    entityId?: boolean
+    timestamp?: boolean
+    project?: boolean | ProjectDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["signature"]>
+
+  export type SignatureSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    projectId?: boolean
+    userId?: boolean
+    userName?: boolean
+    userRole?: boolean
+    meaning?: boolean
+    reason?: boolean
+    method?: boolean
+    entityType?: boolean
+    entityId?: boolean
+    timestamp?: boolean
+    project?: boolean | ProjectDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["signature"]>
+
+  export type SignatureSelectScalar = {
+    id?: boolean
+    projectId?: boolean
+    userId?: boolean
+    userName?: boolean
+    userRole?: boolean
+    meaning?: boolean
+    reason?: boolean
+    method?: boolean
+    entityType?: boolean
+    entityId?: boolean
+    timestamp?: boolean
+  }
+
+  export type SignatureOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "projectId" | "userId" | "userName" | "userRole" | "meaning" | "reason" | "method" | "entityType" | "entityId" | "timestamp", ExtArgs["result"]["signature"]>
+  export type SignatureInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    project?: boolean | ProjectDefaultArgs<ExtArgs>
+    approval?: boolean | Signature$approvalArgs<ExtArgs>
+  }
+  export type SignatureIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    project?: boolean | ProjectDefaultArgs<ExtArgs>
+  }
+  export type SignatureIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    project?: boolean | ProjectDefaultArgs<ExtArgs>
+  }
+
+  export type $SignaturePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "Signature"
+    objects: {
+      project: Prisma.$ProjectPayload<ExtArgs>
+      approval: Prisma.$ApprovalPayload<ExtArgs> | null
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      projectId: string
+      userId: string
+      userName: string
+      userRole: string
+      meaning: string
+      reason: string
+      method: string
+      entityType: string
+      entityId: string
+      timestamp: Date
+    }, ExtArgs["result"]["signature"]>
+    composites: {}
+  }
+
+  type SignatureGetPayload<S extends boolean | null | undefined | SignatureDefaultArgs> = $Result.GetResult<Prisma.$SignaturePayload, S>
+
+  type SignatureCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<SignatureFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: SignatureCountAggregateInputType | true
+    }
+
+  export interface SignatureDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['Signature'], meta: { name: 'Signature' } }
+    /**
+     * Find zero or one Signature that matches the filter.
+     * @param {SignatureFindUniqueArgs} args - Arguments to find a Signature
+     * @example
+     * // Get one Signature
+     * const signature = await prisma.signature.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends SignatureFindUniqueArgs>(args: SelectSubset<T, SignatureFindUniqueArgs<ExtArgs>>): Prisma__SignatureClient<$Result.GetResult<Prisma.$SignaturePayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one Signature that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {SignatureFindUniqueOrThrowArgs} args - Arguments to find a Signature
+     * @example
+     * // Get one Signature
+     * const signature = await prisma.signature.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends SignatureFindUniqueOrThrowArgs>(args: SelectSubset<T, SignatureFindUniqueOrThrowArgs<ExtArgs>>): Prisma__SignatureClient<$Result.GetResult<Prisma.$SignaturePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Signature that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SignatureFindFirstArgs} args - Arguments to find a Signature
+     * @example
+     * // Get one Signature
+     * const signature = await prisma.signature.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends SignatureFindFirstArgs>(args?: SelectSubset<T, SignatureFindFirstArgs<ExtArgs>>): Prisma__SignatureClient<$Result.GetResult<Prisma.$SignaturePayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Signature that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SignatureFindFirstOrThrowArgs} args - Arguments to find a Signature
+     * @example
+     * // Get one Signature
+     * const signature = await prisma.signature.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends SignatureFindFirstOrThrowArgs>(args?: SelectSubset<T, SignatureFindFirstOrThrowArgs<ExtArgs>>): Prisma__SignatureClient<$Result.GetResult<Prisma.$SignaturePayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more Signatures that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SignatureFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all Signatures
+     * const signatures = await prisma.signature.findMany()
+     * 
+     * // Get first 10 Signatures
+     * const signatures = await prisma.signature.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const signatureWithIdOnly = await prisma.signature.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends SignatureFindManyArgs>(args?: SelectSubset<T, SignatureFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SignaturePayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a Signature.
+     * @param {SignatureCreateArgs} args - Arguments to create a Signature.
+     * @example
+     * // Create one Signature
+     * const Signature = await prisma.signature.create({
+     *   data: {
+     *     // ... data to create a Signature
+     *   }
+     * })
+     * 
+     */
+    create<T extends SignatureCreateArgs>(args: SelectSubset<T, SignatureCreateArgs<ExtArgs>>): Prisma__SignatureClient<$Result.GetResult<Prisma.$SignaturePayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many Signatures.
+     * @param {SignatureCreateManyArgs} args - Arguments to create many Signatures.
+     * @example
+     * // Create many Signatures
+     * const signature = await prisma.signature.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends SignatureCreateManyArgs>(args?: SelectSubset<T, SignatureCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many Signatures and returns the data saved in the database.
+     * @param {SignatureCreateManyAndReturnArgs} args - Arguments to create many Signatures.
+     * @example
+     * // Create many Signatures
+     * const signature = await prisma.signature.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many Signatures and only return the `id`
+     * const signatureWithIdOnly = await prisma.signature.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends SignatureCreateManyAndReturnArgs>(args?: SelectSubset<T, SignatureCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SignaturePayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a Signature.
+     * @param {SignatureDeleteArgs} args - Arguments to delete one Signature.
+     * @example
+     * // Delete one Signature
+     * const Signature = await prisma.signature.delete({
+     *   where: {
+     *     // ... filter to delete one Signature
+     *   }
+     * })
+     * 
+     */
+    delete<T extends SignatureDeleteArgs>(args: SelectSubset<T, SignatureDeleteArgs<ExtArgs>>): Prisma__SignatureClient<$Result.GetResult<Prisma.$SignaturePayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one Signature.
+     * @param {SignatureUpdateArgs} args - Arguments to update one Signature.
+     * @example
+     * // Update one Signature
+     * const signature = await prisma.signature.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends SignatureUpdateArgs>(args: SelectSubset<T, SignatureUpdateArgs<ExtArgs>>): Prisma__SignatureClient<$Result.GetResult<Prisma.$SignaturePayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more Signatures.
+     * @param {SignatureDeleteManyArgs} args - Arguments to filter Signatures to delete.
+     * @example
+     * // Delete a few Signatures
+     * const { count } = await prisma.signature.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends SignatureDeleteManyArgs>(args?: SelectSubset<T, SignatureDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Signatures.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SignatureUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many Signatures
+     * const signature = await prisma.signature.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends SignatureUpdateManyArgs>(args: SelectSubset<T, SignatureUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Signatures and returns the data updated in the database.
+     * @param {SignatureUpdateManyAndReturnArgs} args - Arguments to update many Signatures.
+     * @example
+     * // Update many Signatures
+     * const signature = await prisma.signature.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more Signatures and only return the `id`
+     * const signatureWithIdOnly = await prisma.signature.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends SignatureUpdateManyAndReturnArgs>(args: SelectSubset<T, SignatureUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SignaturePayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one Signature.
+     * @param {SignatureUpsertArgs} args - Arguments to update or create a Signature.
+     * @example
+     * // Update or create a Signature
+     * const signature = await prisma.signature.upsert({
+     *   create: {
+     *     // ... data to create a Signature
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the Signature we want to update
+     *   }
+     * })
+     */
+    upsert<T extends SignatureUpsertArgs>(args: SelectSubset<T, SignatureUpsertArgs<ExtArgs>>): Prisma__SignatureClient<$Result.GetResult<Prisma.$SignaturePayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of Signatures.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SignatureCountArgs} args - Arguments to filter Signatures to count.
+     * @example
+     * // Count the number of Signatures
+     * const count = await prisma.signature.count({
+     *   where: {
+     *     // ... the filter for the Signatures we want to count
+     *   }
+     * })
+    **/
+    count<T extends SignatureCountArgs>(
+      args?: Subset<T, SignatureCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], SignatureCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a Signature.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SignatureAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends SignatureAggregateArgs>(args: Subset<T, SignatureAggregateArgs>): Prisma.PrismaPromise<GetSignatureAggregateType<T>>
+
+    /**
+     * Group by Signature.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SignatureGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends SignatureGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: SignatureGroupByArgs['orderBy'] }
+        : { orderBy?: SignatureGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, SignatureGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetSignatureGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the Signature model
+   */
+  readonly fields: SignatureFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for Signature.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__SignatureClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    project<T extends ProjectDefaultArgs<ExtArgs> = {}>(args?: Subset<T, ProjectDefaultArgs<ExtArgs>>): Prisma__ProjectClient<$Result.GetResult<Prisma.$ProjectPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    approval<T extends Signature$approvalArgs<ExtArgs> = {}>(args?: Subset<T, Signature$approvalArgs<ExtArgs>>): Prisma__ApprovalClient<$Result.GetResult<Prisma.$ApprovalPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the Signature model
+   */
+  interface SignatureFieldRefs {
+    readonly id: FieldRef<"Signature", 'String'>
+    readonly projectId: FieldRef<"Signature", 'String'>
+    readonly userId: FieldRef<"Signature", 'String'>
+    readonly userName: FieldRef<"Signature", 'String'>
+    readonly userRole: FieldRef<"Signature", 'String'>
+    readonly meaning: FieldRef<"Signature", 'String'>
+    readonly reason: FieldRef<"Signature", 'String'>
+    readonly method: FieldRef<"Signature", 'String'>
+    readonly entityType: FieldRef<"Signature", 'String'>
+    readonly entityId: FieldRef<"Signature", 'String'>
+    readonly timestamp: FieldRef<"Signature", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * Signature findUnique
+   */
+  export type SignatureFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Signature
+     */
+    select?: SignatureSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Signature
+     */
+    omit?: SignatureOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SignatureInclude<ExtArgs> | null
+    /**
+     * Filter, which Signature to fetch.
+     */
+    where: SignatureWhereUniqueInput
+  }
+
+  /**
+   * Signature findUniqueOrThrow
+   */
+  export type SignatureFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Signature
+     */
+    select?: SignatureSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Signature
+     */
+    omit?: SignatureOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SignatureInclude<ExtArgs> | null
+    /**
+     * Filter, which Signature to fetch.
+     */
+    where: SignatureWhereUniqueInput
+  }
+
+  /**
+   * Signature findFirst
+   */
+  export type SignatureFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Signature
+     */
+    select?: SignatureSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Signature
+     */
+    omit?: SignatureOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SignatureInclude<ExtArgs> | null
+    /**
+     * Filter, which Signature to fetch.
+     */
+    where?: SignatureWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Signatures to fetch.
+     */
+    orderBy?: SignatureOrderByWithRelationInput | SignatureOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Signatures.
+     */
+    cursor?: SignatureWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Signatures from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Signatures.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Signatures.
+     */
+    distinct?: SignatureScalarFieldEnum | SignatureScalarFieldEnum[]
+  }
+
+  /**
+   * Signature findFirstOrThrow
+   */
+  export type SignatureFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Signature
+     */
+    select?: SignatureSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Signature
+     */
+    omit?: SignatureOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SignatureInclude<ExtArgs> | null
+    /**
+     * Filter, which Signature to fetch.
+     */
+    where?: SignatureWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Signatures to fetch.
+     */
+    orderBy?: SignatureOrderByWithRelationInput | SignatureOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Signatures.
+     */
+    cursor?: SignatureWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Signatures from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Signatures.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Signatures.
+     */
+    distinct?: SignatureScalarFieldEnum | SignatureScalarFieldEnum[]
+  }
+
+  /**
+   * Signature findMany
+   */
+  export type SignatureFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Signature
+     */
+    select?: SignatureSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Signature
+     */
+    omit?: SignatureOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SignatureInclude<ExtArgs> | null
+    /**
+     * Filter, which Signatures to fetch.
+     */
+    where?: SignatureWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Signatures to fetch.
+     */
+    orderBy?: SignatureOrderByWithRelationInput | SignatureOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing Signatures.
+     */
+    cursor?: SignatureWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Signatures from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Signatures.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Signatures.
+     */
+    distinct?: SignatureScalarFieldEnum | SignatureScalarFieldEnum[]
+  }
+
+  /**
+   * Signature create
+   */
+  export type SignatureCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Signature
+     */
+    select?: SignatureSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Signature
+     */
+    omit?: SignatureOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SignatureInclude<ExtArgs> | null
+    /**
+     * The data needed to create a Signature.
+     */
+    data: XOR<SignatureCreateInput, SignatureUncheckedCreateInput>
+  }
+
+  /**
+   * Signature createMany
+   */
+  export type SignatureCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many Signatures.
+     */
+    data: SignatureCreateManyInput | SignatureCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * Signature createManyAndReturn
+   */
+  export type SignatureCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Signature
+     */
+    select?: SignatureSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the Signature
+     */
+    omit?: SignatureOmit<ExtArgs> | null
+    /**
+     * The data used to create many Signatures.
+     */
+    data: SignatureCreateManyInput | SignatureCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SignatureIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * Signature update
+   */
+  export type SignatureUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Signature
+     */
+    select?: SignatureSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Signature
+     */
+    omit?: SignatureOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SignatureInclude<ExtArgs> | null
+    /**
+     * The data needed to update a Signature.
+     */
+    data: XOR<SignatureUpdateInput, SignatureUncheckedUpdateInput>
+    /**
+     * Choose, which Signature to update.
+     */
+    where: SignatureWhereUniqueInput
+  }
+
+  /**
+   * Signature updateMany
+   */
+  export type SignatureUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update Signatures.
+     */
+    data: XOR<SignatureUpdateManyMutationInput, SignatureUncheckedUpdateManyInput>
+    /**
+     * Filter which Signatures to update
+     */
+    where?: SignatureWhereInput
+    /**
+     * Limit how many Signatures to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * Signature updateManyAndReturn
+   */
+  export type SignatureUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Signature
+     */
+    select?: SignatureSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the Signature
+     */
+    omit?: SignatureOmit<ExtArgs> | null
+    /**
+     * The data used to update Signatures.
+     */
+    data: XOR<SignatureUpdateManyMutationInput, SignatureUncheckedUpdateManyInput>
+    /**
+     * Filter which Signatures to update
+     */
+    where?: SignatureWhereInput
+    /**
+     * Limit how many Signatures to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SignatureIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * Signature upsert
+   */
+  export type SignatureUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Signature
+     */
+    select?: SignatureSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Signature
+     */
+    omit?: SignatureOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SignatureInclude<ExtArgs> | null
+    /**
+     * The filter to search for the Signature to update in case it exists.
+     */
+    where: SignatureWhereUniqueInput
+    /**
+     * In case the Signature found by the `where` argument doesn't exist, create a new Signature with this data.
+     */
+    create: XOR<SignatureCreateInput, SignatureUncheckedCreateInput>
+    /**
+     * In case the Signature was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<SignatureUpdateInput, SignatureUncheckedUpdateInput>
+  }
+
+  /**
+   * Signature delete
+   */
+  export type SignatureDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Signature
+     */
+    select?: SignatureSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Signature
+     */
+    omit?: SignatureOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SignatureInclude<ExtArgs> | null
+    /**
+     * Filter which Signature to delete.
+     */
+    where: SignatureWhereUniqueInput
+  }
+
+  /**
+   * Signature deleteMany
+   */
+  export type SignatureDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Signatures to delete
+     */
+    where?: SignatureWhereInput
+    /**
+     * Limit how many Signatures to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * Signature.approval
+   */
+  export type Signature$approvalArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Approval
+     */
+    select?: ApprovalSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Approval
+     */
+    omit?: ApprovalOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ApprovalInclude<ExtArgs> | null
+    where?: ApprovalWhereInput
+  }
+
+  /**
+   * Signature without action
+   */
+  export type SignatureDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Signature
+     */
+    select?: SignatureSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Signature
+     */
+    omit?: SignatureOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SignatureInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -12212,6 +16120,58 @@ export namespace Prisma {
   };
 
   export type AuditLogScalarFieldEnum = (typeof AuditLogScalarFieldEnum)[keyof typeof AuditLogScalarFieldEnum]
+
+
+  export const EvidenceScalarFieldEnum: {
+    id: 'id',
+    projectId: 'projectId',
+    entityType: 'entityType',
+    entityId: 'entityId',
+    fileName: 'fileName',
+    fileSize: 'fileSize',
+    mimeType: 'mimeType',
+    storagePath: 'storagePath',
+    description: 'description',
+    version: 'version',
+    uploadedBy: 'uploadedBy',
+    createdAt: 'createdAt'
+  };
+
+  export type EvidenceScalarFieldEnum = (typeof EvidenceScalarFieldEnum)[keyof typeof EvidenceScalarFieldEnum]
+
+
+  export const ApprovalScalarFieldEnum: {
+    id: 'id',
+    projectId: 'projectId',
+    entityType: 'entityType',
+    entityId: 'entityId',
+    status: 'status',
+    requestedBy: 'requestedBy',
+    reviewedBy: 'reviewedBy',
+    reviewedAt: 'reviewedAt',
+    reason: 'reason',
+    signatureId: 'signatureId',
+    createdAt: 'createdAt'
+  };
+
+  export type ApprovalScalarFieldEnum = (typeof ApprovalScalarFieldEnum)[keyof typeof ApprovalScalarFieldEnum]
+
+
+  export const SignatureScalarFieldEnum: {
+    id: 'id',
+    projectId: 'projectId',
+    userId: 'userId',
+    userName: 'userName',
+    userRole: 'userRole',
+    meaning: 'meaning',
+    reason: 'reason',
+    method: 'method',
+    entityType: 'entityType',
+    entityId: 'entityId',
+    timestamp: 'timestamp'
+  };
+
+  export type SignatureScalarFieldEnum = (typeof SignatureScalarFieldEnum)[keyof typeof SignatureScalarFieldEnum]
 
 
   export const SortOrder: {
@@ -12521,6 +16481,9 @@ export namespace Prisma {
     risks?: RiskListRelationFilter
     capas?: CAPAListRelationFilter
     auditLogs?: AuditLogListRelationFilter
+    evidences?: EvidenceListRelationFilter
+    approvals?: ApprovalListRelationFilter
+    signatures?: SignatureListRelationFilter
   }
 
   export type ProjectOrderByWithRelationInput = {
@@ -12542,6 +16505,9 @@ export namespace Prisma {
     risks?: RiskOrderByRelationAggregateInput
     capas?: CAPAOrderByRelationAggregateInput
     auditLogs?: AuditLogOrderByRelationAggregateInput
+    evidences?: EvidenceOrderByRelationAggregateInput
+    approvals?: ApprovalOrderByRelationAggregateInput
+    signatures?: SignatureOrderByRelationAggregateInput
   }
 
   export type ProjectWhereUniqueInput = Prisma.AtLeast<{
@@ -12566,6 +16532,9 @@ export namespace Prisma {
     risks?: RiskListRelationFilter
     capas?: CAPAListRelationFilter
     auditLogs?: AuditLogListRelationFilter
+    evidences?: EvidenceListRelationFilter
+    approvals?: ApprovalListRelationFilter
+    signatures?: SignatureListRelationFilter
   }, "id">
 
   export type ProjectOrderByWithAggregationInput = {
@@ -13046,6 +17015,274 @@ export namespace Prisma {
     reason?: StringNullableWithAggregatesFilter<"AuditLog"> | string | null
   }
 
+  export type EvidenceWhereInput = {
+    AND?: EvidenceWhereInput | EvidenceWhereInput[]
+    OR?: EvidenceWhereInput[]
+    NOT?: EvidenceWhereInput | EvidenceWhereInput[]
+    id?: StringFilter<"Evidence"> | string
+    projectId?: StringFilter<"Evidence"> | string
+    entityType?: StringFilter<"Evidence"> | string
+    entityId?: StringFilter<"Evidence"> | string
+    fileName?: StringFilter<"Evidence"> | string
+    fileSize?: IntFilter<"Evidence"> | number
+    mimeType?: StringFilter<"Evidence"> | string
+    storagePath?: StringFilter<"Evidence"> | string
+    description?: StringFilter<"Evidence"> | string
+    version?: IntFilter<"Evidence"> | number
+    uploadedBy?: StringFilter<"Evidence"> | string
+    createdAt?: DateTimeFilter<"Evidence"> | Date | string
+    project?: XOR<ProjectScalarRelationFilter, ProjectWhereInput>
+  }
+
+  export type EvidenceOrderByWithRelationInput = {
+    id?: SortOrder
+    projectId?: SortOrder
+    entityType?: SortOrder
+    entityId?: SortOrder
+    fileName?: SortOrder
+    fileSize?: SortOrder
+    mimeType?: SortOrder
+    storagePath?: SortOrder
+    description?: SortOrder
+    version?: SortOrder
+    uploadedBy?: SortOrder
+    createdAt?: SortOrder
+    project?: ProjectOrderByWithRelationInput
+  }
+
+  export type EvidenceWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: EvidenceWhereInput | EvidenceWhereInput[]
+    OR?: EvidenceWhereInput[]
+    NOT?: EvidenceWhereInput | EvidenceWhereInput[]
+    projectId?: StringFilter<"Evidence"> | string
+    entityType?: StringFilter<"Evidence"> | string
+    entityId?: StringFilter<"Evidence"> | string
+    fileName?: StringFilter<"Evidence"> | string
+    fileSize?: IntFilter<"Evidence"> | number
+    mimeType?: StringFilter<"Evidence"> | string
+    storagePath?: StringFilter<"Evidence"> | string
+    description?: StringFilter<"Evidence"> | string
+    version?: IntFilter<"Evidence"> | number
+    uploadedBy?: StringFilter<"Evidence"> | string
+    createdAt?: DateTimeFilter<"Evidence"> | Date | string
+    project?: XOR<ProjectScalarRelationFilter, ProjectWhereInput>
+  }, "id">
+
+  export type EvidenceOrderByWithAggregationInput = {
+    id?: SortOrder
+    projectId?: SortOrder
+    entityType?: SortOrder
+    entityId?: SortOrder
+    fileName?: SortOrder
+    fileSize?: SortOrder
+    mimeType?: SortOrder
+    storagePath?: SortOrder
+    description?: SortOrder
+    version?: SortOrder
+    uploadedBy?: SortOrder
+    createdAt?: SortOrder
+    _count?: EvidenceCountOrderByAggregateInput
+    _avg?: EvidenceAvgOrderByAggregateInput
+    _max?: EvidenceMaxOrderByAggregateInput
+    _min?: EvidenceMinOrderByAggregateInput
+    _sum?: EvidenceSumOrderByAggregateInput
+  }
+
+  export type EvidenceScalarWhereWithAggregatesInput = {
+    AND?: EvidenceScalarWhereWithAggregatesInput | EvidenceScalarWhereWithAggregatesInput[]
+    OR?: EvidenceScalarWhereWithAggregatesInput[]
+    NOT?: EvidenceScalarWhereWithAggregatesInput | EvidenceScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"Evidence"> | string
+    projectId?: StringWithAggregatesFilter<"Evidence"> | string
+    entityType?: StringWithAggregatesFilter<"Evidence"> | string
+    entityId?: StringWithAggregatesFilter<"Evidence"> | string
+    fileName?: StringWithAggregatesFilter<"Evidence"> | string
+    fileSize?: IntWithAggregatesFilter<"Evidence"> | number
+    mimeType?: StringWithAggregatesFilter<"Evidence"> | string
+    storagePath?: StringWithAggregatesFilter<"Evidence"> | string
+    description?: StringWithAggregatesFilter<"Evidence"> | string
+    version?: IntWithAggregatesFilter<"Evidence"> | number
+    uploadedBy?: StringWithAggregatesFilter<"Evidence"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"Evidence"> | Date | string
+  }
+
+  export type ApprovalWhereInput = {
+    AND?: ApprovalWhereInput | ApprovalWhereInput[]
+    OR?: ApprovalWhereInput[]
+    NOT?: ApprovalWhereInput | ApprovalWhereInput[]
+    id?: StringFilter<"Approval"> | string
+    projectId?: StringFilter<"Approval"> | string
+    entityType?: StringFilter<"Approval"> | string
+    entityId?: StringFilter<"Approval"> | string
+    status?: StringFilter<"Approval"> | string
+    requestedBy?: StringFilter<"Approval"> | string
+    reviewedBy?: StringNullableFilter<"Approval"> | string | null
+    reviewedAt?: DateTimeNullableFilter<"Approval"> | Date | string | null
+    reason?: StringNullableFilter<"Approval"> | string | null
+    signatureId?: StringNullableFilter<"Approval"> | string | null
+    createdAt?: DateTimeFilter<"Approval"> | Date | string
+    project?: XOR<ProjectScalarRelationFilter, ProjectWhereInput>
+    signature?: XOR<SignatureNullableScalarRelationFilter, SignatureWhereInput> | null
+  }
+
+  export type ApprovalOrderByWithRelationInput = {
+    id?: SortOrder
+    projectId?: SortOrder
+    entityType?: SortOrder
+    entityId?: SortOrder
+    status?: SortOrder
+    requestedBy?: SortOrder
+    reviewedBy?: SortOrderInput | SortOrder
+    reviewedAt?: SortOrderInput | SortOrder
+    reason?: SortOrderInput | SortOrder
+    signatureId?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    project?: ProjectOrderByWithRelationInput
+    signature?: SignatureOrderByWithRelationInput
+  }
+
+  export type ApprovalWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    signatureId?: string
+    AND?: ApprovalWhereInput | ApprovalWhereInput[]
+    OR?: ApprovalWhereInput[]
+    NOT?: ApprovalWhereInput | ApprovalWhereInput[]
+    projectId?: StringFilter<"Approval"> | string
+    entityType?: StringFilter<"Approval"> | string
+    entityId?: StringFilter<"Approval"> | string
+    status?: StringFilter<"Approval"> | string
+    requestedBy?: StringFilter<"Approval"> | string
+    reviewedBy?: StringNullableFilter<"Approval"> | string | null
+    reviewedAt?: DateTimeNullableFilter<"Approval"> | Date | string | null
+    reason?: StringNullableFilter<"Approval"> | string | null
+    createdAt?: DateTimeFilter<"Approval"> | Date | string
+    project?: XOR<ProjectScalarRelationFilter, ProjectWhereInput>
+    signature?: XOR<SignatureNullableScalarRelationFilter, SignatureWhereInput> | null
+  }, "id" | "signatureId">
+
+  export type ApprovalOrderByWithAggregationInput = {
+    id?: SortOrder
+    projectId?: SortOrder
+    entityType?: SortOrder
+    entityId?: SortOrder
+    status?: SortOrder
+    requestedBy?: SortOrder
+    reviewedBy?: SortOrderInput | SortOrder
+    reviewedAt?: SortOrderInput | SortOrder
+    reason?: SortOrderInput | SortOrder
+    signatureId?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    _count?: ApprovalCountOrderByAggregateInput
+    _max?: ApprovalMaxOrderByAggregateInput
+    _min?: ApprovalMinOrderByAggregateInput
+  }
+
+  export type ApprovalScalarWhereWithAggregatesInput = {
+    AND?: ApprovalScalarWhereWithAggregatesInput | ApprovalScalarWhereWithAggregatesInput[]
+    OR?: ApprovalScalarWhereWithAggregatesInput[]
+    NOT?: ApprovalScalarWhereWithAggregatesInput | ApprovalScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"Approval"> | string
+    projectId?: StringWithAggregatesFilter<"Approval"> | string
+    entityType?: StringWithAggregatesFilter<"Approval"> | string
+    entityId?: StringWithAggregatesFilter<"Approval"> | string
+    status?: StringWithAggregatesFilter<"Approval"> | string
+    requestedBy?: StringWithAggregatesFilter<"Approval"> | string
+    reviewedBy?: StringNullableWithAggregatesFilter<"Approval"> | string | null
+    reviewedAt?: DateTimeNullableWithAggregatesFilter<"Approval"> | Date | string | null
+    reason?: StringNullableWithAggregatesFilter<"Approval"> | string | null
+    signatureId?: StringNullableWithAggregatesFilter<"Approval"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"Approval"> | Date | string
+  }
+
+  export type SignatureWhereInput = {
+    AND?: SignatureWhereInput | SignatureWhereInput[]
+    OR?: SignatureWhereInput[]
+    NOT?: SignatureWhereInput | SignatureWhereInput[]
+    id?: StringFilter<"Signature"> | string
+    projectId?: StringFilter<"Signature"> | string
+    userId?: StringFilter<"Signature"> | string
+    userName?: StringFilter<"Signature"> | string
+    userRole?: StringFilter<"Signature"> | string
+    meaning?: StringFilter<"Signature"> | string
+    reason?: StringFilter<"Signature"> | string
+    method?: StringFilter<"Signature"> | string
+    entityType?: StringFilter<"Signature"> | string
+    entityId?: StringFilter<"Signature"> | string
+    timestamp?: DateTimeFilter<"Signature"> | Date | string
+    project?: XOR<ProjectScalarRelationFilter, ProjectWhereInput>
+    approval?: XOR<ApprovalNullableScalarRelationFilter, ApprovalWhereInput> | null
+  }
+
+  export type SignatureOrderByWithRelationInput = {
+    id?: SortOrder
+    projectId?: SortOrder
+    userId?: SortOrder
+    userName?: SortOrder
+    userRole?: SortOrder
+    meaning?: SortOrder
+    reason?: SortOrder
+    method?: SortOrder
+    entityType?: SortOrder
+    entityId?: SortOrder
+    timestamp?: SortOrder
+    project?: ProjectOrderByWithRelationInput
+    approval?: ApprovalOrderByWithRelationInput
+  }
+
+  export type SignatureWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: SignatureWhereInput | SignatureWhereInput[]
+    OR?: SignatureWhereInput[]
+    NOT?: SignatureWhereInput | SignatureWhereInput[]
+    projectId?: StringFilter<"Signature"> | string
+    userId?: StringFilter<"Signature"> | string
+    userName?: StringFilter<"Signature"> | string
+    userRole?: StringFilter<"Signature"> | string
+    meaning?: StringFilter<"Signature"> | string
+    reason?: StringFilter<"Signature"> | string
+    method?: StringFilter<"Signature"> | string
+    entityType?: StringFilter<"Signature"> | string
+    entityId?: StringFilter<"Signature"> | string
+    timestamp?: DateTimeFilter<"Signature"> | Date | string
+    project?: XOR<ProjectScalarRelationFilter, ProjectWhereInput>
+    approval?: XOR<ApprovalNullableScalarRelationFilter, ApprovalWhereInput> | null
+  }, "id">
+
+  export type SignatureOrderByWithAggregationInput = {
+    id?: SortOrder
+    projectId?: SortOrder
+    userId?: SortOrder
+    userName?: SortOrder
+    userRole?: SortOrder
+    meaning?: SortOrder
+    reason?: SortOrder
+    method?: SortOrder
+    entityType?: SortOrder
+    entityId?: SortOrder
+    timestamp?: SortOrder
+    _count?: SignatureCountOrderByAggregateInput
+    _max?: SignatureMaxOrderByAggregateInput
+    _min?: SignatureMinOrderByAggregateInput
+  }
+
+  export type SignatureScalarWhereWithAggregatesInput = {
+    AND?: SignatureScalarWhereWithAggregatesInput | SignatureScalarWhereWithAggregatesInput[]
+    OR?: SignatureScalarWhereWithAggregatesInput[]
+    NOT?: SignatureScalarWhereWithAggregatesInput | SignatureScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"Signature"> | string
+    projectId?: StringWithAggregatesFilter<"Signature"> | string
+    userId?: StringWithAggregatesFilter<"Signature"> | string
+    userName?: StringWithAggregatesFilter<"Signature"> | string
+    userRole?: StringWithAggregatesFilter<"Signature"> | string
+    meaning?: StringWithAggregatesFilter<"Signature"> | string
+    reason?: StringWithAggregatesFilter<"Signature"> | string
+    method?: StringWithAggregatesFilter<"Signature"> | string
+    entityType?: StringWithAggregatesFilter<"Signature"> | string
+    entityId?: StringWithAggregatesFilter<"Signature"> | string
+    timestamp?: DateTimeWithAggregatesFilter<"Signature"> | Date | string
+  }
+
   export type UserCreateInput = {
     id?: string
     email: string
@@ -13235,6 +17472,9 @@ export namespace Prisma {
     risks?: RiskCreateNestedManyWithoutProjectInput
     capas?: CAPACreateNestedManyWithoutProjectInput
     auditLogs?: AuditLogCreateNestedManyWithoutProjectInput
+    evidences?: EvidenceCreateNestedManyWithoutProjectInput
+    approvals?: ApprovalCreateNestedManyWithoutProjectInput
+    signatures?: SignatureCreateNestedManyWithoutProjectInput
   }
 
   export type ProjectUncheckedCreateInput = {
@@ -13255,6 +17495,9 @@ export namespace Prisma {
     risks?: RiskUncheckedCreateNestedManyWithoutProjectInput
     capas?: CAPAUncheckedCreateNestedManyWithoutProjectInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutProjectInput
+    evidences?: EvidenceUncheckedCreateNestedManyWithoutProjectInput
+    approvals?: ApprovalUncheckedCreateNestedManyWithoutProjectInput
+    signatures?: SignatureUncheckedCreateNestedManyWithoutProjectInput
   }
 
   export type ProjectUpdateInput = {
@@ -13275,6 +17518,9 @@ export namespace Prisma {
     risks?: RiskUpdateManyWithoutProjectNestedInput
     capas?: CAPAUpdateManyWithoutProjectNestedInput
     auditLogs?: AuditLogUpdateManyWithoutProjectNestedInput
+    evidences?: EvidenceUpdateManyWithoutProjectNestedInput
+    approvals?: ApprovalUpdateManyWithoutProjectNestedInput
+    signatures?: SignatureUpdateManyWithoutProjectNestedInput
   }
 
   export type ProjectUncheckedUpdateInput = {
@@ -13295,6 +17541,9 @@ export namespace Prisma {
     risks?: RiskUncheckedUpdateManyWithoutProjectNestedInput
     capas?: CAPAUncheckedUpdateManyWithoutProjectNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutProjectNestedInput
+    evidences?: EvidenceUncheckedUpdateManyWithoutProjectNestedInput
+    approvals?: ApprovalUncheckedUpdateManyWithoutProjectNestedInput
+    signatures?: SignatureUncheckedUpdateManyWithoutProjectNestedInput
   }
 
   export type ProjectCreateManyInput = {
@@ -13847,6 +18096,307 @@ export namespace Prisma {
     reason?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
+  export type EvidenceCreateInput = {
+    id?: string
+    entityType: string
+    entityId: string
+    fileName: string
+    fileSize: number
+    mimeType: string
+    storagePath: string
+    description?: string
+    version?: number
+    uploadedBy: string
+    createdAt?: Date | string
+    project: ProjectCreateNestedOneWithoutEvidencesInput
+  }
+
+  export type EvidenceUncheckedCreateInput = {
+    id?: string
+    projectId: string
+    entityType: string
+    entityId: string
+    fileName: string
+    fileSize: number
+    mimeType: string
+    storagePath: string
+    description?: string
+    version?: number
+    uploadedBy: string
+    createdAt?: Date | string
+  }
+
+  export type EvidenceUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    entityType?: StringFieldUpdateOperationsInput | string
+    entityId?: StringFieldUpdateOperationsInput | string
+    fileName?: StringFieldUpdateOperationsInput | string
+    fileSize?: IntFieldUpdateOperationsInput | number
+    mimeType?: StringFieldUpdateOperationsInput | string
+    storagePath?: StringFieldUpdateOperationsInput | string
+    description?: StringFieldUpdateOperationsInput | string
+    version?: IntFieldUpdateOperationsInput | number
+    uploadedBy?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    project?: ProjectUpdateOneRequiredWithoutEvidencesNestedInput
+  }
+
+  export type EvidenceUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    projectId?: StringFieldUpdateOperationsInput | string
+    entityType?: StringFieldUpdateOperationsInput | string
+    entityId?: StringFieldUpdateOperationsInput | string
+    fileName?: StringFieldUpdateOperationsInput | string
+    fileSize?: IntFieldUpdateOperationsInput | number
+    mimeType?: StringFieldUpdateOperationsInput | string
+    storagePath?: StringFieldUpdateOperationsInput | string
+    description?: StringFieldUpdateOperationsInput | string
+    version?: IntFieldUpdateOperationsInput | number
+    uploadedBy?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type EvidenceCreateManyInput = {
+    id?: string
+    projectId: string
+    entityType: string
+    entityId: string
+    fileName: string
+    fileSize: number
+    mimeType: string
+    storagePath: string
+    description?: string
+    version?: number
+    uploadedBy: string
+    createdAt?: Date | string
+  }
+
+  export type EvidenceUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    entityType?: StringFieldUpdateOperationsInput | string
+    entityId?: StringFieldUpdateOperationsInput | string
+    fileName?: StringFieldUpdateOperationsInput | string
+    fileSize?: IntFieldUpdateOperationsInput | number
+    mimeType?: StringFieldUpdateOperationsInput | string
+    storagePath?: StringFieldUpdateOperationsInput | string
+    description?: StringFieldUpdateOperationsInput | string
+    version?: IntFieldUpdateOperationsInput | number
+    uploadedBy?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type EvidenceUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    projectId?: StringFieldUpdateOperationsInput | string
+    entityType?: StringFieldUpdateOperationsInput | string
+    entityId?: StringFieldUpdateOperationsInput | string
+    fileName?: StringFieldUpdateOperationsInput | string
+    fileSize?: IntFieldUpdateOperationsInput | number
+    mimeType?: StringFieldUpdateOperationsInput | string
+    storagePath?: StringFieldUpdateOperationsInput | string
+    description?: StringFieldUpdateOperationsInput | string
+    version?: IntFieldUpdateOperationsInput | number
+    uploadedBy?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ApprovalCreateInput = {
+    id?: string
+    entityType: string
+    entityId: string
+    status?: string
+    requestedBy: string
+    reviewedBy?: string | null
+    reviewedAt?: Date | string | null
+    reason?: string | null
+    createdAt?: Date | string
+    project: ProjectCreateNestedOneWithoutApprovalsInput
+    signature?: SignatureCreateNestedOneWithoutApprovalInput
+  }
+
+  export type ApprovalUncheckedCreateInput = {
+    id?: string
+    projectId: string
+    entityType: string
+    entityId: string
+    status?: string
+    requestedBy: string
+    reviewedBy?: string | null
+    reviewedAt?: Date | string | null
+    reason?: string | null
+    signatureId?: string | null
+    createdAt?: Date | string
+  }
+
+  export type ApprovalUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    entityType?: StringFieldUpdateOperationsInput | string
+    entityId?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    requestedBy?: StringFieldUpdateOperationsInput | string
+    reviewedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    reviewedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    reason?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    project?: ProjectUpdateOneRequiredWithoutApprovalsNestedInput
+    signature?: SignatureUpdateOneWithoutApprovalNestedInput
+  }
+
+  export type ApprovalUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    projectId?: StringFieldUpdateOperationsInput | string
+    entityType?: StringFieldUpdateOperationsInput | string
+    entityId?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    requestedBy?: StringFieldUpdateOperationsInput | string
+    reviewedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    reviewedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    reason?: NullableStringFieldUpdateOperationsInput | string | null
+    signatureId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ApprovalCreateManyInput = {
+    id?: string
+    projectId: string
+    entityType: string
+    entityId: string
+    status?: string
+    requestedBy: string
+    reviewedBy?: string | null
+    reviewedAt?: Date | string | null
+    reason?: string | null
+    signatureId?: string | null
+    createdAt?: Date | string
+  }
+
+  export type ApprovalUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    entityType?: StringFieldUpdateOperationsInput | string
+    entityId?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    requestedBy?: StringFieldUpdateOperationsInput | string
+    reviewedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    reviewedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    reason?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ApprovalUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    projectId?: StringFieldUpdateOperationsInput | string
+    entityType?: StringFieldUpdateOperationsInput | string
+    entityId?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    requestedBy?: StringFieldUpdateOperationsInput | string
+    reviewedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    reviewedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    reason?: NullableStringFieldUpdateOperationsInput | string | null
+    signatureId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SignatureCreateInput = {
+    id?: string
+    userId: string
+    userName: string
+    userRole: string
+    meaning: string
+    reason: string
+    method?: string
+    entityType: string
+    entityId: string
+    timestamp?: Date | string
+    project: ProjectCreateNestedOneWithoutSignaturesInput
+    approval?: ApprovalCreateNestedOneWithoutSignatureInput
+  }
+
+  export type SignatureUncheckedCreateInput = {
+    id?: string
+    projectId: string
+    userId: string
+    userName: string
+    userRole: string
+    meaning: string
+    reason: string
+    method?: string
+    entityType: string
+    entityId: string
+    timestamp?: Date | string
+    approval?: ApprovalUncheckedCreateNestedOneWithoutSignatureInput
+  }
+
+  export type SignatureUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    userName?: StringFieldUpdateOperationsInput | string
+    userRole?: StringFieldUpdateOperationsInput | string
+    meaning?: StringFieldUpdateOperationsInput | string
+    reason?: StringFieldUpdateOperationsInput | string
+    method?: StringFieldUpdateOperationsInput | string
+    entityType?: StringFieldUpdateOperationsInput | string
+    entityId?: StringFieldUpdateOperationsInput | string
+    timestamp?: DateTimeFieldUpdateOperationsInput | Date | string
+    project?: ProjectUpdateOneRequiredWithoutSignaturesNestedInput
+    approval?: ApprovalUpdateOneWithoutSignatureNestedInput
+  }
+
+  export type SignatureUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    projectId?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    userName?: StringFieldUpdateOperationsInput | string
+    userRole?: StringFieldUpdateOperationsInput | string
+    meaning?: StringFieldUpdateOperationsInput | string
+    reason?: StringFieldUpdateOperationsInput | string
+    method?: StringFieldUpdateOperationsInput | string
+    entityType?: StringFieldUpdateOperationsInput | string
+    entityId?: StringFieldUpdateOperationsInput | string
+    timestamp?: DateTimeFieldUpdateOperationsInput | Date | string
+    approval?: ApprovalUncheckedUpdateOneWithoutSignatureNestedInput
+  }
+
+  export type SignatureCreateManyInput = {
+    id?: string
+    projectId: string
+    userId: string
+    userName: string
+    userRole: string
+    meaning: string
+    reason: string
+    method?: string
+    entityType: string
+    entityId: string
+    timestamp?: Date | string
+  }
+
+  export type SignatureUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    userName?: StringFieldUpdateOperationsInput | string
+    userRole?: StringFieldUpdateOperationsInput | string
+    meaning?: StringFieldUpdateOperationsInput | string
+    reason?: StringFieldUpdateOperationsInput | string
+    method?: StringFieldUpdateOperationsInput | string
+    entityType?: StringFieldUpdateOperationsInput | string
+    entityId?: StringFieldUpdateOperationsInput | string
+    timestamp?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SignatureUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    projectId?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    userName?: StringFieldUpdateOperationsInput | string
+    userRole?: StringFieldUpdateOperationsInput | string
+    meaning?: StringFieldUpdateOperationsInput | string
+    reason?: StringFieldUpdateOperationsInput | string
+    method?: StringFieldUpdateOperationsInput | string
+    entityType?: StringFieldUpdateOperationsInput | string
+    entityId?: StringFieldUpdateOperationsInput | string
+    timestamp?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type StringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -14095,6 +18645,24 @@ export namespace Prisma {
     none?: AuditLogWhereInput
   }
 
+  export type EvidenceListRelationFilter = {
+    every?: EvidenceWhereInput
+    some?: EvidenceWhereInput
+    none?: EvidenceWhereInput
+  }
+
+  export type ApprovalListRelationFilter = {
+    every?: ApprovalWhereInput
+    some?: ApprovalWhereInput
+    none?: ApprovalWhereInput
+  }
+
+  export type SignatureListRelationFilter = {
+    every?: SignatureWhereInput
+    some?: SignatureWhereInput
+    none?: SignatureWhereInput
+  }
+
   export type RequirementOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
@@ -14112,6 +18680,18 @@ export namespace Prisma {
   }
 
   export type AuditLogOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type EvidenceOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type ApprovalOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type SignatureOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -14491,6 +19071,180 @@ export namespace Prisma {
     _max?: NestedJsonNullableFilter<$PrismaModel>
   }
 
+  export type EvidenceCountOrderByAggregateInput = {
+    id?: SortOrder
+    projectId?: SortOrder
+    entityType?: SortOrder
+    entityId?: SortOrder
+    fileName?: SortOrder
+    fileSize?: SortOrder
+    mimeType?: SortOrder
+    storagePath?: SortOrder
+    description?: SortOrder
+    version?: SortOrder
+    uploadedBy?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type EvidenceAvgOrderByAggregateInput = {
+    fileSize?: SortOrder
+    version?: SortOrder
+  }
+
+  export type EvidenceMaxOrderByAggregateInput = {
+    id?: SortOrder
+    projectId?: SortOrder
+    entityType?: SortOrder
+    entityId?: SortOrder
+    fileName?: SortOrder
+    fileSize?: SortOrder
+    mimeType?: SortOrder
+    storagePath?: SortOrder
+    description?: SortOrder
+    version?: SortOrder
+    uploadedBy?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type EvidenceMinOrderByAggregateInput = {
+    id?: SortOrder
+    projectId?: SortOrder
+    entityType?: SortOrder
+    entityId?: SortOrder
+    fileName?: SortOrder
+    fileSize?: SortOrder
+    mimeType?: SortOrder
+    storagePath?: SortOrder
+    description?: SortOrder
+    version?: SortOrder
+    uploadedBy?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type EvidenceSumOrderByAggregateInput = {
+    fileSize?: SortOrder
+    version?: SortOrder
+  }
+
+  export type DateTimeNullableFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
+    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeNullableFilter<$PrismaModel> | Date | string | null
+  }
+
+  export type SignatureNullableScalarRelationFilter = {
+    is?: SignatureWhereInput | null
+    isNot?: SignatureWhereInput | null
+  }
+
+  export type ApprovalCountOrderByAggregateInput = {
+    id?: SortOrder
+    projectId?: SortOrder
+    entityType?: SortOrder
+    entityId?: SortOrder
+    status?: SortOrder
+    requestedBy?: SortOrder
+    reviewedBy?: SortOrder
+    reviewedAt?: SortOrder
+    reason?: SortOrder
+    signatureId?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type ApprovalMaxOrderByAggregateInput = {
+    id?: SortOrder
+    projectId?: SortOrder
+    entityType?: SortOrder
+    entityId?: SortOrder
+    status?: SortOrder
+    requestedBy?: SortOrder
+    reviewedBy?: SortOrder
+    reviewedAt?: SortOrder
+    reason?: SortOrder
+    signatureId?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type ApprovalMinOrderByAggregateInput = {
+    id?: SortOrder
+    projectId?: SortOrder
+    entityType?: SortOrder
+    entityId?: SortOrder
+    status?: SortOrder
+    requestedBy?: SortOrder
+    reviewedBy?: SortOrder
+    reviewedAt?: SortOrder
+    reason?: SortOrder
+    signatureId?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type DateTimeNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
+    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeNullableWithAggregatesFilter<$PrismaModel> | Date | string | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedDateTimeNullableFilter<$PrismaModel>
+    _max?: NestedDateTimeNullableFilter<$PrismaModel>
+  }
+
+  export type ApprovalNullableScalarRelationFilter = {
+    is?: ApprovalWhereInput | null
+    isNot?: ApprovalWhereInput | null
+  }
+
+  export type SignatureCountOrderByAggregateInput = {
+    id?: SortOrder
+    projectId?: SortOrder
+    userId?: SortOrder
+    userName?: SortOrder
+    userRole?: SortOrder
+    meaning?: SortOrder
+    reason?: SortOrder
+    method?: SortOrder
+    entityType?: SortOrder
+    entityId?: SortOrder
+    timestamp?: SortOrder
+  }
+
+  export type SignatureMaxOrderByAggregateInput = {
+    id?: SortOrder
+    projectId?: SortOrder
+    userId?: SortOrder
+    userName?: SortOrder
+    userRole?: SortOrder
+    meaning?: SortOrder
+    reason?: SortOrder
+    method?: SortOrder
+    entityType?: SortOrder
+    entityId?: SortOrder
+    timestamp?: SortOrder
+  }
+
+  export type SignatureMinOrderByAggregateInput = {
+    id?: SortOrder
+    projectId?: SortOrder
+    userId?: SortOrder
+    userName?: SortOrder
+    userRole?: SortOrder
+    meaning?: SortOrder
+    reason?: SortOrder
+    method?: SortOrder
+    entityType?: SortOrder
+    entityId?: SortOrder
+    timestamp?: SortOrder
+  }
+
   export type OrganizationCreateNestedOneWithoutUsersInput = {
     create?: XOR<OrganizationCreateWithoutUsersInput, OrganizationUncheckedCreateWithoutUsersInput>
     connectOrCreate?: OrganizationCreateOrConnectWithoutUsersInput
@@ -14704,6 +19458,27 @@ export namespace Prisma {
     connect?: AuditLogWhereUniqueInput | AuditLogWhereUniqueInput[]
   }
 
+  export type EvidenceCreateNestedManyWithoutProjectInput = {
+    create?: XOR<EvidenceCreateWithoutProjectInput, EvidenceUncheckedCreateWithoutProjectInput> | EvidenceCreateWithoutProjectInput[] | EvidenceUncheckedCreateWithoutProjectInput[]
+    connectOrCreate?: EvidenceCreateOrConnectWithoutProjectInput | EvidenceCreateOrConnectWithoutProjectInput[]
+    createMany?: EvidenceCreateManyProjectInputEnvelope
+    connect?: EvidenceWhereUniqueInput | EvidenceWhereUniqueInput[]
+  }
+
+  export type ApprovalCreateNestedManyWithoutProjectInput = {
+    create?: XOR<ApprovalCreateWithoutProjectInput, ApprovalUncheckedCreateWithoutProjectInput> | ApprovalCreateWithoutProjectInput[] | ApprovalUncheckedCreateWithoutProjectInput[]
+    connectOrCreate?: ApprovalCreateOrConnectWithoutProjectInput | ApprovalCreateOrConnectWithoutProjectInput[]
+    createMany?: ApprovalCreateManyProjectInputEnvelope
+    connect?: ApprovalWhereUniqueInput | ApprovalWhereUniqueInput[]
+  }
+
+  export type SignatureCreateNestedManyWithoutProjectInput = {
+    create?: XOR<SignatureCreateWithoutProjectInput, SignatureUncheckedCreateWithoutProjectInput> | SignatureCreateWithoutProjectInput[] | SignatureUncheckedCreateWithoutProjectInput[]
+    connectOrCreate?: SignatureCreateOrConnectWithoutProjectInput | SignatureCreateOrConnectWithoutProjectInput[]
+    createMany?: SignatureCreateManyProjectInputEnvelope
+    connect?: SignatureWhereUniqueInput | SignatureWhereUniqueInput[]
+  }
+
   export type RequirementUncheckedCreateNestedManyWithoutProjectInput = {
     create?: XOR<RequirementCreateWithoutProjectInput, RequirementUncheckedCreateWithoutProjectInput> | RequirementCreateWithoutProjectInput[] | RequirementUncheckedCreateWithoutProjectInput[]
     connectOrCreate?: RequirementCreateOrConnectWithoutProjectInput | RequirementCreateOrConnectWithoutProjectInput[]
@@ -14737,6 +19512,27 @@ export namespace Prisma {
     connectOrCreate?: AuditLogCreateOrConnectWithoutProjectInput | AuditLogCreateOrConnectWithoutProjectInput[]
     createMany?: AuditLogCreateManyProjectInputEnvelope
     connect?: AuditLogWhereUniqueInput | AuditLogWhereUniqueInput[]
+  }
+
+  export type EvidenceUncheckedCreateNestedManyWithoutProjectInput = {
+    create?: XOR<EvidenceCreateWithoutProjectInput, EvidenceUncheckedCreateWithoutProjectInput> | EvidenceCreateWithoutProjectInput[] | EvidenceUncheckedCreateWithoutProjectInput[]
+    connectOrCreate?: EvidenceCreateOrConnectWithoutProjectInput | EvidenceCreateOrConnectWithoutProjectInput[]
+    createMany?: EvidenceCreateManyProjectInputEnvelope
+    connect?: EvidenceWhereUniqueInput | EvidenceWhereUniqueInput[]
+  }
+
+  export type ApprovalUncheckedCreateNestedManyWithoutProjectInput = {
+    create?: XOR<ApprovalCreateWithoutProjectInput, ApprovalUncheckedCreateWithoutProjectInput> | ApprovalCreateWithoutProjectInput[] | ApprovalUncheckedCreateWithoutProjectInput[]
+    connectOrCreate?: ApprovalCreateOrConnectWithoutProjectInput | ApprovalCreateOrConnectWithoutProjectInput[]
+    createMany?: ApprovalCreateManyProjectInputEnvelope
+    connect?: ApprovalWhereUniqueInput | ApprovalWhereUniqueInput[]
+  }
+
+  export type SignatureUncheckedCreateNestedManyWithoutProjectInput = {
+    create?: XOR<SignatureCreateWithoutProjectInput, SignatureUncheckedCreateWithoutProjectInput> | SignatureCreateWithoutProjectInput[] | SignatureUncheckedCreateWithoutProjectInput[]
+    connectOrCreate?: SignatureCreateOrConnectWithoutProjectInput | SignatureCreateOrConnectWithoutProjectInput[]
+    createMany?: SignatureCreateManyProjectInputEnvelope
+    connect?: SignatureWhereUniqueInput | SignatureWhereUniqueInput[]
   }
 
   export type ProjectUpdatemodulesInput = {
@@ -14822,6 +19618,48 @@ export namespace Prisma {
     deleteMany?: AuditLogScalarWhereInput | AuditLogScalarWhereInput[]
   }
 
+  export type EvidenceUpdateManyWithoutProjectNestedInput = {
+    create?: XOR<EvidenceCreateWithoutProjectInput, EvidenceUncheckedCreateWithoutProjectInput> | EvidenceCreateWithoutProjectInput[] | EvidenceUncheckedCreateWithoutProjectInput[]
+    connectOrCreate?: EvidenceCreateOrConnectWithoutProjectInput | EvidenceCreateOrConnectWithoutProjectInput[]
+    upsert?: EvidenceUpsertWithWhereUniqueWithoutProjectInput | EvidenceUpsertWithWhereUniqueWithoutProjectInput[]
+    createMany?: EvidenceCreateManyProjectInputEnvelope
+    set?: EvidenceWhereUniqueInput | EvidenceWhereUniqueInput[]
+    disconnect?: EvidenceWhereUniqueInput | EvidenceWhereUniqueInput[]
+    delete?: EvidenceWhereUniqueInput | EvidenceWhereUniqueInput[]
+    connect?: EvidenceWhereUniqueInput | EvidenceWhereUniqueInput[]
+    update?: EvidenceUpdateWithWhereUniqueWithoutProjectInput | EvidenceUpdateWithWhereUniqueWithoutProjectInput[]
+    updateMany?: EvidenceUpdateManyWithWhereWithoutProjectInput | EvidenceUpdateManyWithWhereWithoutProjectInput[]
+    deleteMany?: EvidenceScalarWhereInput | EvidenceScalarWhereInput[]
+  }
+
+  export type ApprovalUpdateManyWithoutProjectNestedInput = {
+    create?: XOR<ApprovalCreateWithoutProjectInput, ApprovalUncheckedCreateWithoutProjectInput> | ApprovalCreateWithoutProjectInput[] | ApprovalUncheckedCreateWithoutProjectInput[]
+    connectOrCreate?: ApprovalCreateOrConnectWithoutProjectInput | ApprovalCreateOrConnectWithoutProjectInput[]
+    upsert?: ApprovalUpsertWithWhereUniqueWithoutProjectInput | ApprovalUpsertWithWhereUniqueWithoutProjectInput[]
+    createMany?: ApprovalCreateManyProjectInputEnvelope
+    set?: ApprovalWhereUniqueInput | ApprovalWhereUniqueInput[]
+    disconnect?: ApprovalWhereUniqueInput | ApprovalWhereUniqueInput[]
+    delete?: ApprovalWhereUniqueInput | ApprovalWhereUniqueInput[]
+    connect?: ApprovalWhereUniqueInput | ApprovalWhereUniqueInput[]
+    update?: ApprovalUpdateWithWhereUniqueWithoutProjectInput | ApprovalUpdateWithWhereUniqueWithoutProjectInput[]
+    updateMany?: ApprovalUpdateManyWithWhereWithoutProjectInput | ApprovalUpdateManyWithWhereWithoutProjectInput[]
+    deleteMany?: ApprovalScalarWhereInput | ApprovalScalarWhereInput[]
+  }
+
+  export type SignatureUpdateManyWithoutProjectNestedInput = {
+    create?: XOR<SignatureCreateWithoutProjectInput, SignatureUncheckedCreateWithoutProjectInput> | SignatureCreateWithoutProjectInput[] | SignatureUncheckedCreateWithoutProjectInput[]
+    connectOrCreate?: SignatureCreateOrConnectWithoutProjectInput | SignatureCreateOrConnectWithoutProjectInput[]
+    upsert?: SignatureUpsertWithWhereUniqueWithoutProjectInput | SignatureUpsertWithWhereUniqueWithoutProjectInput[]
+    createMany?: SignatureCreateManyProjectInputEnvelope
+    set?: SignatureWhereUniqueInput | SignatureWhereUniqueInput[]
+    disconnect?: SignatureWhereUniqueInput | SignatureWhereUniqueInput[]
+    delete?: SignatureWhereUniqueInput | SignatureWhereUniqueInput[]
+    connect?: SignatureWhereUniqueInput | SignatureWhereUniqueInput[]
+    update?: SignatureUpdateWithWhereUniqueWithoutProjectInput | SignatureUpdateWithWhereUniqueWithoutProjectInput[]
+    updateMany?: SignatureUpdateManyWithWhereWithoutProjectInput | SignatureUpdateManyWithWhereWithoutProjectInput[]
+    deleteMany?: SignatureScalarWhereInput | SignatureScalarWhereInput[]
+  }
+
   export type RequirementUncheckedUpdateManyWithoutProjectNestedInput = {
     create?: XOR<RequirementCreateWithoutProjectInput, RequirementUncheckedCreateWithoutProjectInput> | RequirementCreateWithoutProjectInput[] | RequirementUncheckedCreateWithoutProjectInput[]
     connectOrCreate?: RequirementCreateOrConnectWithoutProjectInput | RequirementCreateOrConnectWithoutProjectInput[]
@@ -14890,6 +19728,48 @@ export namespace Prisma {
     update?: AuditLogUpdateWithWhereUniqueWithoutProjectInput | AuditLogUpdateWithWhereUniqueWithoutProjectInput[]
     updateMany?: AuditLogUpdateManyWithWhereWithoutProjectInput | AuditLogUpdateManyWithWhereWithoutProjectInput[]
     deleteMany?: AuditLogScalarWhereInput | AuditLogScalarWhereInput[]
+  }
+
+  export type EvidenceUncheckedUpdateManyWithoutProjectNestedInput = {
+    create?: XOR<EvidenceCreateWithoutProjectInput, EvidenceUncheckedCreateWithoutProjectInput> | EvidenceCreateWithoutProjectInput[] | EvidenceUncheckedCreateWithoutProjectInput[]
+    connectOrCreate?: EvidenceCreateOrConnectWithoutProjectInput | EvidenceCreateOrConnectWithoutProjectInput[]
+    upsert?: EvidenceUpsertWithWhereUniqueWithoutProjectInput | EvidenceUpsertWithWhereUniqueWithoutProjectInput[]
+    createMany?: EvidenceCreateManyProjectInputEnvelope
+    set?: EvidenceWhereUniqueInput | EvidenceWhereUniqueInput[]
+    disconnect?: EvidenceWhereUniqueInput | EvidenceWhereUniqueInput[]
+    delete?: EvidenceWhereUniqueInput | EvidenceWhereUniqueInput[]
+    connect?: EvidenceWhereUniqueInput | EvidenceWhereUniqueInput[]
+    update?: EvidenceUpdateWithWhereUniqueWithoutProjectInput | EvidenceUpdateWithWhereUniqueWithoutProjectInput[]
+    updateMany?: EvidenceUpdateManyWithWhereWithoutProjectInput | EvidenceUpdateManyWithWhereWithoutProjectInput[]
+    deleteMany?: EvidenceScalarWhereInput | EvidenceScalarWhereInput[]
+  }
+
+  export type ApprovalUncheckedUpdateManyWithoutProjectNestedInput = {
+    create?: XOR<ApprovalCreateWithoutProjectInput, ApprovalUncheckedCreateWithoutProjectInput> | ApprovalCreateWithoutProjectInput[] | ApprovalUncheckedCreateWithoutProjectInput[]
+    connectOrCreate?: ApprovalCreateOrConnectWithoutProjectInput | ApprovalCreateOrConnectWithoutProjectInput[]
+    upsert?: ApprovalUpsertWithWhereUniqueWithoutProjectInput | ApprovalUpsertWithWhereUniqueWithoutProjectInput[]
+    createMany?: ApprovalCreateManyProjectInputEnvelope
+    set?: ApprovalWhereUniqueInput | ApprovalWhereUniqueInput[]
+    disconnect?: ApprovalWhereUniqueInput | ApprovalWhereUniqueInput[]
+    delete?: ApprovalWhereUniqueInput | ApprovalWhereUniqueInput[]
+    connect?: ApprovalWhereUniqueInput | ApprovalWhereUniqueInput[]
+    update?: ApprovalUpdateWithWhereUniqueWithoutProjectInput | ApprovalUpdateWithWhereUniqueWithoutProjectInput[]
+    updateMany?: ApprovalUpdateManyWithWhereWithoutProjectInput | ApprovalUpdateManyWithWhereWithoutProjectInput[]
+    deleteMany?: ApprovalScalarWhereInput | ApprovalScalarWhereInput[]
+  }
+
+  export type SignatureUncheckedUpdateManyWithoutProjectNestedInput = {
+    create?: XOR<SignatureCreateWithoutProjectInput, SignatureUncheckedCreateWithoutProjectInput> | SignatureCreateWithoutProjectInput[] | SignatureUncheckedCreateWithoutProjectInput[]
+    connectOrCreate?: SignatureCreateOrConnectWithoutProjectInput | SignatureCreateOrConnectWithoutProjectInput[]
+    upsert?: SignatureUpsertWithWhereUniqueWithoutProjectInput | SignatureUpsertWithWhereUniqueWithoutProjectInput[]
+    createMany?: SignatureCreateManyProjectInputEnvelope
+    set?: SignatureWhereUniqueInput | SignatureWhereUniqueInput[]
+    disconnect?: SignatureWhereUniqueInput | SignatureWhereUniqueInput[]
+    delete?: SignatureWhereUniqueInput | SignatureWhereUniqueInput[]
+    connect?: SignatureWhereUniqueInput | SignatureWhereUniqueInput[]
+    update?: SignatureUpdateWithWhereUniqueWithoutProjectInput | SignatureUpdateWithWhereUniqueWithoutProjectInput[]
+    updateMany?: SignatureUpdateManyWithWhereWithoutProjectInput | SignatureUpdateManyWithWhereWithoutProjectInput[]
+    deleteMany?: SignatureScalarWhereInput | SignatureScalarWhereInput[]
   }
 
   export type RequirementCreatetagsInput = {
@@ -15003,6 +19883,100 @@ export namespace Prisma {
     upsert?: ProjectUpsertWithoutAuditLogsInput
     connect?: ProjectWhereUniqueInput
     update?: XOR<XOR<ProjectUpdateToOneWithWhereWithoutAuditLogsInput, ProjectUpdateWithoutAuditLogsInput>, ProjectUncheckedUpdateWithoutAuditLogsInput>
+  }
+
+  export type ProjectCreateNestedOneWithoutEvidencesInput = {
+    create?: XOR<ProjectCreateWithoutEvidencesInput, ProjectUncheckedCreateWithoutEvidencesInput>
+    connectOrCreate?: ProjectCreateOrConnectWithoutEvidencesInput
+    connect?: ProjectWhereUniqueInput
+  }
+
+  export type ProjectUpdateOneRequiredWithoutEvidencesNestedInput = {
+    create?: XOR<ProjectCreateWithoutEvidencesInput, ProjectUncheckedCreateWithoutEvidencesInput>
+    connectOrCreate?: ProjectCreateOrConnectWithoutEvidencesInput
+    upsert?: ProjectUpsertWithoutEvidencesInput
+    connect?: ProjectWhereUniqueInput
+    update?: XOR<XOR<ProjectUpdateToOneWithWhereWithoutEvidencesInput, ProjectUpdateWithoutEvidencesInput>, ProjectUncheckedUpdateWithoutEvidencesInput>
+  }
+
+  export type ProjectCreateNestedOneWithoutApprovalsInput = {
+    create?: XOR<ProjectCreateWithoutApprovalsInput, ProjectUncheckedCreateWithoutApprovalsInput>
+    connectOrCreate?: ProjectCreateOrConnectWithoutApprovalsInput
+    connect?: ProjectWhereUniqueInput
+  }
+
+  export type SignatureCreateNestedOneWithoutApprovalInput = {
+    create?: XOR<SignatureCreateWithoutApprovalInput, SignatureUncheckedCreateWithoutApprovalInput>
+    connectOrCreate?: SignatureCreateOrConnectWithoutApprovalInput
+    connect?: SignatureWhereUniqueInput
+  }
+
+  export type NullableDateTimeFieldUpdateOperationsInput = {
+    set?: Date | string | null
+  }
+
+  export type ProjectUpdateOneRequiredWithoutApprovalsNestedInput = {
+    create?: XOR<ProjectCreateWithoutApprovalsInput, ProjectUncheckedCreateWithoutApprovalsInput>
+    connectOrCreate?: ProjectCreateOrConnectWithoutApprovalsInput
+    upsert?: ProjectUpsertWithoutApprovalsInput
+    connect?: ProjectWhereUniqueInput
+    update?: XOR<XOR<ProjectUpdateToOneWithWhereWithoutApprovalsInput, ProjectUpdateWithoutApprovalsInput>, ProjectUncheckedUpdateWithoutApprovalsInput>
+  }
+
+  export type SignatureUpdateOneWithoutApprovalNestedInput = {
+    create?: XOR<SignatureCreateWithoutApprovalInput, SignatureUncheckedCreateWithoutApprovalInput>
+    connectOrCreate?: SignatureCreateOrConnectWithoutApprovalInput
+    upsert?: SignatureUpsertWithoutApprovalInput
+    disconnect?: SignatureWhereInput | boolean
+    delete?: SignatureWhereInput | boolean
+    connect?: SignatureWhereUniqueInput
+    update?: XOR<XOR<SignatureUpdateToOneWithWhereWithoutApprovalInput, SignatureUpdateWithoutApprovalInput>, SignatureUncheckedUpdateWithoutApprovalInput>
+  }
+
+  export type ProjectCreateNestedOneWithoutSignaturesInput = {
+    create?: XOR<ProjectCreateWithoutSignaturesInput, ProjectUncheckedCreateWithoutSignaturesInput>
+    connectOrCreate?: ProjectCreateOrConnectWithoutSignaturesInput
+    connect?: ProjectWhereUniqueInput
+  }
+
+  export type ApprovalCreateNestedOneWithoutSignatureInput = {
+    create?: XOR<ApprovalCreateWithoutSignatureInput, ApprovalUncheckedCreateWithoutSignatureInput>
+    connectOrCreate?: ApprovalCreateOrConnectWithoutSignatureInput
+    connect?: ApprovalWhereUniqueInput
+  }
+
+  export type ApprovalUncheckedCreateNestedOneWithoutSignatureInput = {
+    create?: XOR<ApprovalCreateWithoutSignatureInput, ApprovalUncheckedCreateWithoutSignatureInput>
+    connectOrCreate?: ApprovalCreateOrConnectWithoutSignatureInput
+    connect?: ApprovalWhereUniqueInput
+  }
+
+  export type ProjectUpdateOneRequiredWithoutSignaturesNestedInput = {
+    create?: XOR<ProjectCreateWithoutSignaturesInput, ProjectUncheckedCreateWithoutSignaturesInput>
+    connectOrCreate?: ProjectCreateOrConnectWithoutSignaturesInput
+    upsert?: ProjectUpsertWithoutSignaturesInput
+    connect?: ProjectWhereUniqueInput
+    update?: XOR<XOR<ProjectUpdateToOneWithWhereWithoutSignaturesInput, ProjectUpdateWithoutSignaturesInput>, ProjectUncheckedUpdateWithoutSignaturesInput>
+  }
+
+  export type ApprovalUpdateOneWithoutSignatureNestedInput = {
+    create?: XOR<ApprovalCreateWithoutSignatureInput, ApprovalUncheckedCreateWithoutSignatureInput>
+    connectOrCreate?: ApprovalCreateOrConnectWithoutSignatureInput
+    upsert?: ApprovalUpsertWithoutSignatureInput
+    disconnect?: ApprovalWhereInput | boolean
+    delete?: ApprovalWhereInput | boolean
+    connect?: ApprovalWhereUniqueInput
+    update?: XOR<XOR<ApprovalUpdateToOneWithWhereWithoutSignatureInput, ApprovalUpdateWithoutSignatureInput>, ApprovalUncheckedUpdateWithoutSignatureInput>
+  }
+
+  export type ApprovalUncheckedUpdateOneWithoutSignatureNestedInput = {
+    create?: XOR<ApprovalCreateWithoutSignatureInput, ApprovalUncheckedCreateWithoutSignatureInput>
+    connectOrCreate?: ApprovalCreateOrConnectWithoutSignatureInput
+    upsert?: ApprovalUpsertWithoutSignatureInput
+    disconnect?: ApprovalWhereInput | boolean
+    delete?: ApprovalWhereInput | boolean
+    connect?: ApprovalWhereUniqueInput
+    update?: XOR<XOR<ApprovalUpdateToOneWithWhereWithoutSignatureInput, ApprovalUpdateWithoutSignatureInput>, ApprovalUncheckedUpdateWithoutSignatureInput>
   }
 
   export type NestedStringFilter<$PrismaModel = never> = {
@@ -15189,6 +20163,31 @@ export namespace Prisma {
     gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
     gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
     not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+  }
+
+  export type NestedDateTimeNullableFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
+    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeNullableFilter<$PrismaModel> | Date | string | null
+  }
+
+  export type NestedDateTimeNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
+    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeNullableWithAggregatesFilter<$PrismaModel> | Date | string | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedDateTimeNullableFilter<$PrismaModel>
+    _max?: NestedDateTimeNullableFilter<$PrismaModel>
   }
 
   export type OrganizationCreateWithoutUsersInput = {
@@ -15378,6 +20377,9 @@ export namespace Prisma {
     risks?: RiskCreateNestedManyWithoutProjectInput
     capas?: CAPACreateNestedManyWithoutProjectInput
     auditLogs?: AuditLogCreateNestedManyWithoutProjectInput
+    evidences?: EvidenceCreateNestedManyWithoutProjectInput
+    approvals?: ApprovalCreateNestedManyWithoutProjectInput
+    signatures?: SignatureCreateNestedManyWithoutProjectInput
   }
 
   export type ProjectUncheckedCreateWithoutWorkspaceInput = {
@@ -15397,6 +20399,9 @@ export namespace Prisma {
     risks?: RiskUncheckedCreateNestedManyWithoutProjectInput
     capas?: CAPAUncheckedCreateNestedManyWithoutProjectInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutProjectInput
+    evidences?: EvidenceUncheckedCreateNestedManyWithoutProjectInput
+    approvals?: ApprovalUncheckedCreateNestedManyWithoutProjectInput
+    signatures?: SignatureUncheckedCreateNestedManyWithoutProjectInput
   }
 
   export type ProjectCreateOrConnectWithoutWorkspaceInput = {
@@ -15673,6 +20678,118 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type EvidenceCreateWithoutProjectInput = {
+    id?: string
+    entityType: string
+    entityId: string
+    fileName: string
+    fileSize: number
+    mimeType: string
+    storagePath: string
+    description?: string
+    version?: number
+    uploadedBy: string
+    createdAt?: Date | string
+  }
+
+  export type EvidenceUncheckedCreateWithoutProjectInput = {
+    id?: string
+    entityType: string
+    entityId: string
+    fileName: string
+    fileSize: number
+    mimeType: string
+    storagePath: string
+    description?: string
+    version?: number
+    uploadedBy: string
+    createdAt?: Date | string
+  }
+
+  export type EvidenceCreateOrConnectWithoutProjectInput = {
+    where: EvidenceWhereUniqueInput
+    create: XOR<EvidenceCreateWithoutProjectInput, EvidenceUncheckedCreateWithoutProjectInput>
+  }
+
+  export type EvidenceCreateManyProjectInputEnvelope = {
+    data: EvidenceCreateManyProjectInput | EvidenceCreateManyProjectInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type ApprovalCreateWithoutProjectInput = {
+    id?: string
+    entityType: string
+    entityId: string
+    status?: string
+    requestedBy: string
+    reviewedBy?: string | null
+    reviewedAt?: Date | string | null
+    reason?: string | null
+    createdAt?: Date | string
+    signature?: SignatureCreateNestedOneWithoutApprovalInput
+  }
+
+  export type ApprovalUncheckedCreateWithoutProjectInput = {
+    id?: string
+    entityType: string
+    entityId: string
+    status?: string
+    requestedBy: string
+    reviewedBy?: string | null
+    reviewedAt?: Date | string | null
+    reason?: string | null
+    signatureId?: string | null
+    createdAt?: Date | string
+  }
+
+  export type ApprovalCreateOrConnectWithoutProjectInput = {
+    where: ApprovalWhereUniqueInput
+    create: XOR<ApprovalCreateWithoutProjectInput, ApprovalUncheckedCreateWithoutProjectInput>
+  }
+
+  export type ApprovalCreateManyProjectInputEnvelope = {
+    data: ApprovalCreateManyProjectInput | ApprovalCreateManyProjectInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type SignatureCreateWithoutProjectInput = {
+    id?: string
+    userId: string
+    userName: string
+    userRole: string
+    meaning: string
+    reason: string
+    method?: string
+    entityType: string
+    entityId: string
+    timestamp?: Date | string
+    approval?: ApprovalCreateNestedOneWithoutSignatureInput
+  }
+
+  export type SignatureUncheckedCreateWithoutProjectInput = {
+    id?: string
+    userId: string
+    userName: string
+    userRole: string
+    meaning: string
+    reason: string
+    method?: string
+    entityType: string
+    entityId: string
+    timestamp?: Date | string
+    approval?: ApprovalUncheckedCreateNestedOneWithoutSignatureInput
+  }
+
+  export type SignatureCreateOrConnectWithoutProjectInput = {
+    where: SignatureWhereUniqueInput
+    create: XOR<SignatureCreateWithoutProjectInput, SignatureUncheckedCreateWithoutProjectInput>
+  }
+
+  export type SignatureCreateManyProjectInputEnvelope = {
+    data: SignatureCreateManyProjectInput | SignatureCreateManyProjectInput[]
+    skipDuplicates?: boolean
+  }
+
   export type WorkspaceUpsertWithoutProjectsInput = {
     update: XOR<WorkspaceUpdateWithoutProjectsInput, WorkspaceUncheckedUpdateWithoutProjectsInput>
     create: XOR<WorkspaceCreateWithoutProjectsInput, WorkspaceUncheckedCreateWithoutProjectsInput>
@@ -15866,6 +20983,106 @@ export namespace Prisma {
     reason?: StringNullableFilter<"AuditLog"> | string | null
   }
 
+  export type EvidenceUpsertWithWhereUniqueWithoutProjectInput = {
+    where: EvidenceWhereUniqueInput
+    update: XOR<EvidenceUpdateWithoutProjectInput, EvidenceUncheckedUpdateWithoutProjectInput>
+    create: XOR<EvidenceCreateWithoutProjectInput, EvidenceUncheckedCreateWithoutProjectInput>
+  }
+
+  export type EvidenceUpdateWithWhereUniqueWithoutProjectInput = {
+    where: EvidenceWhereUniqueInput
+    data: XOR<EvidenceUpdateWithoutProjectInput, EvidenceUncheckedUpdateWithoutProjectInput>
+  }
+
+  export type EvidenceUpdateManyWithWhereWithoutProjectInput = {
+    where: EvidenceScalarWhereInput
+    data: XOR<EvidenceUpdateManyMutationInput, EvidenceUncheckedUpdateManyWithoutProjectInput>
+  }
+
+  export type EvidenceScalarWhereInput = {
+    AND?: EvidenceScalarWhereInput | EvidenceScalarWhereInput[]
+    OR?: EvidenceScalarWhereInput[]
+    NOT?: EvidenceScalarWhereInput | EvidenceScalarWhereInput[]
+    id?: StringFilter<"Evidence"> | string
+    projectId?: StringFilter<"Evidence"> | string
+    entityType?: StringFilter<"Evidence"> | string
+    entityId?: StringFilter<"Evidence"> | string
+    fileName?: StringFilter<"Evidence"> | string
+    fileSize?: IntFilter<"Evidence"> | number
+    mimeType?: StringFilter<"Evidence"> | string
+    storagePath?: StringFilter<"Evidence"> | string
+    description?: StringFilter<"Evidence"> | string
+    version?: IntFilter<"Evidence"> | number
+    uploadedBy?: StringFilter<"Evidence"> | string
+    createdAt?: DateTimeFilter<"Evidence"> | Date | string
+  }
+
+  export type ApprovalUpsertWithWhereUniqueWithoutProjectInput = {
+    where: ApprovalWhereUniqueInput
+    update: XOR<ApprovalUpdateWithoutProjectInput, ApprovalUncheckedUpdateWithoutProjectInput>
+    create: XOR<ApprovalCreateWithoutProjectInput, ApprovalUncheckedCreateWithoutProjectInput>
+  }
+
+  export type ApprovalUpdateWithWhereUniqueWithoutProjectInput = {
+    where: ApprovalWhereUniqueInput
+    data: XOR<ApprovalUpdateWithoutProjectInput, ApprovalUncheckedUpdateWithoutProjectInput>
+  }
+
+  export type ApprovalUpdateManyWithWhereWithoutProjectInput = {
+    where: ApprovalScalarWhereInput
+    data: XOR<ApprovalUpdateManyMutationInput, ApprovalUncheckedUpdateManyWithoutProjectInput>
+  }
+
+  export type ApprovalScalarWhereInput = {
+    AND?: ApprovalScalarWhereInput | ApprovalScalarWhereInput[]
+    OR?: ApprovalScalarWhereInput[]
+    NOT?: ApprovalScalarWhereInput | ApprovalScalarWhereInput[]
+    id?: StringFilter<"Approval"> | string
+    projectId?: StringFilter<"Approval"> | string
+    entityType?: StringFilter<"Approval"> | string
+    entityId?: StringFilter<"Approval"> | string
+    status?: StringFilter<"Approval"> | string
+    requestedBy?: StringFilter<"Approval"> | string
+    reviewedBy?: StringNullableFilter<"Approval"> | string | null
+    reviewedAt?: DateTimeNullableFilter<"Approval"> | Date | string | null
+    reason?: StringNullableFilter<"Approval"> | string | null
+    signatureId?: StringNullableFilter<"Approval"> | string | null
+    createdAt?: DateTimeFilter<"Approval"> | Date | string
+  }
+
+  export type SignatureUpsertWithWhereUniqueWithoutProjectInput = {
+    where: SignatureWhereUniqueInput
+    update: XOR<SignatureUpdateWithoutProjectInput, SignatureUncheckedUpdateWithoutProjectInput>
+    create: XOR<SignatureCreateWithoutProjectInput, SignatureUncheckedCreateWithoutProjectInput>
+  }
+
+  export type SignatureUpdateWithWhereUniqueWithoutProjectInput = {
+    where: SignatureWhereUniqueInput
+    data: XOR<SignatureUpdateWithoutProjectInput, SignatureUncheckedUpdateWithoutProjectInput>
+  }
+
+  export type SignatureUpdateManyWithWhereWithoutProjectInput = {
+    where: SignatureScalarWhereInput
+    data: XOR<SignatureUpdateManyMutationInput, SignatureUncheckedUpdateManyWithoutProjectInput>
+  }
+
+  export type SignatureScalarWhereInput = {
+    AND?: SignatureScalarWhereInput | SignatureScalarWhereInput[]
+    OR?: SignatureScalarWhereInput[]
+    NOT?: SignatureScalarWhereInput | SignatureScalarWhereInput[]
+    id?: StringFilter<"Signature"> | string
+    projectId?: StringFilter<"Signature"> | string
+    userId?: StringFilter<"Signature"> | string
+    userName?: StringFilter<"Signature"> | string
+    userRole?: StringFilter<"Signature"> | string
+    meaning?: StringFilter<"Signature"> | string
+    reason?: StringFilter<"Signature"> | string
+    method?: StringFilter<"Signature"> | string
+    entityType?: StringFilter<"Signature"> | string
+    entityId?: StringFilter<"Signature"> | string
+    timestamp?: DateTimeFilter<"Signature"> | Date | string
+  }
+
   export type ProjectCreateWithoutRequirementsInput = {
     id?: string
     name: string
@@ -15883,6 +21100,9 @@ export namespace Prisma {
     risks?: RiskCreateNestedManyWithoutProjectInput
     capas?: CAPACreateNestedManyWithoutProjectInput
     auditLogs?: AuditLogCreateNestedManyWithoutProjectInput
+    evidences?: EvidenceCreateNestedManyWithoutProjectInput
+    approvals?: ApprovalCreateNestedManyWithoutProjectInput
+    signatures?: SignatureCreateNestedManyWithoutProjectInput
   }
 
   export type ProjectUncheckedCreateWithoutRequirementsInput = {
@@ -15902,6 +21122,9 @@ export namespace Prisma {
     risks?: RiskUncheckedCreateNestedManyWithoutProjectInput
     capas?: CAPAUncheckedCreateNestedManyWithoutProjectInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutProjectInput
+    evidences?: EvidenceUncheckedCreateNestedManyWithoutProjectInput
+    approvals?: ApprovalUncheckedCreateNestedManyWithoutProjectInput
+    signatures?: SignatureUncheckedCreateNestedManyWithoutProjectInput
   }
 
   export type ProjectCreateOrConnectWithoutRequirementsInput = {
@@ -15937,6 +21160,9 @@ export namespace Prisma {
     risks?: RiskUpdateManyWithoutProjectNestedInput
     capas?: CAPAUpdateManyWithoutProjectNestedInput
     auditLogs?: AuditLogUpdateManyWithoutProjectNestedInput
+    evidences?: EvidenceUpdateManyWithoutProjectNestedInput
+    approvals?: ApprovalUpdateManyWithoutProjectNestedInput
+    signatures?: SignatureUpdateManyWithoutProjectNestedInput
   }
 
   export type ProjectUncheckedUpdateWithoutRequirementsInput = {
@@ -15956,6 +21182,9 @@ export namespace Prisma {
     risks?: RiskUncheckedUpdateManyWithoutProjectNestedInput
     capas?: CAPAUncheckedUpdateManyWithoutProjectNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutProjectNestedInput
+    evidences?: EvidenceUncheckedUpdateManyWithoutProjectNestedInput
+    approvals?: ApprovalUncheckedUpdateManyWithoutProjectNestedInput
+    signatures?: SignatureUncheckedUpdateManyWithoutProjectNestedInput
   }
 
   export type ProjectCreateWithoutTestsInput = {
@@ -15975,6 +21204,9 @@ export namespace Prisma {
     risks?: RiskCreateNestedManyWithoutProjectInput
     capas?: CAPACreateNestedManyWithoutProjectInput
     auditLogs?: AuditLogCreateNestedManyWithoutProjectInput
+    evidences?: EvidenceCreateNestedManyWithoutProjectInput
+    approvals?: ApprovalCreateNestedManyWithoutProjectInput
+    signatures?: SignatureCreateNestedManyWithoutProjectInput
   }
 
   export type ProjectUncheckedCreateWithoutTestsInput = {
@@ -15994,6 +21226,9 @@ export namespace Prisma {
     risks?: RiskUncheckedCreateNestedManyWithoutProjectInput
     capas?: CAPAUncheckedCreateNestedManyWithoutProjectInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutProjectInput
+    evidences?: EvidenceUncheckedCreateNestedManyWithoutProjectInput
+    approvals?: ApprovalUncheckedCreateNestedManyWithoutProjectInput
+    signatures?: SignatureUncheckedCreateNestedManyWithoutProjectInput
   }
 
   export type ProjectCreateOrConnectWithoutTestsInput = {
@@ -16029,6 +21264,9 @@ export namespace Prisma {
     risks?: RiskUpdateManyWithoutProjectNestedInput
     capas?: CAPAUpdateManyWithoutProjectNestedInput
     auditLogs?: AuditLogUpdateManyWithoutProjectNestedInput
+    evidences?: EvidenceUpdateManyWithoutProjectNestedInput
+    approvals?: ApprovalUpdateManyWithoutProjectNestedInput
+    signatures?: SignatureUpdateManyWithoutProjectNestedInput
   }
 
   export type ProjectUncheckedUpdateWithoutTestsInput = {
@@ -16048,6 +21286,9 @@ export namespace Prisma {
     risks?: RiskUncheckedUpdateManyWithoutProjectNestedInput
     capas?: CAPAUncheckedUpdateManyWithoutProjectNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutProjectNestedInput
+    evidences?: EvidenceUncheckedUpdateManyWithoutProjectNestedInput
+    approvals?: ApprovalUncheckedUpdateManyWithoutProjectNestedInput
+    signatures?: SignatureUncheckedUpdateManyWithoutProjectNestedInput
   }
 
   export type ProjectCreateWithoutRisksInput = {
@@ -16067,6 +21308,9 @@ export namespace Prisma {
     tests?: TestCreateNestedManyWithoutProjectInput
     capas?: CAPACreateNestedManyWithoutProjectInput
     auditLogs?: AuditLogCreateNestedManyWithoutProjectInput
+    evidences?: EvidenceCreateNestedManyWithoutProjectInput
+    approvals?: ApprovalCreateNestedManyWithoutProjectInput
+    signatures?: SignatureCreateNestedManyWithoutProjectInput
   }
 
   export type ProjectUncheckedCreateWithoutRisksInput = {
@@ -16086,6 +21330,9 @@ export namespace Prisma {
     tests?: TestUncheckedCreateNestedManyWithoutProjectInput
     capas?: CAPAUncheckedCreateNestedManyWithoutProjectInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutProjectInput
+    evidences?: EvidenceUncheckedCreateNestedManyWithoutProjectInput
+    approvals?: ApprovalUncheckedCreateNestedManyWithoutProjectInput
+    signatures?: SignatureUncheckedCreateNestedManyWithoutProjectInput
   }
 
   export type ProjectCreateOrConnectWithoutRisksInput = {
@@ -16121,6 +21368,9 @@ export namespace Prisma {
     tests?: TestUpdateManyWithoutProjectNestedInput
     capas?: CAPAUpdateManyWithoutProjectNestedInput
     auditLogs?: AuditLogUpdateManyWithoutProjectNestedInput
+    evidences?: EvidenceUpdateManyWithoutProjectNestedInput
+    approvals?: ApprovalUpdateManyWithoutProjectNestedInput
+    signatures?: SignatureUpdateManyWithoutProjectNestedInput
   }
 
   export type ProjectUncheckedUpdateWithoutRisksInput = {
@@ -16140,6 +21390,9 @@ export namespace Prisma {
     tests?: TestUncheckedUpdateManyWithoutProjectNestedInput
     capas?: CAPAUncheckedUpdateManyWithoutProjectNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutProjectNestedInput
+    evidences?: EvidenceUncheckedUpdateManyWithoutProjectNestedInput
+    approvals?: ApprovalUncheckedUpdateManyWithoutProjectNestedInput
+    signatures?: SignatureUncheckedUpdateManyWithoutProjectNestedInput
   }
 
   export type ProjectCreateWithoutCapasInput = {
@@ -16159,6 +21412,9 @@ export namespace Prisma {
     tests?: TestCreateNestedManyWithoutProjectInput
     risks?: RiskCreateNestedManyWithoutProjectInput
     auditLogs?: AuditLogCreateNestedManyWithoutProjectInput
+    evidences?: EvidenceCreateNestedManyWithoutProjectInput
+    approvals?: ApprovalCreateNestedManyWithoutProjectInput
+    signatures?: SignatureCreateNestedManyWithoutProjectInput
   }
 
   export type ProjectUncheckedCreateWithoutCapasInput = {
@@ -16178,6 +21434,9 @@ export namespace Prisma {
     tests?: TestUncheckedCreateNestedManyWithoutProjectInput
     risks?: RiskUncheckedCreateNestedManyWithoutProjectInput
     auditLogs?: AuditLogUncheckedCreateNestedManyWithoutProjectInput
+    evidences?: EvidenceUncheckedCreateNestedManyWithoutProjectInput
+    approvals?: ApprovalUncheckedCreateNestedManyWithoutProjectInput
+    signatures?: SignatureUncheckedCreateNestedManyWithoutProjectInput
   }
 
   export type ProjectCreateOrConnectWithoutCapasInput = {
@@ -16213,6 +21472,9 @@ export namespace Prisma {
     tests?: TestUpdateManyWithoutProjectNestedInput
     risks?: RiskUpdateManyWithoutProjectNestedInput
     auditLogs?: AuditLogUpdateManyWithoutProjectNestedInput
+    evidences?: EvidenceUpdateManyWithoutProjectNestedInput
+    approvals?: ApprovalUpdateManyWithoutProjectNestedInput
+    signatures?: SignatureUpdateManyWithoutProjectNestedInput
   }
 
   export type ProjectUncheckedUpdateWithoutCapasInput = {
@@ -16232,6 +21494,9 @@ export namespace Prisma {
     tests?: TestUncheckedUpdateManyWithoutProjectNestedInput
     risks?: RiskUncheckedUpdateManyWithoutProjectNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutProjectNestedInput
+    evidences?: EvidenceUncheckedUpdateManyWithoutProjectNestedInput
+    approvals?: ApprovalUncheckedUpdateManyWithoutProjectNestedInput
+    signatures?: SignatureUncheckedUpdateManyWithoutProjectNestedInput
   }
 
   export type ProjectCreateWithoutAuditLogsInput = {
@@ -16251,6 +21516,9 @@ export namespace Prisma {
     tests?: TestCreateNestedManyWithoutProjectInput
     risks?: RiskCreateNestedManyWithoutProjectInput
     capas?: CAPACreateNestedManyWithoutProjectInput
+    evidences?: EvidenceCreateNestedManyWithoutProjectInput
+    approvals?: ApprovalCreateNestedManyWithoutProjectInput
+    signatures?: SignatureCreateNestedManyWithoutProjectInput
   }
 
   export type ProjectUncheckedCreateWithoutAuditLogsInput = {
@@ -16270,6 +21538,9 @@ export namespace Prisma {
     tests?: TestUncheckedCreateNestedManyWithoutProjectInput
     risks?: RiskUncheckedCreateNestedManyWithoutProjectInput
     capas?: CAPAUncheckedCreateNestedManyWithoutProjectInput
+    evidences?: EvidenceUncheckedCreateNestedManyWithoutProjectInput
+    approvals?: ApprovalUncheckedCreateNestedManyWithoutProjectInput
+    signatures?: SignatureUncheckedCreateNestedManyWithoutProjectInput
   }
 
   export type ProjectCreateOrConnectWithoutAuditLogsInput = {
@@ -16305,6 +21576,9 @@ export namespace Prisma {
     tests?: TestUpdateManyWithoutProjectNestedInput
     risks?: RiskUpdateManyWithoutProjectNestedInput
     capas?: CAPAUpdateManyWithoutProjectNestedInput
+    evidences?: EvidenceUpdateManyWithoutProjectNestedInput
+    approvals?: ApprovalUpdateManyWithoutProjectNestedInput
+    signatures?: SignatureUpdateManyWithoutProjectNestedInput
   }
 
   export type ProjectUncheckedUpdateWithoutAuditLogsInput = {
@@ -16324,6 +21598,461 @@ export namespace Prisma {
     tests?: TestUncheckedUpdateManyWithoutProjectNestedInput
     risks?: RiskUncheckedUpdateManyWithoutProjectNestedInput
     capas?: CAPAUncheckedUpdateManyWithoutProjectNestedInput
+    evidences?: EvidenceUncheckedUpdateManyWithoutProjectNestedInput
+    approvals?: ApprovalUncheckedUpdateManyWithoutProjectNestedInput
+    signatures?: SignatureUncheckedUpdateManyWithoutProjectNestedInput
+  }
+
+  export type ProjectCreateWithoutEvidencesInput = {
+    id?: string
+    name: string
+    description?: string
+    owner?: string
+    version?: string
+    country?: string
+    vertical?: string | null
+    modules?: ProjectCreatemodulesInput | string[]
+    type?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    workspace: WorkspaceCreateNestedOneWithoutProjectsInput
+    requirements?: RequirementCreateNestedManyWithoutProjectInput
+    tests?: TestCreateNestedManyWithoutProjectInput
+    risks?: RiskCreateNestedManyWithoutProjectInput
+    capas?: CAPACreateNestedManyWithoutProjectInput
+    auditLogs?: AuditLogCreateNestedManyWithoutProjectInput
+    approvals?: ApprovalCreateNestedManyWithoutProjectInput
+    signatures?: SignatureCreateNestedManyWithoutProjectInput
+  }
+
+  export type ProjectUncheckedCreateWithoutEvidencesInput = {
+    id?: string
+    workspaceId: string
+    name: string
+    description?: string
+    owner?: string
+    version?: string
+    country?: string
+    vertical?: string | null
+    modules?: ProjectCreatemodulesInput | string[]
+    type?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    requirements?: RequirementUncheckedCreateNestedManyWithoutProjectInput
+    tests?: TestUncheckedCreateNestedManyWithoutProjectInput
+    risks?: RiskUncheckedCreateNestedManyWithoutProjectInput
+    capas?: CAPAUncheckedCreateNestedManyWithoutProjectInput
+    auditLogs?: AuditLogUncheckedCreateNestedManyWithoutProjectInput
+    approvals?: ApprovalUncheckedCreateNestedManyWithoutProjectInput
+    signatures?: SignatureUncheckedCreateNestedManyWithoutProjectInput
+  }
+
+  export type ProjectCreateOrConnectWithoutEvidencesInput = {
+    where: ProjectWhereUniqueInput
+    create: XOR<ProjectCreateWithoutEvidencesInput, ProjectUncheckedCreateWithoutEvidencesInput>
+  }
+
+  export type ProjectUpsertWithoutEvidencesInput = {
+    update: XOR<ProjectUpdateWithoutEvidencesInput, ProjectUncheckedUpdateWithoutEvidencesInput>
+    create: XOR<ProjectCreateWithoutEvidencesInput, ProjectUncheckedCreateWithoutEvidencesInput>
+    where?: ProjectWhereInput
+  }
+
+  export type ProjectUpdateToOneWithWhereWithoutEvidencesInput = {
+    where?: ProjectWhereInput
+    data: XOR<ProjectUpdateWithoutEvidencesInput, ProjectUncheckedUpdateWithoutEvidencesInput>
+  }
+
+  export type ProjectUpdateWithoutEvidencesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: StringFieldUpdateOperationsInput | string
+    owner?: StringFieldUpdateOperationsInput | string
+    version?: StringFieldUpdateOperationsInput | string
+    country?: StringFieldUpdateOperationsInput | string
+    vertical?: NullableStringFieldUpdateOperationsInput | string | null
+    modules?: ProjectUpdatemodulesInput | string[]
+    type?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    workspace?: WorkspaceUpdateOneRequiredWithoutProjectsNestedInput
+    requirements?: RequirementUpdateManyWithoutProjectNestedInput
+    tests?: TestUpdateManyWithoutProjectNestedInput
+    risks?: RiskUpdateManyWithoutProjectNestedInput
+    capas?: CAPAUpdateManyWithoutProjectNestedInput
+    auditLogs?: AuditLogUpdateManyWithoutProjectNestedInput
+    approvals?: ApprovalUpdateManyWithoutProjectNestedInput
+    signatures?: SignatureUpdateManyWithoutProjectNestedInput
+  }
+
+  export type ProjectUncheckedUpdateWithoutEvidencesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    workspaceId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: StringFieldUpdateOperationsInput | string
+    owner?: StringFieldUpdateOperationsInput | string
+    version?: StringFieldUpdateOperationsInput | string
+    country?: StringFieldUpdateOperationsInput | string
+    vertical?: NullableStringFieldUpdateOperationsInput | string | null
+    modules?: ProjectUpdatemodulesInput | string[]
+    type?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    requirements?: RequirementUncheckedUpdateManyWithoutProjectNestedInput
+    tests?: TestUncheckedUpdateManyWithoutProjectNestedInput
+    risks?: RiskUncheckedUpdateManyWithoutProjectNestedInput
+    capas?: CAPAUncheckedUpdateManyWithoutProjectNestedInput
+    auditLogs?: AuditLogUncheckedUpdateManyWithoutProjectNestedInput
+    approvals?: ApprovalUncheckedUpdateManyWithoutProjectNestedInput
+    signatures?: SignatureUncheckedUpdateManyWithoutProjectNestedInput
+  }
+
+  export type ProjectCreateWithoutApprovalsInput = {
+    id?: string
+    name: string
+    description?: string
+    owner?: string
+    version?: string
+    country?: string
+    vertical?: string | null
+    modules?: ProjectCreatemodulesInput | string[]
+    type?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    workspace: WorkspaceCreateNestedOneWithoutProjectsInput
+    requirements?: RequirementCreateNestedManyWithoutProjectInput
+    tests?: TestCreateNestedManyWithoutProjectInput
+    risks?: RiskCreateNestedManyWithoutProjectInput
+    capas?: CAPACreateNestedManyWithoutProjectInput
+    auditLogs?: AuditLogCreateNestedManyWithoutProjectInput
+    evidences?: EvidenceCreateNestedManyWithoutProjectInput
+    signatures?: SignatureCreateNestedManyWithoutProjectInput
+  }
+
+  export type ProjectUncheckedCreateWithoutApprovalsInput = {
+    id?: string
+    workspaceId: string
+    name: string
+    description?: string
+    owner?: string
+    version?: string
+    country?: string
+    vertical?: string | null
+    modules?: ProjectCreatemodulesInput | string[]
+    type?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    requirements?: RequirementUncheckedCreateNestedManyWithoutProjectInput
+    tests?: TestUncheckedCreateNestedManyWithoutProjectInput
+    risks?: RiskUncheckedCreateNestedManyWithoutProjectInput
+    capas?: CAPAUncheckedCreateNestedManyWithoutProjectInput
+    auditLogs?: AuditLogUncheckedCreateNestedManyWithoutProjectInput
+    evidences?: EvidenceUncheckedCreateNestedManyWithoutProjectInput
+    signatures?: SignatureUncheckedCreateNestedManyWithoutProjectInput
+  }
+
+  export type ProjectCreateOrConnectWithoutApprovalsInput = {
+    where: ProjectWhereUniqueInput
+    create: XOR<ProjectCreateWithoutApprovalsInput, ProjectUncheckedCreateWithoutApprovalsInput>
+  }
+
+  export type SignatureCreateWithoutApprovalInput = {
+    id?: string
+    userId: string
+    userName: string
+    userRole: string
+    meaning: string
+    reason: string
+    method?: string
+    entityType: string
+    entityId: string
+    timestamp?: Date | string
+    project: ProjectCreateNestedOneWithoutSignaturesInput
+  }
+
+  export type SignatureUncheckedCreateWithoutApprovalInput = {
+    id?: string
+    projectId: string
+    userId: string
+    userName: string
+    userRole: string
+    meaning: string
+    reason: string
+    method?: string
+    entityType: string
+    entityId: string
+    timestamp?: Date | string
+  }
+
+  export type SignatureCreateOrConnectWithoutApprovalInput = {
+    where: SignatureWhereUniqueInput
+    create: XOR<SignatureCreateWithoutApprovalInput, SignatureUncheckedCreateWithoutApprovalInput>
+  }
+
+  export type ProjectUpsertWithoutApprovalsInput = {
+    update: XOR<ProjectUpdateWithoutApprovalsInput, ProjectUncheckedUpdateWithoutApprovalsInput>
+    create: XOR<ProjectCreateWithoutApprovalsInput, ProjectUncheckedCreateWithoutApprovalsInput>
+    where?: ProjectWhereInput
+  }
+
+  export type ProjectUpdateToOneWithWhereWithoutApprovalsInput = {
+    where?: ProjectWhereInput
+    data: XOR<ProjectUpdateWithoutApprovalsInput, ProjectUncheckedUpdateWithoutApprovalsInput>
+  }
+
+  export type ProjectUpdateWithoutApprovalsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: StringFieldUpdateOperationsInput | string
+    owner?: StringFieldUpdateOperationsInput | string
+    version?: StringFieldUpdateOperationsInput | string
+    country?: StringFieldUpdateOperationsInput | string
+    vertical?: NullableStringFieldUpdateOperationsInput | string | null
+    modules?: ProjectUpdatemodulesInput | string[]
+    type?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    workspace?: WorkspaceUpdateOneRequiredWithoutProjectsNestedInput
+    requirements?: RequirementUpdateManyWithoutProjectNestedInput
+    tests?: TestUpdateManyWithoutProjectNestedInput
+    risks?: RiskUpdateManyWithoutProjectNestedInput
+    capas?: CAPAUpdateManyWithoutProjectNestedInput
+    auditLogs?: AuditLogUpdateManyWithoutProjectNestedInput
+    evidences?: EvidenceUpdateManyWithoutProjectNestedInput
+    signatures?: SignatureUpdateManyWithoutProjectNestedInput
+  }
+
+  export type ProjectUncheckedUpdateWithoutApprovalsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    workspaceId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: StringFieldUpdateOperationsInput | string
+    owner?: StringFieldUpdateOperationsInput | string
+    version?: StringFieldUpdateOperationsInput | string
+    country?: StringFieldUpdateOperationsInput | string
+    vertical?: NullableStringFieldUpdateOperationsInput | string | null
+    modules?: ProjectUpdatemodulesInput | string[]
+    type?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    requirements?: RequirementUncheckedUpdateManyWithoutProjectNestedInput
+    tests?: TestUncheckedUpdateManyWithoutProjectNestedInput
+    risks?: RiskUncheckedUpdateManyWithoutProjectNestedInput
+    capas?: CAPAUncheckedUpdateManyWithoutProjectNestedInput
+    auditLogs?: AuditLogUncheckedUpdateManyWithoutProjectNestedInput
+    evidences?: EvidenceUncheckedUpdateManyWithoutProjectNestedInput
+    signatures?: SignatureUncheckedUpdateManyWithoutProjectNestedInput
+  }
+
+  export type SignatureUpsertWithoutApprovalInput = {
+    update: XOR<SignatureUpdateWithoutApprovalInput, SignatureUncheckedUpdateWithoutApprovalInput>
+    create: XOR<SignatureCreateWithoutApprovalInput, SignatureUncheckedCreateWithoutApprovalInput>
+    where?: SignatureWhereInput
+  }
+
+  export type SignatureUpdateToOneWithWhereWithoutApprovalInput = {
+    where?: SignatureWhereInput
+    data: XOR<SignatureUpdateWithoutApprovalInput, SignatureUncheckedUpdateWithoutApprovalInput>
+  }
+
+  export type SignatureUpdateWithoutApprovalInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    userName?: StringFieldUpdateOperationsInput | string
+    userRole?: StringFieldUpdateOperationsInput | string
+    meaning?: StringFieldUpdateOperationsInput | string
+    reason?: StringFieldUpdateOperationsInput | string
+    method?: StringFieldUpdateOperationsInput | string
+    entityType?: StringFieldUpdateOperationsInput | string
+    entityId?: StringFieldUpdateOperationsInput | string
+    timestamp?: DateTimeFieldUpdateOperationsInput | Date | string
+    project?: ProjectUpdateOneRequiredWithoutSignaturesNestedInput
+  }
+
+  export type SignatureUncheckedUpdateWithoutApprovalInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    projectId?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    userName?: StringFieldUpdateOperationsInput | string
+    userRole?: StringFieldUpdateOperationsInput | string
+    meaning?: StringFieldUpdateOperationsInput | string
+    reason?: StringFieldUpdateOperationsInput | string
+    method?: StringFieldUpdateOperationsInput | string
+    entityType?: StringFieldUpdateOperationsInput | string
+    entityId?: StringFieldUpdateOperationsInput | string
+    timestamp?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ProjectCreateWithoutSignaturesInput = {
+    id?: string
+    name: string
+    description?: string
+    owner?: string
+    version?: string
+    country?: string
+    vertical?: string | null
+    modules?: ProjectCreatemodulesInput | string[]
+    type?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    workspace: WorkspaceCreateNestedOneWithoutProjectsInput
+    requirements?: RequirementCreateNestedManyWithoutProjectInput
+    tests?: TestCreateNestedManyWithoutProjectInput
+    risks?: RiskCreateNestedManyWithoutProjectInput
+    capas?: CAPACreateNestedManyWithoutProjectInput
+    auditLogs?: AuditLogCreateNestedManyWithoutProjectInput
+    evidences?: EvidenceCreateNestedManyWithoutProjectInput
+    approvals?: ApprovalCreateNestedManyWithoutProjectInput
+  }
+
+  export type ProjectUncheckedCreateWithoutSignaturesInput = {
+    id?: string
+    workspaceId: string
+    name: string
+    description?: string
+    owner?: string
+    version?: string
+    country?: string
+    vertical?: string | null
+    modules?: ProjectCreatemodulesInput | string[]
+    type?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    requirements?: RequirementUncheckedCreateNestedManyWithoutProjectInput
+    tests?: TestUncheckedCreateNestedManyWithoutProjectInput
+    risks?: RiskUncheckedCreateNestedManyWithoutProjectInput
+    capas?: CAPAUncheckedCreateNestedManyWithoutProjectInput
+    auditLogs?: AuditLogUncheckedCreateNestedManyWithoutProjectInput
+    evidences?: EvidenceUncheckedCreateNestedManyWithoutProjectInput
+    approvals?: ApprovalUncheckedCreateNestedManyWithoutProjectInput
+  }
+
+  export type ProjectCreateOrConnectWithoutSignaturesInput = {
+    where: ProjectWhereUniqueInput
+    create: XOR<ProjectCreateWithoutSignaturesInput, ProjectUncheckedCreateWithoutSignaturesInput>
+  }
+
+  export type ApprovalCreateWithoutSignatureInput = {
+    id?: string
+    entityType: string
+    entityId: string
+    status?: string
+    requestedBy: string
+    reviewedBy?: string | null
+    reviewedAt?: Date | string | null
+    reason?: string | null
+    createdAt?: Date | string
+    project: ProjectCreateNestedOneWithoutApprovalsInput
+  }
+
+  export type ApprovalUncheckedCreateWithoutSignatureInput = {
+    id?: string
+    projectId: string
+    entityType: string
+    entityId: string
+    status?: string
+    requestedBy: string
+    reviewedBy?: string | null
+    reviewedAt?: Date | string | null
+    reason?: string | null
+    createdAt?: Date | string
+  }
+
+  export type ApprovalCreateOrConnectWithoutSignatureInput = {
+    where: ApprovalWhereUniqueInput
+    create: XOR<ApprovalCreateWithoutSignatureInput, ApprovalUncheckedCreateWithoutSignatureInput>
+  }
+
+  export type ProjectUpsertWithoutSignaturesInput = {
+    update: XOR<ProjectUpdateWithoutSignaturesInput, ProjectUncheckedUpdateWithoutSignaturesInput>
+    create: XOR<ProjectCreateWithoutSignaturesInput, ProjectUncheckedCreateWithoutSignaturesInput>
+    where?: ProjectWhereInput
+  }
+
+  export type ProjectUpdateToOneWithWhereWithoutSignaturesInput = {
+    where?: ProjectWhereInput
+    data: XOR<ProjectUpdateWithoutSignaturesInput, ProjectUncheckedUpdateWithoutSignaturesInput>
+  }
+
+  export type ProjectUpdateWithoutSignaturesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: StringFieldUpdateOperationsInput | string
+    owner?: StringFieldUpdateOperationsInput | string
+    version?: StringFieldUpdateOperationsInput | string
+    country?: StringFieldUpdateOperationsInput | string
+    vertical?: NullableStringFieldUpdateOperationsInput | string | null
+    modules?: ProjectUpdatemodulesInput | string[]
+    type?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    workspace?: WorkspaceUpdateOneRequiredWithoutProjectsNestedInput
+    requirements?: RequirementUpdateManyWithoutProjectNestedInput
+    tests?: TestUpdateManyWithoutProjectNestedInput
+    risks?: RiskUpdateManyWithoutProjectNestedInput
+    capas?: CAPAUpdateManyWithoutProjectNestedInput
+    auditLogs?: AuditLogUpdateManyWithoutProjectNestedInput
+    evidences?: EvidenceUpdateManyWithoutProjectNestedInput
+    approvals?: ApprovalUpdateManyWithoutProjectNestedInput
+  }
+
+  export type ProjectUncheckedUpdateWithoutSignaturesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    workspaceId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: StringFieldUpdateOperationsInput | string
+    owner?: StringFieldUpdateOperationsInput | string
+    version?: StringFieldUpdateOperationsInput | string
+    country?: StringFieldUpdateOperationsInput | string
+    vertical?: NullableStringFieldUpdateOperationsInput | string | null
+    modules?: ProjectUpdatemodulesInput | string[]
+    type?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    requirements?: RequirementUncheckedUpdateManyWithoutProjectNestedInput
+    tests?: TestUncheckedUpdateManyWithoutProjectNestedInput
+    risks?: RiskUncheckedUpdateManyWithoutProjectNestedInput
+    capas?: CAPAUncheckedUpdateManyWithoutProjectNestedInput
+    auditLogs?: AuditLogUncheckedUpdateManyWithoutProjectNestedInput
+    evidences?: EvidenceUncheckedUpdateManyWithoutProjectNestedInput
+    approvals?: ApprovalUncheckedUpdateManyWithoutProjectNestedInput
+  }
+
+  export type ApprovalUpsertWithoutSignatureInput = {
+    update: XOR<ApprovalUpdateWithoutSignatureInput, ApprovalUncheckedUpdateWithoutSignatureInput>
+    create: XOR<ApprovalCreateWithoutSignatureInput, ApprovalUncheckedCreateWithoutSignatureInput>
+    where?: ApprovalWhereInput
+  }
+
+  export type ApprovalUpdateToOneWithWhereWithoutSignatureInput = {
+    where?: ApprovalWhereInput
+    data: XOR<ApprovalUpdateWithoutSignatureInput, ApprovalUncheckedUpdateWithoutSignatureInput>
+  }
+
+  export type ApprovalUpdateWithoutSignatureInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    entityType?: StringFieldUpdateOperationsInput | string
+    entityId?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    requestedBy?: StringFieldUpdateOperationsInput | string
+    reviewedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    reviewedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    reason?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    project?: ProjectUpdateOneRequiredWithoutApprovalsNestedInput
+  }
+
+  export type ApprovalUncheckedUpdateWithoutSignatureInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    projectId?: StringFieldUpdateOperationsInput | string
+    entityType?: StringFieldUpdateOperationsInput | string
+    entityId?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    requestedBy?: StringFieldUpdateOperationsInput | string
+    reviewedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    reviewedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    reason?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type UserCreateManyOrgInput = {
@@ -16419,6 +22148,9 @@ export namespace Prisma {
     risks?: RiskUpdateManyWithoutProjectNestedInput
     capas?: CAPAUpdateManyWithoutProjectNestedInput
     auditLogs?: AuditLogUpdateManyWithoutProjectNestedInput
+    evidences?: EvidenceUpdateManyWithoutProjectNestedInput
+    approvals?: ApprovalUpdateManyWithoutProjectNestedInput
+    signatures?: SignatureUpdateManyWithoutProjectNestedInput
   }
 
   export type ProjectUncheckedUpdateWithoutWorkspaceInput = {
@@ -16438,6 +22170,9 @@ export namespace Prisma {
     risks?: RiskUncheckedUpdateManyWithoutProjectNestedInput
     capas?: CAPAUncheckedUpdateManyWithoutProjectNestedInput
     auditLogs?: AuditLogUncheckedUpdateManyWithoutProjectNestedInput
+    evidences?: EvidenceUncheckedUpdateManyWithoutProjectNestedInput
+    approvals?: ApprovalUncheckedUpdateManyWithoutProjectNestedInput
+    signatures?: SignatureUncheckedUpdateManyWithoutProjectNestedInput
   }
 
   export type ProjectUncheckedUpdateManyWithoutWorkspaceInput = {
@@ -16520,6 +22255,46 @@ export namespace Prisma {
     previousValue?: NullableJsonNullValueInput | InputJsonValue
     newValue?: NullableJsonNullValueInput | InputJsonValue
     reason?: string | null
+  }
+
+  export type EvidenceCreateManyProjectInput = {
+    id?: string
+    entityType: string
+    entityId: string
+    fileName: string
+    fileSize: number
+    mimeType: string
+    storagePath: string
+    description?: string
+    version?: number
+    uploadedBy: string
+    createdAt?: Date | string
+  }
+
+  export type ApprovalCreateManyProjectInput = {
+    id?: string
+    entityType: string
+    entityId: string
+    status?: string
+    requestedBy: string
+    reviewedBy?: string | null
+    reviewedAt?: Date | string | null
+    reason?: string | null
+    signatureId?: string | null
+    createdAt?: Date | string
+  }
+
+  export type SignatureCreateManyProjectInput = {
+    id?: string
+    userId: string
+    userName: string
+    userRole: string
+    meaning: string
+    reason: string
+    method?: string
+    entityType: string
+    entityId: string
+    timestamp?: Date | string
   }
 
   export type RequirementUpdateWithoutProjectInput = {
@@ -16724,6 +22499,128 @@ export namespace Prisma {
     previousValue?: NullableJsonNullValueInput | InputJsonValue
     newValue?: NullableJsonNullValueInput | InputJsonValue
     reason?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type EvidenceUpdateWithoutProjectInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    entityType?: StringFieldUpdateOperationsInput | string
+    entityId?: StringFieldUpdateOperationsInput | string
+    fileName?: StringFieldUpdateOperationsInput | string
+    fileSize?: IntFieldUpdateOperationsInput | number
+    mimeType?: StringFieldUpdateOperationsInput | string
+    storagePath?: StringFieldUpdateOperationsInput | string
+    description?: StringFieldUpdateOperationsInput | string
+    version?: IntFieldUpdateOperationsInput | number
+    uploadedBy?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type EvidenceUncheckedUpdateWithoutProjectInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    entityType?: StringFieldUpdateOperationsInput | string
+    entityId?: StringFieldUpdateOperationsInput | string
+    fileName?: StringFieldUpdateOperationsInput | string
+    fileSize?: IntFieldUpdateOperationsInput | number
+    mimeType?: StringFieldUpdateOperationsInput | string
+    storagePath?: StringFieldUpdateOperationsInput | string
+    description?: StringFieldUpdateOperationsInput | string
+    version?: IntFieldUpdateOperationsInput | number
+    uploadedBy?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type EvidenceUncheckedUpdateManyWithoutProjectInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    entityType?: StringFieldUpdateOperationsInput | string
+    entityId?: StringFieldUpdateOperationsInput | string
+    fileName?: StringFieldUpdateOperationsInput | string
+    fileSize?: IntFieldUpdateOperationsInput | number
+    mimeType?: StringFieldUpdateOperationsInput | string
+    storagePath?: StringFieldUpdateOperationsInput | string
+    description?: StringFieldUpdateOperationsInput | string
+    version?: IntFieldUpdateOperationsInput | number
+    uploadedBy?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ApprovalUpdateWithoutProjectInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    entityType?: StringFieldUpdateOperationsInput | string
+    entityId?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    requestedBy?: StringFieldUpdateOperationsInput | string
+    reviewedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    reviewedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    reason?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    signature?: SignatureUpdateOneWithoutApprovalNestedInput
+  }
+
+  export type ApprovalUncheckedUpdateWithoutProjectInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    entityType?: StringFieldUpdateOperationsInput | string
+    entityId?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    requestedBy?: StringFieldUpdateOperationsInput | string
+    reviewedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    reviewedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    reason?: NullableStringFieldUpdateOperationsInput | string | null
+    signatureId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ApprovalUncheckedUpdateManyWithoutProjectInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    entityType?: StringFieldUpdateOperationsInput | string
+    entityId?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    requestedBy?: StringFieldUpdateOperationsInput | string
+    reviewedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    reviewedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    reason?: NullableStringFieldUpdateOperationsInput | string | null
+    signatureId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SignatureUpdateWithoutProjectInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    userName?: StringFieldUpdateOperationsInput | string
+    userRole?: StringFieldUpdateOperationsInput | string
+    meaning?: StringFieldUpdateOperationsInput | string
+    reason?: StringFieldUpdateOperationsInput | string
+    method?: StringFieldUpdateOperationsInput | string
+    entityType?: StringFieldUpdateOperationsInput | string
+    entityId?: StringFieldUpdateOperationsInput | string
+    timestamp?: DateTimeFieldUpdateOperationsInput | Date | string
+    approval?: ApprovalUpdateOneWithoutSignatureNestedInput
+  }
+
+  export type SignatureUncheckedUpdateWithoutProjectInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    userName?: StringFieldUpdateOperationsInput | string
+    userRole?: StringFieldUpdateOperationsInput | string
+    meaning?: StringFieldUpdateOperationsInput | string
+    reason?: StringFieldUpdateOperationsInput | string
+    method?: StringFieldUpdateOperationsInput | string
+    entityType?: StringFieldUpdateOperationsInput | string
+    entityId?: StringFieldUpdateOperationsInput | string
+    timestamp?: DateTimeFieldUpdateOperationsInput | Date | string
+    approval?: ApprovalUncheckedUpdateOneWithoutSignatureNestedInput
+  }
+
+  export type SignatureUncheckedUpdateManyWithoutProjectInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    userName?: StringFieldUpdateOperationsInput | string
+    userRole?: StringFieldUpdateOperationsInput | string
+    meaning?: StringFieldUpdateOperationsInput | string
+    reason?: StringFieldUpdateOperationsInput | string
+    method?: StringFieldUpdateOperationsInput | string
+    entityType?: StringFieldUpdateOperationsInput | string
+    entityId?: StringFieldUpdateOperationsInput | string
+    timestamp?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
 

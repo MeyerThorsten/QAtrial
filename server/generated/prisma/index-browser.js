@@ -231,6 +231,49 @@ exports.Prisma.AuditLogScalarFieldEnum = {
   reason: 'reason'
 };
 
+exports.Prisma.EvidenceScalarFieldEnum = {
+  id: 'id',
+  projectId: 'projectId',
+  entityType: 'entityType',
+  entityId: 'entityId',
+  fileName: 'fileName',
+  fileSize: 'fileSize',
+  mimeType: 'mimeType',
+  storagePath: 'storagePath',
+  description: 'description',
+  version: 'version',
+  uploadedBy: 'uploadedBy',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.ApprovalScalarFieldEnum = {
+  id: 'id',
+  projectId: 'projectId',
+  entityType: 'entityType',
+  entityId: 'entityId',
+  status: 'status',
+  requestedBy: 'requestedBy',
+  reviewedBy: 'reviewedBy',
+  reviewedAt: 'reviewedAt',
+  reason: 'reason',
+  signatureId: 'signatureId',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.SignatureScalarFieldEnum = {
+  id: 'id',
+  projectId: 'projectId',
+  userId: 'userId',
+  userName: 'userName',
+  userRole: 'userRole',
+  meaning: 'meaning',
+  reason: 'reason',
+  method: 'method',
+  entityType: 'entityType',
+  entityId: 'entityId',
+  timestamp: 'timestamp'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -267,7 +310,10 @@ exports.Prisma.ModelName = {
   Test: 'Test',
   Risk: 'Risk',
   CAPA: 'CAPA',
-  AuditLog: 'AuditLog'
+  AuditLog: 'AuditLog',
+  Evidence: 'Evidence',
+  Approval: 'Approval',
+  Signature: 'Signature'
 };
 
 /**

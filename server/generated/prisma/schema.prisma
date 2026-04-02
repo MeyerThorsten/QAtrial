@@ -52,6 +52,9 @@ model Project {
   risks        Risk[]
   capas        CAPA[]
   auditLogs    AuditLog[]
+  evidences    Evidence[]
+  approvals    Approval[]
+  signatures   Signature[]
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
 }
@@ -132,4 +135,52 @@ model AuditLog {
   previousValue Json?
   newValue      Json?
   reason        String?
+}
+
+model Evidence {
+  id          String   @id @default(uuid())
+  projectId   String
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  entityType  String
+  entityId    String
+  fileName    String
+  fileSize    Int
+  mimeType    String
+  storagePath String
+  description String   @default("")
+  version     Int      @default(1)
+  uploadedBy  String
+  createdAt   DateTime @default(now())
+}
+
+model Approval {
+  id          String     @id @default(uuid())
+  projectId   String
+  project     Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  entityType  String
+  entityId    String
+  status      String     @default("pending")
+  requestedBy String
+  reviewedBy  String?
+  reviewedAt  DateTime?
+  reason      String?
+  signatureId String?    @unique
+  signature   Signature? @relation(fields: [signatureId], references: [id])
+  createdAt   DateTime   @default(now())
+}
+
+model Signature {
+  id         String    @id @default(uuid())
+  projectId  String
+  project    Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  userId     String
+  userName   String
+  userRole   String
+  meaning    String
+  reason     String
+  method     String    @default("password")
+  entityType String
+  entityId   String
+  timestamp  DateTime  @default(now())
+  approval   Approval?
 }

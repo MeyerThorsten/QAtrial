@@ -11,13 +11,16 @@ import {
   flexRender,
   type SortingState,
 } from '@tanstack/react-table';
-import { Plus, Pencil, Trash2, ArrowUpDown, Search } from 'lucide-react';
+import { Plus, Pencil, Trash2, ArrowUpDown, Search, Paperclip } from 'lucide-react';
 import { useTestsStore } from '../../store/useTestsStore';
 import { useRequirementsStore } from '../../store/useRequirementsStore';
+import { useEvidenceStore } from '../../store/useEvidenceStore';
+import { useProjectStore } from '../../store/useProjectStore';
 import { StatusBadge } from '../shared/StatusBadge';
 import { ConfirmDialog } from '../shared/ConfirmDialog';
 import { EmptyState } from '../shared/EmptyState';
 import { TestModal } from './TestModal';
+import { EvidencePanel } from '../evidence/EvidencePanel';
 import type { Test } from '../../types';
 
 const columnHelper = createColumnHelper<Test>();
@@ -35,6 +38,9 @@ export function TestsTable() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingTest, setEditingTest] = useState<Test | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [evidenceTest, setEvidenceTest] = useState<Test | null>(null);
+  const evidenceAttachments = useEvidenceStore((s) => s.attachments);
+  const project = useProjectStore((s) => s.project);
 
   const reqMap = useMemo(() => new Map(requirements.map((r) => [r.id, r])), [requirements]);
 
@@ -88,26 +94,42 @@ export function TestsTable() {
       columnHelper.display({
         id: 'actions',
         header: '',
-        cell: ({ row }) => (
-          <div className="flex items-center gap-1">
-            <button
-              onClick={() => { setEditingTest(row.original); setModalOpen(true); }}
-              className="p-1.5 text-text-tertiary hover:text-accent rounded-lg hover:bg-accent-subtle transition-colors"
-            >
-              <Pencil className="w-3.5 h-3.5" />
-            </button>
-            <button
-              onClick={() => setDeleteId(row.original.id)}
-              className="p-1.5 text-text-tertiary hover:text-danger rounded-lg hover:bg-danger-subtle transition-colors"
-            >
-              <Trash2 className="w-3.5 h-3.5" />
-            </button>
-          </div>
-        ),
-        size: 80,
+        cell: ({ row }) => {
+          const evCount = evidenceAttachments.filter((a) => a.entityId === row.original.id).length;
+          return (
+            <div className="flex items-center gap-1">
+              {/* Evidence button */}
+              <button
+                onClick={() => setEvidenceTest(row.original)}
+                className="relative p-1.5 text-text-tertiary hover:text-accent rounded-lg hover:bg-accent-subtle transition-colors"
+                title={t('evidence.title')}
+              >
+                <Paperclip className="w-3.5 h-3.5" />
+                {evCount > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-accent text-white text-[9px] font-bold flex items-center justify-center">
+                    {evCount}
+                  </span>
+                )}
+              </button>
+              <button
+                onClick={() => { setEditingTest(row.original); setModalOpen(true); }}
+                className="p-1.5 text-text-tertiary hover:text-accent rounded-lg hover:bg-accent-subtle transition-colors"
+              >
+                <Pencil className="w-3.5 h-3.5" />
+              </button>
+              <button
+                onClick={() => setDeleteId(row.original.id)}
+                className="p-1.5 text-text-tertiary hover:text-danger rounded-lg hover:bg-danger-subtle transition-colors"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          );
+        },
+        size: 110,
       }),
     ],
-    [reqMap, t]
+    [reqMap, t, evidenceAttachments]
   );
 
   const table = useReactTable({
@@ -205,6 +227,15 @@ export function TestsTable() {
         message={t('tests.deleteMessage')}
         onConfirm={() => { if (deleteId) deleteTest(deleteId); setDeleteId(null); }}
         onCancel={() => setDeleteId(null)}
+      />
+
+      {/* Evidence Panel */}
+      <EvidencePanel
+        open={evidenceTest !== null}
+        entityType="test"
+        entityId={evidenceTest?.id ?? ''}
+        projectId={project?.name ?? 'default'}
+        onClose={() => setEvidenceTest(null)}
       />
     </div>
   );
