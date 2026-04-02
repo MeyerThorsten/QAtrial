@@ -11,18 +11,22 @@ Technical architecture documentation for QAtrial, the regulated quality workspac
 3. [Database Schema](#3-database-schema)
 4. [Authentication and Authorization](#4-authentication-and-authorization)
 5. [API Architecture](#5-api-architecture)
-6. [Data Model (Client)](#6-data-model-client)
-7. [State Management](#7-state-management)
-8. [Audit Trail](#8-audit-trail)
-9. [Template Composition Engine](#9-template-composition-engine)
-10. [AI System](#10-ai-system)
-11. [Connector Framework](#11-connector-framework)
-12. [Code Splitting](#12-code-splitting)
-13. [i18n Architecture](#13-i18n-architecture)
-14. [Theming](#14-theming)
-15. [Component Architecture](#15-component-architecture)
-16. [Test Infrastructure](#16-test-infrastructure)
-17. [File Structure](#17-file-structure)
+6. [Docker Architecture](#6-docker-architecture)
+7. [SSO / OIDC Architecture](#7-sso--oidc-architecture)
+8. [Webhook Event System](#8-webhook-event-system)
+9. [Integration Architecture (Jira / GitHub)](#9-integration-architecture-jira--github)
+10. [Data Model (Client)](#10-data-model-client)
+11. [State Management](#11-state-management)
+12. [Audit Trail](#12-audit-trail)
+13. [Template Composition Engine](#13-template-composition-engine)
+14. [AI System](#14-ai-system)
+15. [Connector Framework](#15-connector-framework)
+16. [Code Splitting](#16-code-splitting)
+17. [i18n Architecture](#17-i18n-architecture)
+18. [Theming](#18-theming)
+19. [Component Architecture](#19-component-architecture)
+20. [Test Infrastructure](#20-test-infrastructure)
+21. [File Structure](#21-file-structure)
 
 ---
 
@@ -31,41 +35,53 @@ Technical architecture documentation for QAtrial, the regulated quality workspac
 ### Architecture Diagram
 
 ```
-+-----------------------------------------------------------------------+
-|                           Browser (SPA)                                |
-|                                                                        |
-|  +------------------+   +------------------+   +--------------------+  |
-|  |   React 19 UI    |   |  Zustand Stores  |   |  Template Engine   |  |
-|  |  (Components)    |<->|  (20 stores)     |   |  (Composer)        |  |
-|  +------------------+   +------------------+   +--------------------+  |
-|         |                       |                       |              |
-|         v                       v                       v              |
-|  +------------------+   +------------------+   +--------------------+  |
-|  | react-i18next    |   | apiClient.ts     |   | Dynamic Imports    |  |
-|  | (12 languages)   |   | (Bearer tokens)  |   | (lazy templates)   |  |
-|  +------------------+   +------------------+   +--------------------+  |
-|         |                       |                                      |
-|         v                       v                                      |
-|  +------------------+   +--------------------------------------------+|
-|  | AI Client        |   |           Hono REST API (:3001)            ||
-|  | (provider router) |   |                                            ||
-|  +------------------+   |  +----------+  +----------+  +-----------+ ||
-|         |               |  | JWT Auth |  | Routes   |  | Audit Svc | ||
-|         v               |  | Middleware|  | (8 grps) |  | (append)  | ||
-|  +------------------+   |  +----------+  +----------+  +-----------+ ||
-|  | AI Proxy (opt.)  |   |         |                         |        ||
-|  | (server-side)    |   |         v                         v        ||
-|  +------------------+   |  +--------------------------------------------+
-|         |               |  |       PostgreSQL (Prisma ORM v7)          |
-|         v               |  |  User, Org, Workspace, Project, Req,     |
-|  External LLM APIs      |  |  Test, Risk, CAPA, AuditLog              |
-|  (Anthropic/OpenAI)     |  +--------------------------------------------+
-|                         +--------------------------------------------+|
-|  +------------------+   +------------------+                          |
-|  | Auth Store       |   | Connector Fwk    |-------> External Systems |
-|  | (RBAC, sessions) |   | (sync adapters)  |       (Jira, ALM, etc.) |
-|  +------------------+   +------------------+                          |
-+-----------------------------------------------------------------------+
++-------------------------------------------------------------------------+
+|                           Browser (SPA)                                  |
+|                                                                          |
+|  +------------------+   +------------------+   +--------------------+    |
+|  |   React 19 UI    |   |  Zustand Stores  |   |  Template Engine   |    |
+|  |  (55+ components)|<->|  (20 stores)     |   |  (Composer + Packs)|    |
+|  +------------------+   +------------------+   +--------------------+    |
+|         |                       |                       |                |
+|         v                       v                       v                |
+|  +------------------+   +------------------+   +--------------------+    |
+|  | react-i18next    |   | apiClient.ts     |   | Dynamic Imports    |    |
+|  | (12 languages)   |   | (Bearer tokens)  |   | (lazy templates)   |    |
+|  +------------------+   +------------------+   +--------------------+    |
+|         |                       |                                        |
+|         v                       v                                        |
+|  +------------------+   +----------------------------------------------+|
+|  | AI Client        |   |           Hono REST API (:3001)              ||
+|  | (provider router) |   |                                              ||
+|  +------------------+   |  +----------+  +----------+  +------------+  ||
+|         |               |  | JWT Auth |  | Routes   |  | Audit Svc  |  ||
+|         v               |  | + RBAC   |  | (21 grps)|  | (append)   |  ||
+|  +------------------+   |  +----------+  +----------+  +------------+  ||
+|  | AI Proxy (opt.)  |   |  +----------+  +----------+  +------------+  ||
+|  | POST /api/ai/*   |   |  | SSO/OIDC |  | Webhooks |  | Dashboard  |  ||
+|  +------------------+   |  | (IdP)    |  | (HMAC)   |  | Analytics  |  ||
+|         |               |  +----------+  +----------+  +------------+  ||
+|         v               |         |                         |          ||
+|  External LLM APIs      |         v                         v          ||
+|  (Anthropic/OpenAI)     |  +----------------------------------------------+
+|                         |  |       PostgreSQL (Prisma ORM v7)            |
+|                         |  |  15 models: User, Org, Workspace, Project,  |
+|                         |  |  Req, Test, Risk, CAPA, AuditLog, Evidence, |
+|                         |  |  Approval, Signature, Webhook, Integration  |
+|                         |  +----------------------------------------------+
+|                         +----------------------------------------------+|
+|  +------------------+   +------------------+                            |
+|  | Auth Store       |   | Integrations     |-------> Jira Cloud         |
+|  | (RBAC, sessions) |   | (Jira, GitHub)   |-------> GitHub API         |
+|  +------------------+   +------------------+                            |
++-------------------------------------------------------------------------+
+                |                                |
+                v                                v
+     +-------------------+            +-------------------+
+     | Docker Compose    |            | Identity Provider  |
+     | app + PostgreSQL  |            | (Okta/Azure AD/    |
+     +-------------------+            |  Auth0/Keycloak)   |
+                                      +-------------------+
 ```
 
 ### Tech Stack
@@ -74,19 +90,20 @@ Technical architecture documentation for QAtrial, the regulated quality workspac
 |-----------|---------|---------|
 | React | 19 | UI framework |
 | TypeScript | 5.x | Type safety |
-| Vite | 6.x | Build tool and dev server |
+| Vite | 8.x | Build tool and dev server |
 | Tailwind CSS | 4.x | Utility-first styling with CSS custom properties |
 | Zustand | 5.x | Lightweight state management with persistence |
 | TanStack Table | v8 | Headless table with sorting, filtering, pagination |
-| Recharts | 2.x | Declarative charting (pie, bar, line) |
-| react-i18next | 15.x | Internationalization framework |
-| i18next-http-backend | 2.x | Lazy-load translation files via HTTP |
+| Recharts | 3.x | Declarative charting (pie, bar, line) |
+| react-i18next | 16.x | Internationalization framework |
+| i18next-http-backend | 3.x | Lazy-load translation files via HTTP |
 | Lucide React | Latest | Icon library |
 | **Hono** | **4.x** | **TypeScript-first HTTP framework (backend)** |
-| **Prisma** | **7.x** | **ORM and database client** |
-| **PostgreSQL** | **14+** | **Relational database** |
+| **Prisma** | **7.x** | **ORM and database client (15 models)** |
+| **PostgreSQL** | **16+** | **Relational database** |
 | **jsonwebtoken** | **9.x** | **JWT access/refresh token signing and verification** |
 | **bcryptjs** | **3.x** | **Password hashing (12 rounds)** |
+| **Docker** | **20.10+** | **Container deployment (multi-stage build)** |
 
 ### Design Principles
 
@@ -96,9 +113,10 @@ Technical architecture documentation for QAtrial, the regulated quality workspac
 4. **Lazy Loading and Code Splitting:** Template files, translation files, and tab components are loaded via dynamic imports (`React.lazy` + `Suspense`). Vite manual chunks split vendor code into `vendor-react`, `vendor-charts`, `vendor-table`, `vendor-i18n`, `vendor-state`, `templates`, and `ai` bundles.
 5. **Purpose-Scoped AI:** Different AI tasks can be routed to different LLM providers based on purpose configuration. AI responses are validated with JSON schema validation and retry logic.
 6. **GxP Awareness:** Every feature considers regulatory compliance (audit trails, electronic signatures, change control, CAPA lifecycle).
-7. **Role-Based Access Control:** Server-enforced RBAC with three roles (Admin, Editor, Viewer) via JWT middleware, plus client-side five-role RBAC for UI-level permission checks.
+7. **Role-Based Access Control:** Server-enforced RBAC with five roles (admin, qa_manager, qa_engineer, auditor, reviewer) via JWT middleware with `requirePermission()` guards, plus client-side permission checks.
 8. **Append-Only Audit:** The server-side audit log in PostgreSQL is append-only. Audit records cannot be modified or deleted through the API, ensuring regulatory integrity.
-9. **Connector Extensibility:** A pluggable connector framework allows integration with external systems (Jira, ALM tools, etc.) via a typed registry.
+9. **Connector Extensibility:** A pluggable connector framework allows integration with external systems (Jira, GitHub, ALM tools, etc.) via a typed registry.
+10. **Docker-First Deployment:** Multi-stage Dockerfile and docker-compose.yml provide production-ready containerized deployment with health checks and persistent volumes.
 
 ---
 
@@ -106,26 +124,30 @@ Technical architecture documentation for QAtrial, the regulated quality workspac
 
 ### Overview
 
-The backend is a Hono HTTP server running on Node.js via `tsx` (TypeScript execution). It serves a REST API on port 3001.
+The backend is a Hono HTTP server running on Node.js via `tsx` (TypeScript execution). It serves a REST API on port 3001. In production (Docker), it also serves the built frontend as static files.
 
 ### Stack
 
 | Component | Technology | Purpose |
 |-----------|-----------|---------|
-| Runtime | Node.js + tsx | TypeScript execution without compilation step |
+| Runtime | Node.js 20 + tsx | TypeScript execution without compilation step |
 | Framework | Hono | Lightweight, TypeScript-first HTTP framework |
-| Database | PostgreSQL | Relational data storage |
-| ORM | Prisma v7 | Type-safe database client and schema management |
+| Database | PostgreSQL 16 | Relational data storage |
+| ORM | Prisma v7 | Type-safe database client and schema management (15 models) |
 | Auth | JWT (jsonwebtoken) | Stateless authentication with access/refresh tokens |
 | Passwords | bcryptjs | Password hashing with 12 salt rounds |
+| Webhooks | Custom service | Fire-and-forget dispatch with HMAC-SHA256 signing |
+| SSO | OIDC | OpenID Connect discovery, authorization, token exchange |
 
 ### Server Entry Point
 
-`server/index.ts` creates a Hono app, registers CORS middleware (allowing localhost:5173 and localhost:5174), mounts 8 route groups under `/api/`, and starts listening on port 3001.
+`server/index.ts` creates a Hono app, registers CORS middleware, mounts 21 route groups under `/api/`, serves static files in production, and starts listening on port 3001.
 
 ```typescript
 const app = new Hono();
-app.use('*', cors({ origin: ['http://localhost:5174', 'http://localhost:5173'], credentials: true }));
+app.use('*', cors({ origin: [...], credentials: true }));
+
+// Core routes
 app.route('/api/auth', authRoutes);
 app.route('/api/projects', projectRoutes);
 app.route('/api/requirements', requirementRoutes);
@@ -134,16 +156,46 @@ app.route('/api/capa', capaRoutes);
 app.route('/api/risks', riskRoutes);
 app.route('/api/audit', auditRoutes);
 app.route('/api/users', userRoutes);
+app.route('/api/evidence', evidenceRoutes);
+app.route('/api/approvals', approvalRoutes);
+app.route('/api/signatures', signatureRoutes);
+app.route('/api/export', exportRoutes);
+app.route('/api/import', importRoutes);
+app.route('/api/ai', aiRoutes);
+app.route('/api/auth/sso', ssoRoutes);
+app.route('/api/webhooks', webhookRoutes);
+app.route('/api/integrations/jira', jiraRoutes);
+app.route('/api/integrations/github', githubRoutes);
+app.route('/api/audit-mode', auditmodeRoutes);
+app.route('/api/dashboard', dashboardRoutes);
+app.get('/api/status', (c) => c.json({ status: 'ok', version: '3.0.0', ... }));
 app.get('/api/health', (c) => c.json({ status: 'ok', version: '3.0.0' }));
+
+// Production: serve static files from dist/
+if (process.env.NODE_ENV === 'production') {
+  app.get('*', serveStatic({ root: './dist' }));
+}
 ```
 
 ### Middleware Chain
 
-All routes except `/api/auth/register`, `/api/auth/login`, `/api/auth/refresh`, and `/api/health` require authentication. The middleware chain is:
+All routes except public endpoints require authentication. The middleware chain is:
 
 1. **CORS** -- Applied globally via `app.use('*', cors(...))`
 2. **authMiddleware** -- Applied per route group via `routes.use('*', authMiddleware)`. Extracts the Bearer token from the `Authorization` header, verifies it with `jwt.verify()`, rejects refresh tokens, and attaches the decoded `JwtPayload` to the request context.
-3. **requireRole(...roles)** -- Optional middleware guard applied to specific endpoints (e.g., admin-only routes). Checks that the authenticated user's role is in the allowed list.
+3. **requireRole(...roles)** -- Optional middleware guard for role-restricted endpoints (e.g., admin-only routes).
+4. **requirePermission(permission)** -- Granular permission check middleware (canView, canEdit, canApprove, canAdmin) that maps roles to permissions.
+
+### Public Endpoints (No Auth Required)
+
+- `GET /api/health` -- Basic health check
+- `GET /api/status` -- Detailed status (version, uptime, DB connectivity, AI status, memory)
+- `POST /api/auth/register` -- User registration
+- `POST /api/auth/login` -- User login
+- `POST /api/auth/refresh` -- Token refresh
+- `GET /api/auth/sso/login` -- SSO redirect
+- `GET /api/auth/sso/callback` -- SSO callback
+- `GET /api/audit-mode/:token/*` -- Audit mode read-only endpoints
 
 ### Request/Response Pattern
 
@@ -157,6 +209,7 @@ router.post('/', async (c) => {
     // Validate input
     // Perform database operation via Prisma
     // Log audit entry via logAudit()
+    // Dispatch webhook events
     return c.json({ data }, 201);      // Return success response
   } catch (error) {
     console.error('...:', error);
@@ -178,7 +231,7 @@ Standard HTTP status codes:
 - `201` -- Created
 - `400` -- Validation error (missing fields, invalid input)
 - `401` -- Authentication error (missing/invalid/expired token)
-- `403` -- Authorization error (insufficient role)
+- `403` -- Authorization error (insufficient role/permission)
 - `404` -- Not found
 - `409` -- Conflict (e.g., duplicate email on registration)
 - `500` -- Internal server error
@@ -203,55 +256,61 @@ Standard HTTP status codes:
 +-------------------+                                   | updatedAt         |
 |      User         |                                   +-------------------+
 |-------------------|                                          |
-| id (PK, uuid)    |                          +---------------+---------------+
-| email (unique)    |                          |               |               |
-| passwordHash      |                     1:N  v          1:N  v          1:N  v
-| name              |               +------------+   +------------+   +---------+
-| role              |               | Requirement|   |    Test    |   |  Risk   |
-| orgId (FK)        |               |------------|   |------------|   |---------|
-| createdAt         |               | id (PK)    |   | id (PK)    |   | id (PK) |
-+-------------------+               | projectId  |   | projectId  |   | projectId
-                                    | seqId      |   | seqId      |   | reqId   |
-                                    | title      |   | title      |   | severity|
-                                    | description|   | description|   | likelih.|
-                                    | status     |   | status     |   | riskScor|
-                                    | tags[]     |   | linkedReqId|   | riskLvl |
-                                    | riskLevel  |   | createdBy  |   +---------+
-                                    | regulRef   |   +------------+
-                                    | evidHints[]|        |
-                                    | createdBy  |   1:N  v
-                                    +------------+   +-----------+
-                                         |           |   CAPA    |
-                                    1:N  v           |-----------|
-                                   +-----------+     | id (PK)   |
-                                   | AuditLog  |     | projectId |
-                                   |-----------|     | title     |
-                                   | id (PK)   |     | status    |
-                                   | projectId |     | rootCause |
-                                   | timestamp |     | containmt |
-                                   | userId    |     | corrective|
-                                   | action    |     | preventive|
-                                   | entityType|     | effective.|
-                                   | entityId  |     | linkedTest|
-                                   | prevValue |     | createdBy |
-                                   | newValue  |     +-----------+
-                                   | reason    |
-                                   +-----------+
+| id (PK, uuid)    |                          +------+--------+--------+------+
+| email (unique)    |                          |      |        |        |      |
+| passwordHash      |                     1:N  v   1:N v    1:N v   1:N v  1:N v
+| name              |               +----------+ +------+ +-----+ +------+ +--------+
+| role              |               |Requirement| | Test | | Risk| | CAPA | |AuditLog|
+| orgId (FK)        |               |----------| |------| |-----| |------| |--------|
+| createdAt         |               | id (PK)  | |id(PK)| |id   | |id    | |id      |
++-------------------+               | projectId| |projId| |projId |projId| |projId  |
+       |                            | seqId    | |seqId | |reqId | |title | |userId  |
+       |                            | title    | |title | |sever.| |status| |action  |
+       | 1:N                        | status   | |status| |likel.| |root  | |entity  |
+       v                            | tags[]   | |linkId| |score | |cause | |prev/new|
++-------------------+               +----------+ +------+ +-----+ +------+ +--------+
+|    Webhook        |
+|-------------------|
+| id (PK, uuid)    |
+| orgId (FK)       |               +-------------------+   +-------------------+
+| name              |               |    Evidence       |   |    Approval       |
+| url               |               |-------------------|   |-------------------|
+| secret            |               | id (PK)           |   | id (PK)           |
+| events[]          |               | requirementId     |   | entityType        |
+| enabled           |               | type               |   | entityId          |
+| lastTriggered     |               | description        |   | status            |
++-------------------+               +-------------------+   +-------------------+
+
++-------------------+               +-------------------+
+|   Integration     |               |    Signature      |
+|-------------------|               |-------------------|
+| id (PK, uuid)    |               | id (PK)           |
+| orgId (FK)       |               | entityType        |
+| type (jira/github)|               | entityId          |
+| config (JSON)     |               | userId            |
+| enabled           |               | meaning           |
+| lastSyncAt        |               | timestamp         |
++-------------------+               +-------------------+
 ```
 
-### Models (10)
+### Models (15)
 
-| Model | Records | Key Fields |
-|-------|---------|-----------|
-| `User` | User accounts | email (unique), passwordHash, name, role, orgId |
-| `Organization` | Multi-tenant container | name |
-| `Workspace` | Project grouping within org | name, orgId |
-| `Project` | Project metadata | name, description, owner, version, country, vertical, modules[], type |
-| `Requirement` | Requirements with auto seqId | projectId, seqId (REQ-NNN), title, description, status, tags[], riskLevel, regulatoryRef, evidenceHints[] |
-| `Test` | Tests with auto seqId | projectId, seqId (TST-NNN), title, description, status, linkedRequirementIds[] |
-| `Risk` | Risk assessments | projectId, requirementId, severity, likelihood, detectability, riskScore, riskLevel, mitigation |
-| `CAPA` | CAPA records with lifecycle | projectId, title, status, rootCause, containment, correctiveAction, preventiveAction, effectivenessCheck, linkedTestId |
-| `AuditLog` | Append-only audit trail | projectId, timestamp, userId, action, entityType, entityId, previousValue (JSON), newValue (JSON), reason |
+| Model | Key Fields | Purpose |
+|-------|-----------|---------|
+| `User` | email (unique), passwordHash, name, role, orgId | User accounts |
+| `Organization` | name | Multi-tenant container |
+| `Workspace` | name, orgId | Project grouping within org |
+| `Project` | name, description, owner, version, country, vertical, modules[], type | Project metadata |
+| `Requirement` | projectId, seqId (REQ-NNN), title, description, status, tags[], riskLevel, regulatoryRef, evidenceHints[] | Requirements with auto seqId |
+| `Test` | projectId, seqId (TST-NNN), title, description, status, linkedRequirementIds[] | Tests with auto seqId |
+| `Risk` | projectId, requirementId, severity, likelihood, detectability, riskScore, riskLevel, mitigation | Risk assessments |
+| `CAPA` | projectId, title, status, rootCause, containment, correctiveAction, preventiveAction, effectivenessCheck, linkedTestId | CAPA records with lifecycle |
+| `AuditLog` | projectId, timestamp, userId, action, entityType, entityId, previousValue (JSON), newValue (JSON), reason | Append-only audit trail |
+| `Evidence` | requirementId, type, description, reference | Evidence attachments |
+| `Approval` | entityType, entityId, status, requestedBy, approvedBy | Approval workflow records |
+| `Signature` | entityType, entityId, userId, meaning, reason, timestamp | Electronic signature records |
+| `Webhook` | orgId, name, url, secret, events[], enabled, lastTriggered, lastStatus | Webhook configurations |
+| `Integration` | orgId, type (jira/github), config (JSON), enabled, lastSyncAt | External integration configs |
 
 ### Cascade Deletes
 
@@ -303,32 +362,39 @@ This produces: REQ-001, REQ-002, ... TST-001, TST-002, etc.
 interface JwtPayload {
   userId: string;
   email: string;
-  role: string;        // "admin" | "editor" | "viewer"
+  role: string;        // "admin" | "qa_manager" | "qa_engineer" | "auditor" | "reviewer"
   orgId: string | null;
 }
 ```
 
 Access tokens expire after 24 hours. Refresh tokens expire after 7 days and include a `type: 'refresh'` field to prevent use as access tokens.
 
-### RBAC (Server-Side)
+### RBAC (Server-Side, 5 Roles)
 
-Three roles enforced by the `requireRole()` middleware:
+Five roles enforced by the `requirePermission()` middleware:
 
-| Role | Capabilities |
-|------|-------------|
-| `admin` | Full access. Can manage users, invite new users, change roles. |
-| `editor` | Can create, read, update, delete project data (requirements, tests, CAPA, risks). Cannot manage users. |
-| `viewer` | Read-only access to all data. Cannot create or modify records. |
+| Role | canView | canEdit | canApprove | canAdmin |
+|------|---------|---------|------------|----------|
+| `admin` | Yes | Yes | Yes | Yes |
+| `qa_manager` | Yes | Yes | Yes | No |
+| `qa_engineer` | Yes | Yes | No | No |
+| `auditor` | Yes | No | No | No |
+| `reviewer` | Yes | No | Yes | No |
 
 Example usage in routes:
 
 ```typescript
 // Admin-only endpoint
-router.post('/invite', requireRole('admin'), async (c) => { ... });
+router.post('/invite', requirePermission('canAdmin'), async (c) => { ... });
 
-// Editor or Admin can create
-router.post('/', async (c) => { ... }); // authMiddleware already applied
+// Edit permission required
+router.post('/', requirePermission('canEdit'), async (c) => { ... });
+
+// Approve permission required
+router.post('/:id/approve', requirePermission('canApprove'), async (c) => { ... });
 ```
+
+The legacy `requireRole()` middleware remains for backward compatibility.
 
 ### Frontend API Client
 
@@ -359,7 +425,7 @@ The `VITE_API_URL` environment variable controls the API base URL (defaults to `
 
 ## 5. API Architecture
 
-### Route Groups
+### Route Groups (21 route files)
 
 | Route Group | Mount Point | Auth Required | Endpoints |
 |------------|------------|---------------|-----------|
@@ -371,6 +437,19 @@ The `VITE_API_URL` environment variable controls the API base URL (defaults to `
 | Risks | `/api/risks` | Yes | CRUD + auto risk score/level calculation |
 | Audit | `/api/audit` | Yes | GET (filtered list), GET /export (CSV) |
 | Users | `/api/users` | Yes (admin for invite/role) | list, invite, change role |
+| Evidence | `/api/evidence` | Yes | CRUD for evidence attachments |
+| Approvals | `/api/approvals` | Yes | Request, approve, reject workflows |
+| Signatures | `/api/signatures` | Yes | Create, list signatures |
+| Export | `/api/export` | Yes | CSV export (requirements, tests, all) |
+| Import | `/api/import` | Yes | preview (auto-detect, suggest mapping), execute |
+| AI | `/api/ai` | Yes | complete (proxy), providers list, provider test |
+| SSO | `/api/auth/sso` | No | login redirect, callback, status |
+| Webhooks | `/api/webhooks` | Yes (admin) | CRUD + test endpoint |
+| Jira | `/api/integrations/jira` | Yes | connect, status, sync, list issues, import |
+| GitHub | `/api/integrations/github` | Yes | connect, status, link PR, import test results |
+| Audit Mode | `/api/audit-mode` | Partial (create: admin; read: token) | create link, 7 read-only endpoints |
+| Dashboard | `/api/dashboard` | Yes | readiness, missing-evidence, approval-status, capa-aging, risk-summary |
+| Health/Status | `/api/health`, `/api/status` | No | health check, detailed status |
 
 ### Route Pattern
 
@@ -419,7 +498,209 @@ Attempting to skip a stage (e.g., open -> resolved) returns a 400 error.
 
 ---
 
-## 6. Data Model (Client)
+## 6. Docker Architecture
+
+### Multi-Stage Build
+
+The `Dockerfile` uses a 3-stage build process:
+
+```
+Stage 1: frontend (node:20-alpine)
+  - npm ci
+  - npm run build (Vite build -> dist/)
+
+Stage 2: server (node:20-alpine)
+  - npm ci --omit=dev
+  - Copy server/ code
+  - Copy dist/ from Stage 1
+
+Stage 3: runtime (node:20-alpine)
+  - Copy everything from Stage 2
+  - EXPOSE 3001
+  - CMD: npx tsx server/index.ts
+```
+
+### Docker Compose Architecture
+
+```
++------------------+         +------------------+
+|   app (:3001)    |-------->|  db (:5432)      |
+|                  |         |                  |
+|  Node.js 20     |         |  PostgreSQL 16   |
+|  Hono server    |         |  Alpine          |
+|  + static files |         |                  |
++------------------+         +------------------+
+    |         |                      |
+    v         v                      v
+ [uploads]  [env vars]           [pgdata]
+  (volume)   JWT_SECRET           (volume)
+             AI_PROVIDER_*
+             SSO_*
+```
+
+**Health checks:** The PostgreSQL container has a health check (`pg_isready`). The app container depends on `db` with `condition: service_healthy`, ensuring the database is ready before the app starts.
+
+**Volumes:**
+- `pgdata` -- Persistent PostgreSQL data directory
+- `uploads` -- Persistent file uploads (evidence, imports)
+
+### Production Static Serving
+
+When `NODE_ENV=production`, the Hono server serves the built frontend from `dist/`:
+- API routes are handled normally under `/api/*`
+- All other routes serve the SPA's `index.html` (client-side routing)
+- Static assets (JS, CSS, images) are served directly
+
+---
+
+## 7. SSO / OIDC Architecture
+
+### Authentication Flow
+
+```
+1. User clicks "Sign in with SSO" on the login page
+2. Frontend redirects to: GET /api/auth/sso/login
+3. Server performs OIDC discovery: GET {SSO_ISSUER_URL}/.well-known/openid-configuration
+4. Server redirects to IdP authorization endpoint with:
+   - client_id, redirect_uri, response_type=code, scope=openid email profile
+5. User authenticates at the IdP (Okta, Azure AD, Auth0, Keycloak)
+6. IdP redirects back to: GET /api/auth/sso/callback?code=...
+7. Server exchanges code for tokens at the IdP token endpoint
+8. Server fetches user info from the IdP userinfo endpoint
+9. Server looks up or auto-provisions the QAtrial user:
+   - If user exists (by email): update name if needed
+   - If user does not exist and SSO_AUTO_PROVISION=true: create user with SSO_DEFAULT_ROLE
+10. Server signs QAtrial JWT tokens (access + refresh)
+11. Server redirects to frontend with tokens
+12. Frontend stores tokens and completes login
+```
+
+### Configuration
+
+SSO is configured entirely via environment variables:
+
+| Variable | Description |
+|----------|-------------|
+| `SSO_ENABLED` | `true` to enable SSO |
+| `SSO_TYPE` | Protocol type (default: `oidc`) |
+| `SSO_ISSUER_URL` | IdP issuer URL |
+| `SSO_CLIENT_ID` | OIDC client ID |
+| `SSO_CLIENT_SECRET` | OIDC client secret |
+| `SSO_CALLBACK_URL` | Callback URL |
+| `SSO_DEFAULT_ROLE` | Default role for new SSO users (default: `qa_engineer`) |
+| `SSO_AUTO_PROVISION` | Auto-create users on first SSO login (default: `true`) |
+
+### OIDC Discovery Caching
+
+The server caches the OIDC discovery document after the first fetch. This avoids repeated network calls to the IdP for every login attempt.
+
+---
+
+## 8. Webhook Event System
+
+### Architecture
+
+```
+Mutation Endpoint (e.g., requirement.create)
+       |
+       v
+  logAudit() -----> AuditLog table
+       |
+       v
+  dispatchWebhook(event, payload)
+       |
+       v
+  WebhookService.dispatch()
+       |
+       +---> Find all enabled webhooks subscribing to this event
+       |
+       +---> For each webhook:
+              1. Build payload JSON
+              2. Compute HMAC-SHA256 signature
+              3. POST to webhook URL (fire-and-forget)
+              4. Update lastTriggered + lastStatus
+```
+
+### Events
+
+14 webhook events are dispatched:
+
+| Event | Trigger |
+|-------|---------|
+| `requirement.created` | New requirement created |
+| `requirement.updated` | Requirement modified |
+| `requirement.deleted` | Requirement deleted |
+| `test.created` | New test created |
+| `test.updated` | Test modified |
+| `test.failed` | Test status changed to Failed |
+| `capa.created` | New CAPA record created |
+| `capa.status_changed` | CAPA lifecycle transition |
+| `approval.requested` | Approval requested |
+| `approval.approved` | Record approved |
+| `approval.rejected` | Record rejected |
+| `signature.created` | Electronic signature applied |
+| `evidence.uploaded` | Evidence attachment added |
+
+### HMAC Signing
+
+Each webhook delivery includes an `X-QAtrial-Signature` header:
+
+```
+X-QAtrial-Signature: sha256=<hex-encoded HMAC-SHA256 of payload body>
+```
+
+The HMAC is computed using the webhook's configured secret. Consumers verify the signature to ensure the payload is authentic and has not been tampered with.
+
+### Retry Behavior
+
+Webhook dispatch is fire-and-forget. The `lastStatus` field on the webhook record tracks the most recent delivery status code. Failed deliveries are logged but not automatically retried.
+
+---
+
+## 9. Integration Architecture (Jira / GitHub)
+
+### Jira Integration
+
+```
+QAtrial <-------> Jira Cloud REST API v3
+                  (Basic auth: email:apiToken)
+
+Endpoints:
+  POST /api/integrations/jira/connect     -- Validate credentials + project
+  GET  /api/integrations/jira/status      -- Check connection status
+  POST /api/integrations/jira/sync        -- Bidirectional sync
+  GET  /api/integrations/jira/issues      -- List Jira issues
+  POST /api/integrations/jira/import      -- Import Jira issue as requirement
+```
+
+**Data flow (sync):**
+- QAtrial requirement -> Jira issue (creates or updates)
+- Jira issue -> QAtrial requirement (imports or updates)
+
+**Configuration stored in:** `Integration` model with `type: 'jira'`, `config: { baseUrl, email, apiToken, projectKey }`
+
+### GitHub Integration
+
+```
+QAtrial <-------> GitHub REST API v3
+                  (Personal Access Token)
+
+Endpoints:
+  POST /api/integrations/github/connect       -- Validate credentials + repo
+  GET  /api/integrations/github/status        -- Check connection status
+  POST /api/integrations/github/link-pr       -- Link PR to requirement
+  POST /api/integrations/github/import-tests  -- Import CI test results
+```
+
+**Data flow:**
+- GitHub PR -> linked to QAtrial requirement (traceability)
+- GitHub Actions workflow run -> imported as test results
+
+**Configuration stored in:** `Integration` model with `type: 'github'`, `config: { owner, repo, token }`
+
+---
+
+## 10. Data Model (Client)
 
 ### Core Entities
 
@@ -533,7 +814,7 @@ Risk level is computed from severity and likelihood:
 
 ---
 
-## 7. State Management
+## 11. State Management
 
 QAtrial uses 20 Zustand stores (plus hooks) with localStorage persistence on the client. When the backend is available, the `apiClient.ts` fetch wrapper connects to the REST API for persistent server-backed storage.
 
@@ -602,7 +883,7 @@ The `importData` function strips dangling requirement links from tests before lo
 
 ---
 
-## 8. Audit Trail
+## 12. Audit Trail
 
 ### Dual Implementation
 
@@ -641,6 +922,9 @@ Every mutation endpoint logs an audit entry:
 - **Risks:** create, update, delete
 - **Projects:** create, update, delete
 - **Users:** registration, role changes
+- **Imports:** CSV import operations
+- **Approvals:** request, approve, reject
+- **Signatures:** creation
 
 ### Audit Query and Export
 
@@ -662,7 +946,7 @@ The append-only design ensures:
 
 ---
 
-## 9. Template Composition Engine
+## 13. Template Composition Engine
 
 ### 4-Dimensional Model
 
@@ -676,6 +960,17 @@ Final Template = Country(jurisdiction) + Vertical(domain) + ProjectType(executio
 2. **Vertical:** Industry-specific GxP requirements (e.g., ISO 14971 for medical devices)
 3. **Project Type:** Execution-mode-specific requirements (e.g., IEC 62304 for embedded software)
 4. **Modules:** Cross-cutting quality control requirements (e.g., audit trail, e-signatures)
+
+### Compliance Starter Packs
+
+A fifth dimension, **Compliance Starter Packs** (`src/templates/packs/index.ts`), provides pre-configured bundles that auto-fill the first four dimensions:
+
+| Pack ID | Country | Vertical | Project Type | Modules |
+|---------|---------|----------|-------------|---------|
+| `fda_csv` | US | software_it | validation | 7 modules |
+| `eu_mdr` | DE | medical_devices | quality_system | 9 modules |
+| `fda_gmp` | US | pharma | quality_system | 10 modules |
+| `iso_gdpr` | DE | software_it | compliance | 7 modules |
 
 ### Composition Algorithm (Step by Step)
 
@@ -727,8 +1022,6 @@ function deduplicateRequirements(reqs: TemplateRequirement[]): TemplateRequireme
 }
 ```
 
-Deduplication uses the `templateId` field when present, falling back to **exact title match** for backward compatibility.
-
 ### Tag-Based Test Linking
 
 Tests are linked to requirements via tags, not direct indices:
@@ -747,7 +1040,7 @@ During project creation in the wizard, the system matches each test's `linkedReq
 
 ---
 
-## 10. AI System
+## 14. AI System
 
 ### Provider Abstraction
 
@@ -759,6 +1052,15 @@ The AI system supports two provider types:
 | `openai-compatible` | OpenAI Chat Completions | `Authorization: Bearer {key}` | `{baseUrl}/chat/completions` |
 
 Both types are handled by a single `complete()` function that branches on `provider.type`.
+
+### Server-Side AI Proxy
+
+For production deployments, the server provides an AI proxy at `POST /api/ai/complete`:
+
+- Reads provider configuration from environment variables (`AI_PROVIDER_TYPE`, `AI_PROVIDER_URL`, `AI_PROVIDER_KEY`, `AI_PROVIDER_MODEL`)
+- API keys stay on the server, never exposed to the browser
+- Supports both Anthropic and OpenAI-compatible APIs
+- Additional endpoints: `GET /api/ai/providers` (list, keys masked), `POST /api/ai/providers/:id/test`
 
 ### Purpose-Scoped Routing Algorithm
 
@@ -777,7 +1079,7 @@ function resolveProvider(purpose: LLMPurpose, providers: LLMProvider[]): LLMProv
 }
 ```
 
-### Prompt Architecture (6 Prompt Templates)
+### Prompt Architecture (9 Prompt Templates)
 
 | Prompt | File | Purpose | Output Format |
 |--------|------|---------|--------------|
@@ -787,6 +1089,9 @@ function resolveProvider(purpose: LLMPurpose, providers: LLMProvider[]): LLMProv
 | Executive Brief | `executiveBrief.ts` | Generate C-level compliance summary | Markdown text |
 | CAPA Suggestion | `capaSuggestion.ts` | Root cause analysis and corrective actions for failed tests | JSON object with CAPA structure |
 | VSR Report | `vsrReport.ts` | Generate Validation Summary Report sections | Array of report sections |
+| QMSR Gap Analysis | `qmsrGap.ts` | Medical device QMSR gap analysis | JSON gap analysis |
+| Requirement Extraction | `reqExtraction.ts` | Extract requirements from source documents | JSON array of requirements |
+| Quality Check | `qualityCheck.ts` | Analyze requirement quality (vagueness, testability, etc.) | JSON array of QualityIssue objects |
 
 ### AI Validation Layer
 
@@ -801,17 +1106,14 @@ AI responses are validated through a structured validation layer:
 
 ### AI Proxy Mode
 
-**File:** `src/ai/proxy.ts`
+For deployments where browser-to-LLM direct calls are not desired, QAtrial supports two proxy approaches:
 
-For deployments where browser-to-LLM direct calls are not desired (e.g., to protect API keys), QAtrial supports a server-side proxy:
-
-- Set the `VITE_AI_PROXY_URL` environment variable to the proxy endpoint
-- The `complete()` function in `client.ts` checks for the proxy URL before making direct calls
-- When set, all AI requests are routed through the proxy
+1. **Client-side proxy setting:** Set the `VITE_AI_PROXY_URL` environment variable. The `complete()` function routes through this URL.
+2. **Server-side proxy (recommended):** The `POST /api/ai/complete` endpoint proxies LLM calls with server-side API keys configured via environment variables.
 
 ---
 
-## 11. Connector Framework
+## 15. Connector Framework
 
 ### Overview
 
@@ -859,7 +1161,7 @@ Connector state (configurations and sync records) is managed by `useConnectorSto
 
 ---
 
-## 12. Code Splitting
+## 16. Code Splitting
 
 ### Lazy-Loaded Tab Components
 
@@ -870,7 +1172,7 @@ const RequirementsTable = React.lazy(() => import('./requirements/RequirementsTa
 const TestsTable = React.lazy(() => import('./tests/TestsTable'));
 const EvaluationDashboard = React.lazy(() => import('./dashboard/EvaluationDashboard'));
 const ReportGenerator = React.lazy(() => import('./reports/ReportGenerator'));
-const ProviderSettings = React.lazy(() => import('./ai/ProviderSettings'));
+const SettingsPage = React.lazy(() => import('./settings/SettingsPage'));
 ```
 
 ### Vite Manual Chunks
@@ -887,7 +1189,7 @@ const ProviderSettings = React.lazy(() => import('./ai/ProviderSettings'));
 
 ---
 
-## 13. i18n Architecture
+## 17. i18n Architecture
 
 ### react-i18next Configuration
 
@@ -943,10 +1245,12 @@ All translations use a single `common` namespace with top-level groupings:
 | `verticals.*` | `verticals.pharma.name` | Vertical names and focus |
 | `modules.*` | `modules.audit_trail.name` | Module names and descriptions |
 | `projectTypes.*` | `projectTypes.software.name` | Project type names |
+| `packs.*` | `packs.fdaCsv`, `packs.euMdr` | Compliance pack names |
+| `settings.*` | `settings.webhooks`, `settings.integrations` | Settings page text |
 
 ---
 
-## 14. Theming
+## 18. Theming
 
 ### CSS Custom Properties System
 
@@ -980,7 +1284,7 @@ Tailwind CSS 4 uses `@theme` to register CSS custom properties as Tailwind token
 
 ---
 
-## 15. Component Architecture
+## 19. Component Architecture
 
 ### Component Tree Overview
 
@@ -991,10 +1295,12 @@ App
       |    |-- LanguageSelector
       |    |-- ThemeToggle
       |    |-- ImportExportBar
+      |    |-- ShareAuditLink (admin only)
       |    |-- Navigation Tabs
-      |    |-- UserMenu (login/logout, role display)
+      |    |-- UserMenu (login/logout, SSO, role display)
       |
       |-- SetupWizard (shown when no project data)
+      |    |-- StepCompliancePack (Step 0)
       |    |-- StepCountry
       |    |-- StepVertical
       |    |-- StepMetadata
@@ -1008,6 +1314,7 @@ App
       |    |-- RequirementModal (create/edit)
       |    |-- TestGenerationPanel (AI)
       |    |-- RiskClassificationPanel (AI)
+      |    |-- QualityCheckPanel (AI)
       |    |-- SignatureModal
       |
       |-- TestsTable (tab: tests) [lazy]
@@ -1032,9 +1339,16 @@ App
       |    |-- ReportPreview
       |    |    |-- PDF Export Button
       |
-      |-- ProviderSettings (tab: settings) [lazy]
+      |-- SettingsPage (tab: settings) [lazy]
+      |    |-- ProviderSettings (AI Providers tab)
+      |    |-- WebhookSettings (Webhooks tab)
+      |    |-- IntegrationSettings (Integrations tab)
+      |    |-- SSOSettings (SSO tab)
       |
+      |-- ImportWizard (modal, 3 steps)
+      |-- ExportPanel (modal)
       |-- AuditTrailViewer (modal)
+      |-- AuditModeView (/audit/{token} route)
       |-- ConfirmDialog (modal)
       |-- LoginModal (modal)
       |-- RegisterModal (modal)
@@ -1045,17 +1359,19 @@ App
 | Category | Directory | Components |
 |----------|-----------|------------|
 | Layout | `components/layout/` | `AppShell` (main layout, navigation, tab routing) |
-| Wizard | `components/wizard/` | `SetupWizard`, `StepCountry`, `StepVertical`, `StepMetadata`, `StepProjectType`, `StepModules`, `StepPreview` |
+| Wizard | `components/wizard/` | `SetupWizard`, `StepCompliancePack`, `StepCountry`, `StepVertical`, `StepMetadata`, `StepProjectType`, `StepModules`, `StepPreview` |
 | Data Tables | `components/requirements/`, `components/tests/` | `RequirementsTable`, `RequirementModal`, `TestsTable`, `TestModal` |
 | Dashboard | `components/dashboard/` | 14 components covering all 7 dashboard tabs |
-| AI | `components/ai/` | `TestGenerationPanel`, `RiskClassificationPanel`, `ProviderSettings` |
+| AI | `components/ai/` | `TestGenerationPanel`, `RiskClassificationPanel`, `QualityCheckPanel`, `ProviderSettings` |
 | Reports | `components/reports/` | `ReportGenerator`, `ReportPreview` |
-| Audit | `components/audit/` | `AuditTrailViewer`, `SignatureModal` |
+| Audit | `components/audit/` | `AuditTrailViewer`, `SignatureModal`, `AuditModeView`, `ShareAuditLink` |
+| Import/Export | `components/import/` | `ImportWizard`, `ExportPanel` |
+| Settings | `components/settings/` | `SettingsPage`, `WebhookSettings`, `IntegrationSettings`, `SSOSettings` |
 | Shared | `components/shared/` | `ImportExportBar`, `ThemeToggle`, `LanguageSelector`, `ConfirmDialog` |
 
 ---
 
-## 16. Test Infrastructure
+## 20. Test Infrastructure
 
 ### Framework
 
@@ -1075,20 +1391,21 @@ npm run test:coverage # Run with coverage report
 
 ---
 
-## 17. File Structure
+## 21. File Structure
 
 ```
 QAtrial/
 |-- server/                            # Backend server
-|   |-- index.ts                       # Hono server entry (port 3001, CORS, route mounting)
+|   |-- index.ts                       # Hono server entry (port 3001, CORS, route mounting, static serving)
 |   |-- generated/prisma/             # Generated Prisma client
 |   |-- prisma/
-|   |   |-- schema.prisma             # PostgreSQL schema (10 models)
+|   |   |-- schema.prisma             # PostgreSQL schema (15 models)
 |   |   |-- prisma.config.ts          # Prisma 7 migration config
 |   |-- middleware/
-|   |   |-- auth.ts                   # JWT auth + RBAC middleware
+|   |   |-- auth.ts                   # JWT auth + RBAC + requirePermission middleware
 |   |-- services/
 |   |   |-- audit.service.ts          # Append-only audit logging service
+|   |   |-- webhook.service.ts        # Webhook dispatch with HMAC-SHA256 signing
 |   |-- routes/
 |       |-- auth.ts                   # Register, login, refresh, me
 |       |-- projects.ts               # Project CRUD
@@ -1098,6 +1415,19 @@ QAtrial/
 |       |-- risks.ts                  # Risk CRUD + auto scoring
 |       |-- audit.ts                  # Read-only audit queries + CSV export
 |       |-- users.ts                  # User management (admin)
+|       |-- evidence.ts              # Evidence attachment endpoints
+|       |-- approvals.ts             # Approval workflow endpoints
+|       |-- signatures.ts            # Electronic signature endpoints
+|       |-- export.ts                # CSV/JSON export
+|       |-- import.ts                # CSV import (preview, execute)
+|       |-- ai.ts                    # Server-side AI proxy
+|       |-- sso.ts                   # OIDC SSO (discovery, redirect, callback)
+|       |-- webhooks.ts              # Webhook CRUD + test endpoint
+|       |-- auditmode.ts             # Read-only audit mode link generation
+|       |-- dashboard.ts             # Server-side dashboard analytics
+|       |-- integrations/
+|           |-- jira.ts              # Jira Cloud bidirectional sync
+|           |-- github.ts            # GitHub PR linking + CI import
 |
 |-- public/
 |   |-- locales/
@@ -1128,35 +1458,24 @@ QAtrial/
 |   |       |-- executiveBrief.ts     # Executive compliance brief
 |   |       |-- capaSuggestion.ts     # CAPA suggestion
 |   |       |-- vsrReport.ts          # Validation Summary Report
+|   |       |-- qmsrGap.ts            # QMSR gap analysis
+|   |       |-- reqExtraction.ts      # Requirement extraction
+|   |       |-- qualityCheck.ts       # Requirement quality check
 |   |
 |   |-- templates/                    # Template composition system
 |   |   |-- types.ts, registry.ts, composer.ts
+|   |   |-- packs/                    # 4 Compliance Starter Packs
+|   |   |   |-- index.ts
 |   |   |-- verticals/               # Industry vertical templates
 |   |   |-- regions/                  # Country regulatory templates
+|   |   |-- modules/                  # 15 quality module definitions
 |   |
 |   |-- connectors/                   # Connector framework
 |   |   |-- types.ts
 |   |
 |   |-- store/                        # Zustand state management (20 stores)
-|   |   |-- useProjectStore.ts
-|   |   |-- useRequirementsStore.ts
-|   |   |-- useTestsStore.ts
-|   |   |-- useAuditStore.ts
-|   |   |-- useLLMStore.ts
-|   |   |-- useThemeStore.ts
-|   |   |-- useLocaleStore.ts
-|   |   |-- useChangeControlStore.ts
-|   |   |-- useAuthStore.ts
-|   |   |-- useRiskStore.ts
-|   |   |-- useCAPAStore.ts
-|   |   |-- useGapStore.ts
-|   |   |-- useEvidenceStore.ts
-|   |   |-- useAIHistoryStore.ts
-|   |   |-- useConnectorStore.ts
-|   |   |-- useImportExport.ts
 |   |
 |   |-- hooks/                        # Custom React hooks
-|   |   |-- useEvaluationData.ts
 |   |
 |   |-- lib/                          # Utility functions
 |   |   |-- constants.ts
@@ -1173,13 +1492,15 @@ QAtrial/
 |   |
 |   |-- components/
 |   |   |-- layout/AppShell.tsx
-|   |   |-- wizard/ (6 step components)
+|   |   |-- wizard/ (7 step components + StepCompliancePack)
 |   |   |-- requirements/ (table + modal)
 |   |   |-- tests/ (table + modal)
 |   |   |-- dashboard/ (14 components)
-|   |   |-- ai/ (3 components)
+|   |   |-- ai/ (4 components incl. QualityCheckPanel)
 |   |   |-- reports/ (2 components)
-|   |   |-- audit/ (2 components)
+|   |   |-- audit/ (4 components incl. AuditModeView, ShareAuditLink)
+|   |   |-- import/ (ImportWizard, ExportPanel)
+|   |   |-- settings/ (SettingsPage, WebhookSettings, IntegrationSettings, SSOSettings)
 |   |   |-- shared/ (4 components)
 |   |
 |   |-- App.tsx
@@ -1187,6 +1508,11 @@ QAtrial/
 |   |-- index.css
 |
 |-- docs/                             # Documentation
+|   |-- validation/                   # IQ, OQ, PQ, Compliance Statement, Traceability Matrix
+|
+|-- Dockerfile                        # Multi-stage production build
+|-- docker-compose.yml                # App + PostgreSQL deployment
+|-- .env.example                      # All configuration variables
 |-- package.json
 |-- tsconfig.json
 |-- vite.config.ts

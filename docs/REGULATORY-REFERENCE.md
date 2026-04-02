@@ -9,7 +9,9 @@ Reference guide for the regulatory standards and frameworks used in QAtrial's te
 1. [By Country](#1-by-country)
 2. [By Vertical](#2-by-vertical)
 3. [Module Standards](#3-module-standards)
-4. [v2.0.0 Compliance Improvements](#4-v200-compliance-improvements)
+4. [Compliance Starter Packs](#4-compliance-starter-packs)
+5. [Validation Package](#5-validation-package)
+6. [Compliance Improvements](#6-compliance-improvements)
 
 ---
 
@@ -373,11 +375,6 @@ Reference guide for the regulatory standards and frameworks used in QAtrial's te
 
 **Safety Classification:** GCP Critical / Non-Critical
 
-**Key GxP Standards:**
-- GCP (Good Clinical Practice)
-- GLP (Good Laboratory Practice)
-- GDocP (Good Documentation Practice)
-
 **Primary Regulatory References in Templates:**
 
 | Standard | Description |
@@ -397,11 +394,6 @@ Reference guide for the regulatory standards and frameworks used in QAtrial's te
 
 **Safety Classification:** High Complexity / Moderate / Waived
 
-**Key GxP Standards:**
-- GLP (Good Laboratory Practice)
-- GDocP (Good Documentation Practice)
-- ISO 15189 (Medical Laboratories)
-
 **Primary Regulatory References in Templates:**
 
 | Standard | Description |
@@ -418,10 +410,6 @@ Reference guide for the regulatory standards and frameworks used in QAtrial's te
 ### Logistics / GDP / GSP (logistics)
 
 **Risk Taxonomy:** FMEA
-
-**Key GxP Standards:**
-- GDP (Good Distribution Practice)
-- GSP (Good Storage Practice)
 
 **Primary Regulatory References in Templates:**
 
@@ -440,11 +428,6 @@ Reference guide for the regulatory standards and frameworks used in QAtrial's te
 
 **Risk Taxonomy:** GAMP 5
 
-**Key GxP Standards:**
-- GAMP 5 (2nd Edition)
-- CSV (Computer System Validation)
-- 21 CFR Part 11
-
 **Primary Regulatory References in Templates:**
 
 | Standard | Description |
@@ -461,11 +444,6 @@ Reference guide for the regulatory standards and frameworks used in QAtrial's te
 ### Cosmetics / Chemical / Environmental (cosmetics)
 
 **Risk Taxonomy:** Generic
-
-**Key GxP Standards:**
-- GMP for Cosmetics
-- GLP
-- REACH
 
 **Primary Regulatory References in Templates:**
 
@@ -486,11 +464,6 @@ Reference guide for the regulatory standards and frameworks used in QAtrial's te
 
 **Safety Classification:** DAL A-E (DO-178C)
 
-**Key GxP Standards:**
-- AS9100D
-- DO-178C (Software)
-- DO-254 (Hardware)
-
 **Primary Regulatory References in Templates:**
 
 | Standard | Description |
@@ -507,11 +480,6 @@ Reference guide for the regulatory standards and frameworks used in QAtrial's te
 ### Chemical / Environmental (chemical_env)
 
 **Risk Taxonomy:** FMEA
-
-**Key GxP Standards:**
-- GLP
-- REACH
-- CLP
 
 **Primary Regulatory References in Templates:**
 
@@ -790,13 +758,169 @@ Reference guide for the regulatory standards and frameworks used in QAtrial's te
 
 ---
 
-## 4. v2.0.0 Compliance Improvements
+## 4. Compliance Starter Packs
+
+QAtrial provides 4 pre-configured compliance starter packs that bundle a regulatory framework into a one-click wizard setup:
+
+### FDA Software Validation (GAMP 5)
+
+| Attribute | Value |
+|-----------|-------|
+| **Target Audience** | Software/IT teams validating systems under FDA oversight |
+| **Country** | US |
+| **Vertical** | Software and IT (GAMP/CSV) |
+| **Project Type** | Validation |
+| **Modules** | Audit Trail, Electronic Signatures, Data Integrity, Change Control, Validation/CSV, Access Control, Document Control |
+| **Key Standards** | 21 CFR Part 11, EU Annex 11, GAMP 5 2nd Edition |
+
+**Use case:** Validating a computerised system (LIMS, ERP, MES, QMS) per FDA expectations. Generates requirements covering Part 11 electronic records, GAMP 5 Category 4/5 validation, audit trail, and access control.
+
+---
+
+### EU MDR Medical Device QMS
+
+| Attribute | Value |
+|-----------|-------|
+| **Target Audience** | Medical device manufacturers establishing or maintaining QMS |
+| **Country** | DE (EU base templates also loaded) |
+| **Vertical** | Medical Devices |
+| **Project Type** | Quality System |
+| **Modules** | Audit Trail, Electronic Signatures, Risk Management, CAPA, Deviation Management, Supplier Qualification, Complaint Handling, Document Control, Training |
+| **Key Standards** | ISO 13485, ISO 14971, EU MDR 2017/745, IEC 62304, IEC 62366 |
+
+**Use case:** Setting up a quality management system for CE-marked medical devices. Generates requirements for design controls, risk management (ISO 14971), post-market surveillance, and full QMS lifecycle.
+
+---
+
+### FDA GMP Pharmaceutical Quality
+
+| Attribute | Value |
+|-----------|-------|
+| **Target Audience** | Pharmaceutical manufacturers establishing cGMP compliance |
+| **Country** | US |
+| **Vertical** | Pharmaceuticals |
+| **Project Type** | Quality System |
+| **Modules** | Audit Trail, Electronic Signatures, Data Integrity, Change Control, CAPA, Deviation Management, Training, Supplier Qualification, Document Control, Validation/CSV |
+| **Key Standards** | 21 CFR 210/211, ICH Q7, ICH Q10, 21 CFR Part 11, GAMP 5 |
+
+**Use case:** Establishing a pharmaceutical quality system meeting FDA cGMP expectations. Covers production controls, laboratory controls, packaging and labeling, CAPA, and supplier qualification.
+
+---
+
+### ISO 27001 + GDPR Compliance
+
+| Attribute | Value |
+|-----------|-------|
+| **Target Audience** | IT/software teams establishing information security and privacy compliance |
+| **Country** | DE (EU base templates also loaded) |
+| **Vertical** | Software and IT (GAMP/CSV) |
+| **Project Type** | Compliance |
+| **Modules** | Audit Trail, Access Control, Data Integrity, Change Control, Risk Management, Document Control, Backup and Disaster Recovery |
+| **Key Standards** | ISO 27001, GDPR (EU 2016/679), SOC 2, NIST CSF |
+
+**Use case:** Achieving ISO 27001 certification and GDPR compliance. Generates requirements for information security controls, privacy impact assessments, data processing records, incident response, and business continuity.
+
+---
+
+## 5. Validation Package
+
+QAtrial includes a complete validation documentation package in `docs/validation/` suitable for regulatory inspection and audit purposes. These documents support IQ/OQ/PQ qualification of QAtrial as a GxP computerised system.
+
+### Document Overview
+
+| Document | File | Purpose |
+|----------|------|---------|
+| **Installation Qualification (IQ)** | `docs/validation/IQ.md` | Verifies that QAtrial is correctly installed and configured |
+| **Operational Qualification (OQ)** | `docs/validation/OQ.md` | Verifies that QAtrial functions correctly per its specifications |
+| **Performance Qualification (PQ)** | `docs/validation/PQ.md` | Template for customer-specific validation in the production environment |
+| **Compliance Statement** | `docs/validation/Compliance-Statement.md` | Maps QAtrial features to regulatory requirements |
+| **Traceability Matrix** | `docs/validation/Traceability-Matrix.md` | Maps regulatory requirements to QAtrial features and test IDs |
+
+### Installation Qualification (IQ) -- 9 Test Steps
+
+The IQ protocol verifies:
+1. Server starts successfully on the configured port
+2. PostgreSQL database is accessible and schema is applied
+3. Frontend application loads in a browser
+4. User registration creates an account, organization, and workspace
+5. User login returns valid JWT tokens
+6. File storage directory is writable
+7. Theme toggle works (light/dark)
+8. Language switching works
+9. Static assets are served correctly in production mode
+
+### Operational Qualification (OQ) -- 18 Test Steps
+
+The OQ protocol verifies:
+1. Project setup wizard completes all 7 steps
+2. Requirement CRUD (create, read, update, delete) with auto seqId
+3. Test CRUD with requirement linking
+4. Traceability matrix shows correct links
+5. AI test generation produces valid results
+6. Electronic signature with re-authentication
+7. Evidence attachment and completeness tracking
+8. CSV export produces valid files
+9. CSV import with column mapping
+10. Design control (change control for strict verticals)
+11. ISO 13485 template loading
+12. CAPA lifecycle enforcement
+13. Audit mode (read-only link generation and access)
+14. RBAC (permission enforcement across 5 roles)
+15. Audit trail completeness and export
+16. Dashboard readiness score calculation
+17. Risk matrix display and classification
+18. Gap analysis execution
+
+### Performance Qualification (PQ) -- Template
+
+The PQ document is a template with blanks for:
+- Customer environment details
+- Customer-specific test scenarios
+- Performance criteria (response times, concurrent users)
+- Data migration validation
+- Integration verification (Jira, GitHub, SSO)
+
+### Compliance Statement
+
+The Compliance Statement maps QAtrial features to three regulatory frameworks:
+
+**21 CFR Part 11 -- Electronic Records and Electronic Signatures (15 sections):**
+- 11.10(a) through 11.10(k) -- System validation, record protection, audit trail, access control, etc.
+- 11.50 -- Signature manifestations
+- 11.70 -- Signature/record linking
+- 11.100 -- General requirements for electronic signatures
+- 11.200 -- Electronic signature components and controls
+
+**EU Annex 11 -- Computerised Systems (17 sections):**
+- Sections 1-17 covering risk management, personnel, suppliers, data, accuracy checks, storage, printouts, audit trails, change management, incident management, electronic signatures, batch release, archiving, and business continuity
+
+**GAMP 5 -- Category 4 (Configured Products):**
+- Covers the risk-based approach, specification, configuration management, testing, and release
+
+### Traceability Matrix
+
+The Traceability Matrix maps **75 regulatory requirements** across 6 standards to:
+- QAtrial features that implement or support each requirement
+- IQ/OQ/PQ test step IDs that verify compliance
+- Implementation status (Supported / Partial / Customer Responsibility)
+
+Standards covered:
+1. 21 CFR Part 11
+2. EU Annex 11
+3. GAMP 5
+4. ISO 13485
+5. ISO 14971
+6. ICH Q10
+
+---
+
+## 6. Compliance Improvements
 
 ### Real Signature Verification
 
-QAtrial v2.0.0 introduces proper identity-based electronic signatures:
+QAtrial implements proper identity-based electronic signatures:
 
-- **Real user identity:** Signatures now pull the authenticated user's name, role, and ID from `useAuthStore`, replacing placeholder values
+- **Real user identity:** Signatures pull the authenticated user's name, role, and ID from `useAuthStore`, replacing placeholder values
 - **Password re-authentication:** Users must re-enter their password at the point of signing, with a 15-minute validity window per 21 CFR Part 11.200(a)
 - **Non-repudiation:** Each signature is bound to a verified user identity, supporting 21 CFR Part 11.70 non-repudiation requirements
 - **Warning on unauthenticated signing:** The system warns when no user is logged in, preventing anonymous signatures
@@ -808,7 +932,7 @@ These improvements strengthen compliance with:
 
 ### Audit Auto-Logging
 
-All requirement and test CRUD operations now automatically generate audit trail entries with the real user identity:
+All requirement and test CRUD operations automatically generate audit trail entries with the real user identity:
 
 - **No manual logging required:** Create, update, delete, status change, link, and unlink operations are automatically captured
 - **Real user attribution:** Every audit entry includes the authenticated user's name, role, and ID
@@ -823,7 +947,7 @@ This addresses:
 
 ### CAPA Lifecycle
 
-The CAPA system now implements a full lifecycle with formal status tracking:
+The CAPA system implements a full lifecycle with formal status tracking:
 
 ```
 open --> investigation --> in_progress --> verification --> resolved --> closed
@@ -834,6 +958,32 @@ Each status transition is logged in the audit trail. This structured lifecycle s
 - ISO 13485 Section 8.5.2/8.5.3 -- Corrective and preventive action with documented effectiveness
 - ICH Q10 Section 3.2 -- CAPA as part of the pharmaceutical quality system
 - EU GMP Chapter 1.4 -- Quality risk management and CAPA
+
+### Advanced RBAC (5 Roles)
+
+The 5-role RBAC model with granular permissions supports:
+
+| Permission | Regulatory Basis |
+|------------|-----------------|
+| Segregation of duties (author vs. approver) | 21 CFR 11.10(d), EU Annex 11 Section 12 |
+| Read-only auditor access | Audit and inspection access requirements |
+| Reviewer role (approve without edit) | Approval workflow requirements per GxP |
+| Admin-only configuration | System administration controls per 21 CFR 11.10(d) |
+
+### Audit Mode (Read-Only Links)
+
+The audit mode feature supports regulatory inspections by providing:
+- Time-limited access (24h/72h/7d) aligned with typical audit durations
+- No login required, reducing barriers for external auditors
+- Complete read-only view of all compliance-relevant data
+- Non-modifiable access that maintains data integrity during review
+
+### Webhook Notifications
+
+Webhook event dispatch supports quality system integration by:
+- Providing real-time notifications of quality events (test failures, CAPA status changes, approvals)
+- Supporting integration with external quality management systems
+- HMAC signing ensures payload integrity and authenticity
 
 ### Aerospace Vertical References
 

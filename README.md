@@ -1,6 +1,6 @@
 # QAtrial — Regulated Quality Workspace
 
-A country-aware, GxP-aware, AI-assisted quality and validation platform for regulated industries. Inspired by IBM DOORS, extended with industry verticals, AI compliance co-pilot, and audit-ready reporting.
+A country-aware, GxP-aware, AI-assisted quality and validation platform for regulated industries. Inspired by IBM DOORS, extended with industry verticals, AI compliance co-pilot, compliance starter packs, audit mode, Docker deployment, SSO, webhooks, Jira/GitHub integrations, and audit-ready validation documentation.
 
 ## Core Model
 
@@ -16,6 +16,8 @@ Country (jurisdiction) x Vertical (domain) x Project Type (execution) x Modules 
 - Status tracking (Draft/Active/Closed for reqs, Not Run/Passed/Failed for tests)
 - Enriched metadata: tags, regulatory references, risk level, evidence hints
 - Sortable, searchable tables with TanStack Table
+- Excel/CSV import with 3-step wizard (upload, map columns, import)
+- CSV export (requirements, tests, all) with UTF-8 BOM
 
 ### Industry Verticals (10 GxP domains)
 | Vertical | Standards |
@@ -37,6 +39,17 @@ Audit Trail, Electronic Signatures, Data Integrity (ALCOA+), Change Control, CAP
 ### Country-Specific Templates (14 countries + EU-wide)
 US, Germany, UK, France, Japan, South Korea, Canada, Mexico, China, India, Italy, Netherlands, Spain + EU-wide base. 37 countries supported in the setup wizard. Each with regulatory requirements and tests referencing local standards and authorities.
 
+### Compliance Starter Packs (4 packs)
+
+One-click setup for common regulatory frameworks via the wizard's Step 0:
+
+| Pack | Country | Vertical | Modules |
+|------|---------|----------|---------|
+| FDA Software Validation (GAMP 5) | US | Software/IT | 7 modules (Part 11, CSV, audit trail, e-sig, etc.) |
+| EU MDR Medical Device QMS | EU/DE | Medical Devices | 9 modules (risk, CAPA, supplier, training, etc.) |
+| FDA GMP Pharmaceutical Quality | US | Pharma | 10 modules (cGMP, data integrity, change control, etc.) |
+| ISO 27001 + GDPR Compliance | EU/DE | Software/IT | 7 modules (access control, risk, backup, etc.) |
+
 ### AI Compliance Co-Pilot
 - **Test Case Generator**: Auto-generate 4-6 test cases from a requirement, context-aware (country, vertical, standards, risk level)
 - **Risk Classification**: AI proposes severity/likelihood using vertical-specific taxonomies (ISO 14971, ICH Q9, GAMP 5)
@@ -44,8 +57,18 @@ US, Germany, UK, France, Japan, South Korea, Canada, Mexico, China, India, Italy
 - **CAPA Suggestions**: AI-powered root cause analysis and corrective action proposals for failed tests
 - **Executive Brief**: One-click C-level compliance summary
 - **Validation Summary Report (VSR)**: AI-generated 7-section audit-ready report with PDF export
+- **QMSR Gap Analysis**: Medical device quality system regulation gap analysis
+- **Requirement Extraction**: AI-assisted extraction of requirements from source documents
+- **Quality Check**: Requirement quality analysis detecting vagueness, untestability, ambiguity, incompleteness, duplicate risk, and missing acceptance criteria
 - Multi-provider support: Anthropic, OpenAI-compatible (OpenRouter, Ollama, etc.)
-- Server-side proxy mode for production deployments (keeps API keys secure)
+- Server-side proxy mode (`/api/ai/complete`) for production deployments (keeps API keys secure)
+
+### Audit Mode (Read-Only Shareable Links)
+- Admin generates time-limited shareable links (24h / 72h / 7d expiry)
+- Auditors access `/audit/{token}` -- no login required
+- 7-tab read-only view: Overview, Requirements, Tests, Traceability, Evidence, Audit Trail, Signatures
+- Print and Download Report buttons
+- Amber "Read-Only" banner with expiry countdown
 
 ### 7 Dashboard Views
 1. **Overview**: Coverage metrics, status charts, traceability matrix, orphaned items
@@ -55,6 +78,13 @@ US, Germany, UK, France, Japan, South Korea, Canada, Mexico, China, India, Italy
 5. **CAPA**: Failed test funnel with AI corrective action suggestions
 6. **Trends**: Status distributions, risk distribution, coverage by category
 7. **Portfolio**: Multi-project overview with readiness scores
+
+### Server-Side Dashboards
+- `GET /api/dashboard/:projectId/readiness` -- weighted compliance score
+- `GET /api/dashboard/:projectId/missing-evidence` -- requirements/tests without evidence
+- `GET /api/dashboard/:projectId/approval-status` -- counts by entity type and status
+- `GET /api/dashboard/:projectId/capa-aging` -- open CAPAs with aging buckets (0-7d, 7-30d, 30-90d, 90d+)
+- `GET /api/dashboard/:projectId/risk-summary` -- risk level counts + matrix data
 
 ### Report Generation
 - Validation Summary Report (VSR) -- 7-section audit-ready report
@@ -70,34 +100,77 @@ US, Germany, UK, France, Japan, South Korea, Canada, Mexico, China, India, Italy
 - **Risk Assessments**: Persisted risk assessment entities with full lifecycle and audit trail
 - **CAPA Records**: Durable CAPA records with lifecycle states (open -> investigation -> in_progress -> verification -> resolved -> closed)
 
-### Authentication & RBAC
+### Authentication, RBAC & SSO
 - User registration and login with JWT-based authentication (24h access tokens + 7d refresh tokens)
 - Server-side password hashing with bcrypt (12 rounds)
-- 3 backend roles: Admin, Editor, Viewer (server-enforced via middleware)
-- 5 client-side roles: Admin, QA Manager, QA Engineer, Auditor (read-only), Reviewer
-- Role-based permission matrix for all operations
+- **5 RBAC roles** with permission matrix:
+
+| Role | View | Edit | Approve | Admin |
+|------|------|------|---------|-------|
+| admin | Yes | Yes | Yes | Yes |
+| qa_manager | Yes | Yes | Yes | No |
+| qa_engineer | Yes | Yes | No | No |
+| auditor | Yes | No | No | No |
+| reviewer | Yes | No | Yes | No |
+
+- `requirePermission()` middleware for granular access control
 - Signature verification with password re-authentication
 - Session management with configurable timeouts
 - Organization and workspace scoping for multi-tenant isolation
+- **SSO (OIDC)**: Sign in with Okta, Azure AD/Entra ID, Auth0, Keycloak, or Google Workspace. Auto-provisioning on first login.
+
+### Webhooks
+- 14 events dispatched: requirement.created/updated/deleted, test.created/updated/failed, capa.created/status_changed, approval.requested/approved/rejected, signature.created, evidence.uploaded
+- HMAC-SHA256 signing for payload verification
+- CRUD + test endpoint for webhook management
+- Settings UI with event selector and test button
+
+### Integrations
+- **Jira**: Connect to Jira Cloud, bidirectional sync (requirement to issue), import issues as requirements
+- **GitHub**: Connect to repository, link PRs to requirements, import CI test results from GitHub Actions
+- Tabbed Settings page: AI Providers, Webhooks, Integrations, SSO
+
+### Docker Deployment
+- Multi-stage `Dockerfile` (frontend build, server build, slim runtime)
+- `docker-compose.yml` with app + PostgreSQL 16 services
+- Health checks and named volumes for data persistence
+- Static file serving in production mode
+
+### Validation Package (IQ/OQ/PQ)
+5 validation documents in `docs/validation/`:
+
+| Document | Purpose |
+|----------|---------|
+| IQ (Installation Qualification) | 9 test steps verifying correct installation |
+| OQ (Operational Qualification) | 18 test steps verifying correct operation |
+| PQ (Performance Qualification) | Template for customer-specific validation |
+| Compliance Statement | 21 CFR Part 11 (15 sections) + EU Annex 11 (17 sections) + GAMP 5 Cat 4 alignment |
+| Traceability Matrix | 75 regulatory requirements mapped to QAtrial features + IQ/OQ/PQ test IDs |
 
 ### Backend Server (v3.0.0)
 - **Hono** TypeScript-first HTTP framework on Node.js
-- **PostgreSQL** database via **Prisma ORM v7** (10 models)
+- **PostgreSQL** database via **Prisma ORM v7** (15 models)
 - **JWT authentication** with access/refresh token pair
-- **REST API** with 30+ endpoints across 8 route groups
+- **REST API** with 60+ endpoints across 21 route groups
 - **Append-only audit log** in PostgreSQL with CSV export
 - **CAPA lifecycle enforcement** with valid status transition checks
 - **Auto-generated sequential IDs** (REQ-NNN, TST-NNN) per project
 - **Multi-user, multi-organization** support with workspace scoping
+- **Webhook dispatch** with HMAC signing and retry tracking
+- **SSO (OIDC)** with auto-provisioning
+- **Docker** production deployment with static file serving
 
 ### AI System Enhancements
 - **JSON Schema Validation**: All AI responses validated against expected schemas with automatic retry/repair
 - **Provenance Tracking**: Full audit trail of AI generations (model, parameters, tokens, timestamp, reviewer)
 - **Re-run History**: Complete history of all AI-generated artifacts with comparison capability
-- **Server Proxy Mode**: Optional server-side AI proxy (set `VITE_AI_PROXY_URL`) to keep API keys off the client
+- **Server Proxy Mode**: Server-side AI proxy (`POST /api/ai/complete`) keeps API keys off the client
+- **9 AI prompt templates**: Test gen, risk classification, gap analysis, CAPA suggestion, executive brief, VSR, QMSR gap, requirement extraction, quality check
 
 ### External Connectors
-- Connector interface for JIRA, Azure DevOps, GitHub, GitLab, Veeva Vault, MasterControl, TrackWise, SharePoint, Confluence
+- **Jira Cloud**: Bidirectional sync with REST API v3
+- **GitHub**: PR linking and CI test result import via REST API v3
+- Connector interface for Azure DevOps, GitLab, Veeva Vault, MasterControl, TrackWise, SharePoint, Confluence
 - Field mapping configuration for bidirectional sync
 - Sync status tracking and conflict resolution
 
@@ -128,6 +201,8 @@ Light and dark mode with full design system (CSS custom properties, Tailwind tok
 | **PostgreSQL** | **Relational Database** |
 | **JSON Web Tokens** | **Authentication (access + refresh tokens)** |
 | **bcryptjs** | **Password Hashing** |
+| **Docker** | **Container Deployment** |
+| **OIDC** | **SSO Authentication** |
 
 ## Project Structure
 
@@ -136,13 +211,14 @@ QAtrial/
 ├── server/                          # Backend server
 │   ├── index.ts                     # Hono server entry point (port 3001)
 │   ├── prisma/
-│   │   ├── schema.prisma            # PostgreSQL schema (10 models)
+│   │   ├── schema.prisma            # PostgreSQL schema (15 models)
 │   │   └── prisma.config.ts         # Prisma 7 migration config
 │   ├── generated/prisma/            # Generated Prisma client
 │   ├── middleware/
-│   │   └── auth.ts                  # JWT auth + RBAC middleware
+│   │   └── auth.ts                  # JWT auth + RBAC + permission middleware
 │   ├── services/
-│   │   └── audit.service.ts         # Append-only audit logging
+│   │   ├── audit.service.ts         # Append-only audit logging
+│   │   └── webhook.service.ts       # Webhook dispatch with HMAC signing
 │   └── routes/
 │       ├── auth.ts                  # Register, login, refresh, me
 │       ├── projects.ts              # Project CRUD
@@ -151,13 +227,37 @@ QAtrial/
 │       ├── capa.ts                  # CAPA CRUD + lifecycle enforcement
 │       ├── risks.ts                 # Risk CRUD + auto scoring
 │       ├── audit.ts                 # Read-only audit queries + CSV export
-│       └── users.ts                 # User management (admin)
+│       ├── users.ts                 # User management (admin)
+│       ├── evidence.ts              # Evidence attachment endpoints
+│       ├── approvals.ts             # Approval workflow endpoints
+│       ├── signatures.ts            # Electronic signature endpoints
+│       ├── export.ts                # CSV/JSON export
+│       ├── import.ts                # CSV import with auto-detect + mapping
+│       ├── ai.ts                    # Server-side AI proxy
+│       ├── sso.ts                   # OIDC SSO (discovery, redirect, callback)
+│       ├── webhooks.ts              # Webhook CRUD + test endpoint
+│       ├── auditmode.ts             # Read-only audit mode link generation
+│       ├── dashboard.ts             # Server-side dashboard analytics
+│       └── integrations/
+│           ├── jira.ts              # Jira Cloud bidirectional sync
+│           └── github.ts            # GitHub PR linking + CI import
 ├── src/
 │   ├── ai/                          # AI system
-│   │   ├── types.ts, provider.ts, client.ts
-│   │   └── prompts/                 # 6 AI prompt templates
+│   │   ├── types.ts, provider.ts, client.ts, validation.ts, proxy.ts
+│   │   └── prompts/                 # 9 AI prompt templates
+│   │       ├── generateTests.ts     # Test case generation
+│   │       ├── riskClassification.ts # Risk severity/likelihood
+│   │       ├── gapAnalysis.ts       # Regulatory gap analysis
+│   │       ├── executiveBrief.ts    # Executive compliance brief
+│   │       ├── capaSuggestion.ts    # CAPA suggestion
+│   │       ├── vsrReport.ts         # Validation Summary Report
+│   │       ├── qmsrGap.ts           # QMSR gap analysis
+│   │       ├── reqExtraction.ts     # Requirement extraction
+│   │       └── qualityCheck.ts      # Requirement quality check
 │   ├── templates/                   # Template composition
 │   │   ├── types.ts, registry.ts, composer.ts
+│   │   ├── packs/                   # 4 Compliance Starter Packs
+│   │   │   └── index.ts
 │   │   ├── verticals/               # 5 industry vertical templates
 │   │   ├── modules/                 # 15 quality module definitions
 │   │   └── regions/                 # 6 country + EU base + overlays
@@ -170,27 +270,51 @@ QAtrial/
 │   ├── types/                       # All TypeScript types (50+ types)
 │   ├── components/
 │   │   ├── layout/                  # AppShell
-│   │   ├── wizard/                  # 6-step setup wizard
+│   │   ├── wizard/                  # 7-step setup wizard (Step 0: compliance pack)
 │   │   ├── requirements/            # Requirements table + modal
 │   │   ├── tests/                   # Tests table + modal
 │   │   ├── dashboard/               # 14 dashboard components
-│   │   ├── ai/                      # AI panels (test gen, risk, settings)
+│   │   ├── ai/                      # AI panels (test gen, risk, settings, quality check)
 │   │   ├── reports/                 # Report generator + preview
-│   │   ├── audit/                   # Audit trail + signature modal
+│   │   ├── audit/                   # Audit trail, signature modal, audit mode, share link
+│   │   ├── import/                  # Import wizard + export panel
+│   │   ├── settings/                # Tabbed settings (AI, webhooks, integrations, SSO)
 │   │   └── shared/                  # Shared components
 │   └── public/locales/              # 12 complete translation files
 ├── docs/                            # Documentation
+│   └── validation/                  # IQ, OQ, PQ, Compliance Statement, Traceability Matrix
+├── Dockerfile                       # Multi-stage production build
+├── docker-compose.yml               # App + PostgreSQL deployment
+├── .env.example                     # All configuration variables
 ├── package.json
 ├── tsconfig.json
 ├── vite.config.ts                   # Build config with manual chunks
 └── vitest.config.ts                 # Test runner configuration
 ```
 
-**100+ TypeScript source files, 20,000+ lines of code, 12 translation files (425+ keys each), 10 database models, 30+ API endpoints**
+**130+ TypeScript source files, 25,000+ lines of code, 12 translation files (425+ keys each), 15 database models, 60+ API endpoints, 21 route files, 9 AI prompt templates, 5 validation documents**
 
 ## Installation
 
-### Frontend Only (Demo/Standalone Mode)
+### Option 1: Docker (Recommended for Production)
+
+```bash
+git clone https://github.com/MeyerThorsten/QAtrial.git
+cd QAtrial
+
+# Copy environment template and configure
+cp .env.example .env
+# Edit .env to set JWT_SECRET, AI provider keys, SSO config, etc.
+
+# Start QAtrial + PostgreSQL
+docker-compose up
+
+# Access at http://localhost:3001
+```
+
+Docker Compose starts the app and a PostgreSQL 16 database with health checks, named volumes for persistent data and uploads.
+
+### Option 2: Frontend Only (Demo/Standalone Mode)
 
 ```bash
 git clone https://github.com/MeyerThorsten/QAtrial.git
@@ -201,7 +325,7 @@ npm run dev
 
 The frontend dev server starts on `http://localhost:5173`. In this mode all data is stored in `localStorage`.
 
-### Full Stack (Frontend + Backend)
+### Option 3: Full Stack (Frontend + Backend, Local Development)
 
 ```bash
 git clone https://github.com/MeyerThorsten/QAtrial.git
@@ -242,8 +366,8 @@ npm run server:dev
 npm run server
 
 # Verify the server is running
-curl http://localhost:3001/api/health
-# => {"status":"ok","version":"3.0.0"}
+curl http://localhost:3001/api/status
+# => {"status":"ok","version":"3.0.0","uptime":...,"database":"connected"}
 ```
 
 **Available backend scripts:**
@@ -257,17 +381,27 @@ curl http://localhost:3001/api/health
 | `npm run db:push` | Push schema directly to database |
 | `npm run db:studio` | Open Prisma Studio GUI for database browsing |
 
-**Environment variables:**
+**Environment variables (see `.env.example` for full list):**
 
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `DATABASE_URL` | `postgresql://localhost:5432/qatrial` | PostgreSQL connection string |
 | `JWT_SECRET` | `qatrial-dev-secret-change-in-production` | Secret for signing JWT tokens |
 | `VITE_API_URL` | `http://localhost:3001/api` | API base URL for the frontend |
-| `VITE_AI_PROXY_URL` | (none) | Optional AI proxy endpoint |
+| `AI_PROVIDER_TYPE` | (none) | Server-side AI provider: `anthropic` or `openai` |
+| `AI_PROVIDER_URL` | (none) | Server-side AI provider base URL |
+| `AI_PROVIDER_KEY` | (none) | Server-side AI provider API key |
+| `AI_PROVIDER_MODEL` | (none) | Server-side AI provider model name |
+| `SSO_ENABLED` | `false` | Enable OIDC SSO |
+| `SSO_ISSUER_URL` | (none) | OIDC issuer URL (e.g., Okta, Azure AD) |
+| `SSO_CLIENT_ID` | (none) | OIDC client ID |
+| `SSO_CLIENT_SECRET` | (none) | OIDC client secret |
+| `SSO_CALLBACK_URL` | `http://localhost:3001/api/auth/sso/callback` | OIDC callback URL |
+| `SSO_DEFAULT_ROLE` | `qa_engineer` | Default role for SSO-provisioned users |
 
-## Setup Wizard (6 steps)
+## Setup Wizard (7 steps)
 
+0. **Compliance Pack** -- Select a pre-configured compliance starter pack (FDA CSV, EU MDR, FDA GMP, ISO 27001+GDPR) or "Start from Scratch"
 1. **Country** -- Select jurisdiction (37 countries)
 2. **Industry Vertical** -- Select GxP domain (optional)
 3. **Metadata** -- Project name, description, owner, version
@@ -277,11 +411,12 @@ curl http://localhost:3001/api/health
 
 ## AI Provider Configuration
 
-Go to Settings (gear icon) to configure LLM providers:
+Go to Settings > AI Providers tab to configure LLM providers:
 - Anthropic (Claude)
 - OpenAI-compatible (GPT-4o, OpenRouter, Ollama, etc.)
 - Multiple providers with purpose-scoped routing
 - Token usage tracking
+- Server-side proxy mode for secure API key management
 
 ## Documentation
 

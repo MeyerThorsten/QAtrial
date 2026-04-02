@@ -8,18 +8,22 @@ Complete end-user guide for QAtrial, the regulated quality workspace for GxP-com
 
 1. [Getting Started](#1-getting-started)
 2. [Authentication & User Management](#2-authentication--user-management)
-3. [Project Setup Wizard](#3-project-setup-wizard-6-steps)
+3. [Project Setup Wizard (7 Steps)](#3-project-setup-wizard-7-steps)
 4. [Requirements Management](#4-requirements-management)
 5. [Test Management](#5-test-management)
-6. [Dashboard and Analytics](#6-dashboard-and-analytics)
-7. [AI Features](#7-ai-features)
-8. [Reports](#8-reports)
-9. [Evidence Management](#9-evidence-management)
-10. [CAPA Workflow](#10-capa-workflow)
-11. [Compliance Features](#11-compliance-features)
-12. [Connector Setup](#12-connector-setup)
-13. [Data Management](#13-data-management)
-14. [Demo Projects](#14-demo-projects)
+6. [Excel/CSV Import and Export](#6-excelcsv-import-and-export)
+7. [Dashboard and Analytics](#7-dashboard-and-analytics)
+8. [AI Features](#8-ai-features)
+9. [Reports](#9-reports)
+10. [Evidence Management](#10-evidence-management)
+11. [CAPA Workflow](#11-capa-workflow)
+12. [Compliance Features](#12-compliance-features)
+13. [Audit Mode (Read-Only Shareable Links)](#13-audit-mode-read-only-shareable-links)
+14. [Settings](#14-settings)
+15. [Connector Setup](#15-connector-setup)
+16. [Data Management](#16-data-management)
+17. [Docker Deployment (Admin)](#17-docker-deployment-admin)
+18. [Demo Projects](#18-demo-projects)
 
 ---
 
@@ -30,10 +34,11 @@ Complete end-user guide for QAtrial, the regulated quality workspace for GxP-com
 | Component | Minimum |
 |-----------|---------|
 | Browser | Chrome 90+, Firefox 90+, Safari 15+, Edge 90+ |
-| Node.js | 18.0 or later |
-| npm | 9.0 or later |
+| Node.js | 18.0 or later (for local development) |
+| npm | 9.0 or later (for local development) |
 | Screen | 1280x720 minimum (1920x1080 recommended) |
 | PostgreSQL | 14.0 or later (required for backend mode) |
+| Docker | 20.10+ (optional, for Docker deployment) |
 
 ### Installation and Running (Frontend Only / Demo Mode)
 
@@ -79,6 +84,24 @@ npm run dev
 
 The backend API runs on `http://localhost:3001`. The frontend connects to it automatically when the `VITE_API_URL` environment variable is set (defaults to `http://localhost:3001/api`).
 
+### Installation and Running (Docker)
+
+For production or quick local deployment without installing PostgreSQL:
+
+```bash
+git clone https://github.com/MeyerThorsten/QAtrial.git
+cd QAtrial
+
+# Copy and configure environment
+cp .env.example .env
+# Edit .env to set JWT_SECRET, AI keys, SSO config
+
+# Start QAtrial + PostgreSQL
+docker-compose up
+```
+
+QAtrial is accessible at `http://localhost:3001`. PostgreSQL is managed automatically.
+
 ### Environment Variables
 
 | Variable | Default | Description |
@@ -86,7 +109,16 @@ The backend API runs on `http://localhost:3001`. The frontend connects to it aut
 | `DATABASE_URL` | `postgresql://localhost:5432/qatrial` | PostgreSQL connection string |
 | `JWT_SECRET` | `qatrial-dev-secret-change-in-production` | Secret key for signing JWT tokens. **Change this in production.** |
 | `VITE_API_URL` | `http://localhost:3001/api` | API base URL used by the frontend to connect to the backend |
-| `VITE_AI_PROXY_URL` | (none) | Optional server-side AI proxy endpoint for keeping API keys secure |
+| `AI_PROVIDER_TYPE` | (none) | Server-side AI provider type: `anthropic` or `openai` |
+| `AI_PROVIDER_URL` | (none) | Server-side AI provider base URL |
+| `AI_PROVIDER_KEY` | (none) | Server-side AI provider API key (stays on server) |
+| `AI_PROVIDER_MODEL` | (none) | Server-side AI provider model name |
+| `SSO_ENABLED` | `false` | Enable OIDC SSO login |
+| `SSO_ISSUER_URL` | (none) | OIDC issuer URL |
+| `SSO_CLIENT_ID` | (none) | OIDC client ID |
+| `SSO_CLIENT_SECRET` | (none) | OIDC client secret |
+| `SSO_CALLBACK_URL` | `http://localhost:3001/api/auth/sso/callback` | OIDC callback URL |
+| `SSO_DEFAULT_ROLE` | `qa_engineer` | Default role for auto-provisioned SSO users |
 
 ### First Launch Experience
 
@@ -95,7 +127,7 @@ When you open QAtrial for the first time, you are presented with a **login/regis
 The header bar shows:
 - **QAtrial** branding with the project name (once created)
 - Navigation tabs: Requirements, Tests, Evaluation (Dashboard), Reports
-- Toolbar: Audit Trail button, Settings (gear icon), Language Selector, Theme Toggle, New Project, Import/Export
+- Toolbar: Audit Trail button, Share Audit Link (admin), Settings (gear icon), Language Selector, Theme Toggle, New Project, Import/Export
 - User menu: Displays current user name and role, with login/logout options
 
 ### Language Selection
@@ -152,25 +184,35 @@ QAtrial supports two operating modes for authentication:
    - **Role**: Select your role (see below)
 3. Click **Register**
 
+### SSO Login (OIDC)
+
+When SSO is configured (see Settings > SSO), a **"Sign in with SSO"** button appears on the login screen.
+
+1. Click **Sign in with SSO**
+2. You are redirected to your identity provider (Okta, Azure AD, Auth0, Keycloak, Google Workspace)
+3. Authenticate with your corporate credentials
+4. You are redirected back to QAtrial with an active session
+5. On first SSO login, a QAtrial user account is auto-provisioned with the configured default role
+
+SSO is configured by the system administrator via environment variables. See [Section 14: Settings](#14-settings) for details.
+
 ### User Roles
 
-**Backend (API Mode) Roles:**
+QAtrial uses a 5-role RBAC model with a permission matrix:
 
-| Role | Permissions |
-|------|-------------|
-| **Admin** | Full access to all features, user management, invite users, change roles |
-| **Editor** | Create, edit, and delete requirements, tests, CAPA, risks. Cannot manage users. |
-| **Viewer** | Read-only access to all data. Cannot create or modify records. |
+| Role | View | Edit | Approve | Admin |
+|------|------|------|---------|-------|
+| **admin** | Yes | Yes | Yes | Yes |
+| **qa_manager** | Yes | Yes | Yes | No |
+| **qa_engineer** | Yes | Yes | No | No |
+| **auditor** | Yes | No | No | No |
+| **reviewer** | Yes | No | Yes | No |
 
-**Client-side Roles (localStorage Mode):**
-
-| Role | Permissions |
-|------|-------------|
-| **Admin** | Full access to all features, user management, system configuration |
-| **QA Manager** | Create, edit, and approve requirements and tests; generate reports; manage AI features |
-| **QA Engineer** | Create and edit requirements and tests; use AI features; cannot approve |
-| **Auditor** | Read-only access to all data; can view audit trails and generate reports |
-| **Reviewer** | Review and approve/reject records; apply electronic signatures |
+**Permission details:**
+- **View (canView)**: Read all data, view dashboards, view audit trails
+- **Edit (canEdit)**: Create, update, and delete requirements, tests, CAPA, risks
+- **Approve (canApprove)**: Apply electronic signatures, approve records, advance CAPA lifecycle
+- **Admin (canAdmin)**: Manage users, invite users, change roles, configure system settings, generate audit mode links, manage webhooks and integrations
 
 ### Logging In
 
@@ -190,7 +232,7 @@ QAtrial supports two operating modes for authentication:
 
 1. Navigate to **Settings** or the user management area
 2. Click **Invite User**
-3. Enter the new user's email and assign a role (Admin, Editor, or Viewer)
+3. Enter the new user's email and assign a role (admin, qa_manager, qa_engineer, auditor, or reviewer)
 4. The invited user can then register with that email
 
 ### Changing User Roles (API Mode, Admin Only)
@@ -207,9 +249,24 @@ When applying an electronic signature, you must re-enter your password. After su
 
 ---
 
-## 3. Project Setup Wizard (6 Steps)
+## 3. Project Setup Wizard (7 Steps)
 
 The Setup Wizard guides you through creating a new project with regulatory-aware templates. It appears automatically on first launch or when you click **New Project** (after confirming you want to discard existing data).
+
+### Step 0: Compliance Starter Pack
+
+The first step offers 4 pre-configured compliance starter packs for common regulatory frameworks:
+
+| Pack | What It Auto-Fills |
+|------|--------------------|
+| **FDA Software Validation (GAMP 5)** | US, Software/IT vertical, Validation project type, 7 modules (Part 11, CSV, audit trail, e-signatures, data integrity, change control, access control, document control) |
+| **EU MDR Medical Device QMS** | DE (EU), Medical Devices vertical, Quality System type, 9 modules (risk, CAPA, supplier, training, deviation, etc.) |
+| **FDA GMP Pharmaceutical Quality** | US, Pharma vertical, Quality System type, 10 modules (cGMP, data integrity, change control, CAPA, etc.) |
+| **ISO 27001 + GDPR Compliance** | DE (EU), Software/IT vertical, Compliance type, 7 modules (access control, risk, backup, data integrity, etc.) |
+
+Select a pack to auto-fill the country, vertical, project type, and module selections. You can then review and modify any setting in subsequent steps.
+
+Click **Start from Scratch** to skip this step and configure everything manually.
 
 ### Step 1: Country Selection
 
@@ -376,14 +433,15 @@ Requirements generated from templates include additional metadata fields:
 
 ### AI Features per Requirement
 
-Each requirement row provides two AI action buttons:
+Each requirement row provides three AI action buttons:
 
-1. **Generate Tests (AI):** Opens the Test Generation Panel to auto-generate test cases for this requirement. See [Section 7](#7-ai-features) for details.
-2. **Classify Risk (AI):** Opens the Risk Classification Panel to get an AI-proposed severity and likelihood rating. See [Section 7](#7-ai-features) for details.
+1. **Generate Tests (AI):** Opens the Test Generation Panel to auto-generate test cases for this requirement. See [Section 8](#8-ai-features) for details.
+2. **Classify Risk (AI):** Opens the Risk Classification Panel to get an AI-proposed severity and likelihood rating. See [Section 8](#8-ai-features) for details.
+3. **Quality Check (AI):** Opens the Quality Check Panel to analyze the requirement for vagueness, untestability, ambiguity, incompleteness, duplicate risk, and missing acceptance criteria.
 
 ### Signing/Approving Requirements
 
-Click the signature/shield icon on a requirement to open the Electronic Signature Modal. This records a formal signature with meaning (authored, reviewed, approved, verified, or rejected), reason, and authentication. See [Section 11](#11-compliance-features) for the full signature workflow.
+Click the signature/shield icon on a requirement to open the Electronic Signature Modal. This records a formal signature with meaning (authored, reviewed, approved, verified, or rejected), reason, and authentication. See [Section 12](#12-compliance-features) for the full signature workflow.
 
 ---
 
@@ -429,7 +487,51 @@ Each test row shows its linked requirements in a compact format. Click on a link
 
 ---
 
-## 6. Dashboard and Analytics
+## 6. Excel/CSV Import and Export
+
+### Importing Data (3-Step Wizard)
+
+QAtrial supports importing requirements and tests from CSV, TSV, and XLSX-as-CSV files.
+
+**Step 1: Upload**
+1. Navigate to the header toolbar and click **Import**
+2. The Import Wizard opens with a drag-and-drop file zone
+3. Drop your CSV/TSV file or click to browse
+4. The system auto-detects the delimiter (comma, semicolon, or tab)
+
+**Step 2: Map Columns**
+1. The wizard shows detected columns and sample rows
+2. For each column, select the corresponding QAtrial field (title, description, status, tags, risk level, regulatory ref)
+3. The system auto-suggests mappings based on header names (e.g., a column named "Title" maps to the title field)
+4. A preview of the first 3 mapped rows is shown for verification
+
+**Step 3: Review and Import**
+1. Select the entity type: Requirements or Tests
+2. Choose duplicate handling: Skip, Overwrite, or Create New
+3. Review the import summary
+4. Click **Import**
+5. A progress indicator shows the import status
+6. On completion, a result summary shows how many items were created, skipped, or overwritten
+7. All imports are logged in the audit trail
+
+The Import Wizard works in both standalone mode (writes directly to Zustand stores) and server mode (calls the API).
+
+### Exporting Data (CSV)
+
+1. Navigate to the header toolbar and click **Export**
+2. The Export Panel opens
+3. Select what to export:
+   - **Requirements** -- All requirements as CSV
+   - **Tests** -- All tests as CSV
+   - **All** -- Requirements and tests combined
+4. Click **Export**
+5. A UTF-8 BOM CSV file downloads immediately
+
+In server mode, the export is generated server-side via `GET /api/export/:projectId/csv?type=requirements|tests|all`.
+
+---
+
+## 7. Dashboard and Analytics
 
 Navigate to the **Evaluation** tab to access the dashboard. It contains seven sub-tabs:
 
@@ -467,6 +569,8 @@ Each metric has its own progress bar with color coding:
 - Red: Below 50%
 
 **Penalty:** If any requirement has a "critical" risk level, the overall score is penalized by 10 points.
+
+**Server-side dashboards:** In API mode, readiness scores and analytics are also available server-side via `GET /api/dashboard/:projectId/readiness`, with additional endpoints for missing evidence, approval status, CAPA aging, and risk summary.
 
 **Gap Analysis**
 
@@ -541,11 +645,11 @@ Note: This is an **enterprise feature**. The current version displays a placehol
 
 ---
 
-## 7. AI Features
+## 8. AI Features
 
 ### Configuring an LLM Provider
 
-Before using any AI feature, you must configure at least one LLM provider. Navigate to the **Settings** tab (gear icon in the header).
+Before using any AI feature, you must configure at least one LLM provider. Navigate to **Settings** > **AI Providers** tab.
 
 #### Anthropic (Claude)
 
@@ -580,6 +684,17 @@ Before using any AI feature, you must configure at least one LLM provider. Navig
 5. Enter the model name (e.g., `llama3.1`)
 6. Click **Save**
 
+#### Server-Side AI Proxy
+
+For production deployments, configure the AI provider via server environment variables instead of client-side settings. This keeps API keys secure on the server:
+
+1. Set `AI_PROVIDER_TYPE` to `anthropic` or `openai`
+2. Set `AI_PROVIDER_URL` to the provider's base URL
+3. Set `AI_PROVIDER_KEY` to your API key
+4. Set `AI_PROVIDER_MODEL` to the model name
+
+The server exposes `POST /api/ai/complete` which proxies LLM calls without exposing the API key to the browser.
+
 After saving, click the **lightning bolt** icon to test the connection. A green checkmark indicates success with latency information.
 
 ### Purpose-Scoped Routing Explained
@@ -595,6 +710,7 @@ Each provider can be assigned to one or more purposes:
 | Report Narrative | AI-written report sections (VSR, Executive Brief) |
 | Requirement Decomp | Breaking down requirements into sub-requirements |
 | CAPA | Corrective and preventive action suggestions |
+| Quality Check | Requirement quality analysis |
 
 **Routing algorithm:**
 1. For a given purpose, find all enabled providers whose purpose list includes that specific purpose
@@ -642,6 +758,21 @@ The **Purpose Routing** table on the Settings page shows which provider currentl
    - Model that generated the result
 5. Click **Accept** to save the risk level to the requirement, or **Reject** to discard
 
+### Using Quality Check
+
+1. Go to the **Requirements** tab
+2. Click the **sparkles icon** (Quality Check) on any requirement row
+3. The Quality Check Panel opens and analyzes the requirement
+4. Results show issue cards for detected problems:
+   - **Vague**: Requirement uses imprecise language
+   - **Untestable**: Requirement cannot be objectively tested
+   - **Ambiguous**: Requirement has multiple interpretations
+   - **Incomplete**: Requirement is missing information
+   - **Duplicate risk**: Requirement overlaps with existing ones
+   - **Missing criteria**: Requirement lacks acceptance criteria
+5. Each issue shows severity (error, warning, info) and a suggestion
+6. Click **Apply** on any suggestion to update the requirement text
+
 ### Running Gap Analysis
 
 1. Go to the **Evaluation** tab, then the **Compliance** sub-tab
@@ -672,7 +803,7 @@ Every AI-generated result includes a confidence score (0-100%):
 
 ---
 
-## 8. Reports
+## 9. Reports
 
 ### Available Report Types
 
@@ -707,7 +838,7 @@ For reports that include AI-generated content (VSR, Executive Brief, Submission 
 
 After generation, the report preview displays all sections in a formatted view. Use the **Download** button to save the report as an HTML file, or the **PDF** button to export as a PDF document. The filename includes the project name and date.
 
-### PDF Export (v2.0.0)
+### PDF Export
 
 The **PDF** button on the report preview generates a professional PDF document with:
 - **Cover page** with project name, version, date, and company information
@@ -715,17 +846,9 @@ The **PDF** button on the report preview generates a professional PDF document w
 - **Signature blocks** for formal sign-off (when e-signatures are enabled)
 - All report sections formatted for print
 
-The PDF export uses `src/lib/pdfExport.ts` (`exportReportAsPDF` function).
-
-### Report Formats
-
-Currently supported:
-- **HTML:** Fully styled, printable HTML document
-- **PDF:** Professional PDF with cover page, TOC, and signature blocks
-
 ---
 
-## 9. Evidence Management
+## 10. Evidence Management
 
 ### Overview
 
@@ -752,7 +875,7 @@ The **Evidence Score** on the dashboard shows the percentage of requirements mee
 
 ---
 
-## 10. CAPA Workflow
+## 11. CAPA Workflow
 
 ### Overview
 
@@ -795,7 +918,7 @@ open --> investigation --> in_progress --> verification --> resolved --> closed
 
 ---
 
-## 11. Compliance Features
+## 12. Compliance Features
 
 ### Electronic Signatures
 
@@ -888,11 +1011,133 @@ For all other verticals, change control starts with default (lenient) settings t
 
 ---
 
-## 12. Connector Setup
+## 13. Audit Mode (Read-Only Shareable Links)
 
 ### Overview
 
-QAtrial introduces a connector framework for integrating with external systems. Connectors allow you to import requirements from and export data to tools like Jira, Azure DevOps, or CSV files.
+Audit Mode allows administrators to generate time-limited, read-only links that auditors can use to review project data without logging in. This is designed for regulatory audits and external reviews.
+
+### Generating an Audit Link (Admin Only)
+
+1. Click the **Share Audit Link** button in the header bar (only visible to users with the admin role)
+2. Select an expiry duration:
+   - **24 hours** -- for day-of audit access
+   - **72 hours** -- for multi-day reviews
+   - **7 days** -- for extended audit periods
+3. Click **Generate Link**
+4. The system creates a time-limited JWT token and generates a URL
+5. Click **Copy** to copy the URL to your clipboard
+6. Share the URL with the auditor (via email, secure message, etc.)
+
+### Auditor Access (No Login Required)
+
+1. The auditor opens the shared URL (format: `/audit/{token}`)
+2. No login is required -- the token IS the authentication
+3. An amber **"Read-Only"** banner appears at the top with the expiry countdown
+4. The auditor sees a 7-tab read-only view:
+
+| Tab | Contents |
+|-----|----------|
+| **Overview** | Project summary, readiness score, key metrics |
+| **Requirements** | Full requirements list with metadata |
+| **Tests** | Full tests list with status and linked requirements |
+| **Traceability** | Requirement-to-test traceability matrix |
+| **Evidence** | Evidence completeness per requirement |
+| **Audit Trail** | Complete audit history |
+| **Signatures** | All electronic signatures with details |
+
+5. **Print** and **Download Report** buttons are available for offline review
+6. When the token expires, the page shows a graceful expiry message
+
+### API Endpoints
+
+- `POST /api/audit-mode/create` -- Admin generates a token (requires admin role)
+- `GET /api/audit-mode/:token/project` -- Read project data (no auth required)
+- `GET /api/audit-mode/:token/requirements` -- Read requirements (no auth required)
+- `GET /api/audit-mode/:token/tests` -- Read tests (no auth required)
+- Plus endpoints for traceability, evidence, audit trail, signatures, and report
+
+---
+
+## 14. Settings
+
+The Settings page is accessed via the **gear icon** in the header. It is organized into tabs:
+
+### AI Providers Tab
+
+Configure LLM providers for AI features. See [Section 8: AI Features](#8-ai-features) for detailed instructions on adding Anthropic, OpenRouter, and Ollama providers.
+
+- Add, edit, delete providers
+- Test connection with lightning bolt icon
+- Purpose routing table showing which provider handles each AI purpose
+- Token usage statistics
+
+### Webhooks Tab
+
+Configure webhooks to receive notifications when events occur in QAtrial.
+
+1. Click **Add Webhook**
+2. Enter a **Name** and **URL** (the endpoint that will receive POST requests)
+3. Optionally enter a **Secret** for HMAC-SHA256 payload signing
+4. Select **Events** to subscribe to:
+   - requirement.created, requirement.updated, requirement.deleted
+   - test.created, test.updated, test.failed
+   - capa.created, capa.status_changed
+   - approval.requested, approval.approved, approval.rejected
+   - signature.created
+   - evidence.uploaded
+5. Click **Save**
+6. Use the **Test** button to send a test payload to your endpoint
+
+Webhooks include an HMAC-SHA256 signature in the `X-QAtrial-Signature` header for payload verification.
+
+### Integrations Tab
+
+Configure connections to external systems.
+
+**Jira Cloud:**
+1. Click **Connect Jira**
+2. Enter your Jira **Base URL** (e.g., `https://yourcompany.atlassian.net`)
+3. Enter your Jira **Email** and **API Token**
+4. Enter the **Project Key** to sync with
+5. Click **Connect** -- the system validates the connection
+6. Once connected, you can:
+   - Sync requirements bidirectionally (QAtrial requirement to Jira issue)
+   - Import Jira issues as requirements
+   - View sync status
+
+**GitHub:**
+1. Click **Connect GitHub**
+2. Enter the **Repository** (format: `owner/repo`)
+3. Enter your **Personal Access Token**
+4. Click **Connect** -- the system validates the connection
+5. Once connected, you can:
+   - Link pull requests to requirements
+   - Import CI test results from GitHub Actions workflow runs
+   - View connection status
+
+### SSO Tab
+
+View and manage SSO (OIDC) configuration. SSO is configured via environment variables:
+
+| Variable | Description |
+|----------|-------------|
+| `SSO_ENABLED` | Set to `true` to enable SSO |
+| `SSO_ISSUER_URL` | Your identity provider's issuer URL |
+| `SSO_CLIENT_ID` | OIDC client ID |
+| `SSO_CLIENT_SECRET` | OIDC client secret |
+| `SSO_CALLBACK_URL` | Callback URL (default: `http://localhost:3001/api/auth/sso/callback`) |
+| `SSO_DEFAULT_ROLE` | Default role for auto-provisioned users (default: `qa_engineer`) |
+
+Compatible identity providers: Okta, Azure AD/Entra ID, Auth0, Keycloak, Google Workspace.
+
+---
+
+## 15. Connector Setup
+
+### Overview
+
+QAtrial provides a connector framework for integrating with external systems. In addition to the Jira and GitHub integrations (see [Settings](#14-settings)), the framework supports additional connectors.
 
 ### Configuring a Connector
 
@@ -924,7 +1169,7 @@ Sync records are stored in `useConnectorStore` and can be reviewed for troublesh
 
 ---
 
-## 13. Data Management
+## 16. Data Management
 
 ### Import/Export (JSON Format)
 
@@ -976,7 +1221,7 @@ Data persists across browser sessions. Clearing browser data or localStorage wil
 
 **PostgreSQL Mode (Production/Team)**
 
-When the backend server is running, data is stored in PostgreSQL across 10 database models:
+When the backend server is running, data is stored in PostgreSQL across 15 database models:
 
 | Model | Contents |
 |-------|----------|
@@ -989,6 +1234,11 @@ When the backend server is running, data is stored in PostgreSQL across 10 datab
 | `Risk` | Risk assessments with severity, likelihood, detectability, auto-computed score |
 | `CAPA` | CAPA records with full lifecycle state |
 | `AuditLog` | Append-only audit log with timestamp, user, action, entity, previous/new values |
+| `Evidence` | Evidence attachments linked to requirements |
+| `Approval` | Approval workflow records |
+| `Signature` | Electronic signature records |
+| `Webhook` | Webhook configurations with events and HMAC secrets |
+| `Integration` | External integration configurations (Jira, GitHub) |
 
 In PostgreSQL mode, data persists across browser sessions and devices. Multiple users can work on the same project simultaneously. The JWT access token is stored in `localStorage` under `qatrial:token`.
 
@@ -1002,7 +1252,64 @@ Use the **Language Selector** dropdown in the header to switch between 12 suppor
 
 ---
 
-## 14. Demo Projects
+## 17. Docker Deployment (Admin)
+
+### Quick Start
+
+```bash
+# Clone the repository
+git clone https://github.com/MeyerThorsten/QAtrial.git
+cd QAtrial
+
+# Copy environment template
+cp .env.example .env
+
+# Edit .env with your configuration:
+# - Set JWT_SECRET to a strong random string
+# - Set AI_PROVIDER_KEY if using AI features
+# - Set SSO_* variables if using SSO
+
+# Start QAtrial + PostgreSQL
+docker-compose up -d
+```
+
+QAtrial is accessible at `http://localhost:3001`.
+
+### What Docker Compose Provides
+
+| Service | Image | Purpose |
+|---------|-------|---------|
+| `app` | Built from `Dockerfile` | QAtrial application (frontend + backend) |
+| `db` | `postgres:16-alpine` | PostgreSQL database |
+
+**Volumes:**
+- `pgdata` -- Persistent PostgreSQL data
+- `uploads` -- Uploaded files (evidence, imports)
+
+**Health checks:** The PostgreSQL container has health checks configured. The app container waits for the database to be healthy before starting.
+
+### Production Configuration
+
+For production deployments:
+
+1. **Set a strong JWT_SECRET:** `JWT_SECRET=<random-64-char-string>`
+2. **Configure AI provider** (optional): Set `AI_PROVIDER_TYPE`, `AI_PROVIDER_URL`, `AI_PROVIDER_KEY`, `AI_PROVIDER_MODEL`
+3. **Configure SSO** (optional): Set `SSO_ENABLED=true` and the OIDC variables
+4. **Use a reverse proxy** (nginx, Caddy, etc.) for TLS termination
+5. **Back up the `pgdata` volume** regularly
+
+### Multi-Stage Dockerfile
+
+The Dockerfile uses a 3-stage build:
+1. **Stage 1 (frontend):** Builds the React frontend with Vite
+2. **Stage 2 (server):** Installs production dependencies and copies the server code + built frontend
+3. **Stage 3 (runtime):** Slim Node.js 20 Alpine image that runs the server
+
+In production mode, the server serves the built frontend as static files from the `dist/` directory.
+
+---
+
+## 18. Demo Projects
 
 QAtrial includes 16 realistic demo projects spanning different countries, verticals, and project types. Loading a demo pre-fills the Setup Wizard with all fields.
 
@@ -1029,11 +1336,12 @@ QAtrial includes 16 realistic demo projects spanning different countries, vertic
 ### How to Load a Demo Project
 
 1. Start a new project (click **New Project** or launch the app fresh)
-2. In Step 1 (Country Selection), find a country with the "Demo available" badge
-3. Click **Load Demo** on that country's card
-4. The wizard pre-fills all fields and advances to Step 2
-5. Review and adjust any settings as desired
-6. Continue through the remaining wizard steps
-7. Click **Create Project** on the Preview step
+2. In Step 0 (Compliance Starter Pack), click **Start from Scratch**
+3. In Step 1 (Country Selection), find a country with the "Demo available" badge
+4. Click **Load Demo** on that country's card
+5. The wizard pre-fills all fields and advances to Step 2
+6. Review and adjust any settings as desired
+7. Continue through the remaining wizard steps
+8. Click **Create Project** on the Preview step
 
 Demo projects include realistic company names, descriptions in the local language (with English translations), and appropriate module selections for the project's vertical and type.

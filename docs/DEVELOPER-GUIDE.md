@@ -20,9 +20,12 @@ Guide for developers extending and customizing QAtrial.
 12. [Creating New Stores](#12-creating-new-stores)
 13. [Adding a New Dashboard View](#13-adding-a-new-dashboard-view)
 14. [Adding a New Report Type](#14-adding-a-new-report-type)
-15. [Code Conventions](#15-code-conventions)
-16. [Test Infrastructure](#16-test-infrastructure)
-17. [Testing Checklist](#17-testing-checklist)
+15. [Adding a Webhook Event](#15-adding-a-webhook-event)
+16. [Adding an Integration](#16-adding-an-integration)
+17. [Docker Development](#17-docker-development)
+18. [Code Conventions](#18-code-conventions)
+19. [Test Infrastructure](#19-test-infrastructure)
+20. [Testing Checklist](#20-testing-checklist)
 
 ---
 
@@ -33,6 +36,7 @@ Guide for developers extending and customizing QAtrial.
 - **Node.js** 18.0 or later
 - **npm** 9.0 or later
 - **PostgreSQL** 14.0 or later (required for backend development)
+- **Docker** 20.10 or later (optional, for containerized development)
 - A modern browser (Chrome, Firefox, Safari, or Edge)
 - A code editor with TypeScript support (VS Code recommended)
 
@@ -81,6 +85,36 @@ npm run dev
 
 The backend runs at `http://localhost:3001` with auto-reload on file changes. The frontend connects to it via the `VITE_API_URL` environment variable (defaults to `http://localhost:3001/api`).
 
+### Docker Setup
+
+```bash
+git clone https://github.com/MeyerThorsten/QAtrial.git
+cd QAtrial
+
+# Copy and edit environment file
+cp .env.example .env
+
+# Start with Docker Compose
+docker-compose up
+
+# Access at http://localhost:3001
+```
+
+For development with Docker, you can also run just PostgreSQL in Docker and the app locally:
+
+```bash
+# Start only PostgreSQL
+docker run -d -p 5432:5432 -e POSTGRES_DB=qatrial -e POSTGRES_PASSWORD=qatrial -e POSTGRES_USER=qatrial postgres:16-alpine
+
+# Set DATABASE_URL to Docker PostgreSQL
+export DATABASE_URL="postgresql://qatrial:qatrial@localhost:5432/qatrial"
+
+# Run app locally
+npm run db:generate && npm run db:push
+npm run server:dev  # terminal 1
+npm run dev          # terminal 2
+```
+
 ### Environment Variables
 
 | Variable | Default | Description |
@@ -88,7 +122,18 @@ The backend runs at `http://localhost:3001` with auto-reload on file changes. Th
 | `DATABASE_URL` | `postgresql://localhost:5432/qatrial` | PostgreSQL connection string |
 | `JWT_SECRET` | `qatrial-dev-secret-change-in-production` | Secret for signing JWT tokens |
 | `VITE_API_URL` | `http://localhost:3001/api` | API base URL for the frontend |
-| `VITE_AI_PROXY_URL` | (none) | Optional AI proxy endpoint |
+| `AI_PROVIDER_TYPE` | (none) | Server-side AI: `anthropic` or `openai` |
+| `AI_PROVIDER_URL` | (none) | Server-side AI base URL |
+| `AI_PROVIDER_KEY` | (none) | Server-side AI API key |
+| `AI_PROVIDER_MODEL` | (none) | Server-side AI model name |
+| `SSO_ENABLED` | `false` | Enable OIDC SSO |
+| `SSO_ISSUER_URL` | (none) | OIDC issuer URL |
+| `SSO_CLIENT_ID` | (none) | OIDC client ID |
+| `SSO_CLIENT_SECRET` | (none) | OIDC client secret |
+| `SSO_CALLBACK_URL` | `http://localhost:3001/api/auth/sso/callback` | OIDC callback URL |
+| `SSO_DEFAULT_ROLE` | `qa_engineer` | Default role for SSO-provisioned users |
+
+See `.env.example` for the full list.
 
 ### Available npm Scripts
 
@@ -122,11 +167,41 @@ Vite is configured in `vite.config.ts`. Key settings:
 ### Architecture Overview
 
 The backend is a Hono server in `server/index.ts` with:
-- 8 route groups mounted under `/api/`
+- 21 route groups mounted under `/api/`
 - JWT authentication middleware
-- RBAC role guards
-- Prisma ORM for database access
+- RBAC permission guards (`requirePermission()`)
+- Prisma ORM for database access (15 models)
 - Audit logging service
+- Webhook dispatch service with HMAC signing
+- SSO (OIDC) discovery and token exchange
+- Static file serving in production mode
+
+### Route Files (21 files)
+
+| File | Mount Point | Purpose |
+|------|------------|---------|
+| `auth.ts` | `/api/auth` | Register, login, refresh, me |
+| `projects.ts` | `/api/projects` | Project CRUD |
+| `requirements.ts` | `/api/requirements` | Requirement CRUD + auto seqId |
+| `tests.ts` | `/api/tests` | Test CRUD + auto seqId |
+| `capa.ts` | `/api/capa` | CAPA CRUD + lifecycle enforcement |
+| `risks.ts` | `/api/risks` | Risk CRUD + auto scoring |
+| `audit.ts` | `/api/audit` | Read-only audit queries + CSV export |
+| `users.ts` | `/api/users` | User management (admin) |
+| `evidence.ts` | `/api/evidence` | Evidence attachment endpoints |
+| `approvals.ts` | `/api/approvals` | Approval workflow endpoints |
+| `signatures.ts` | `/api/signatures` | Electronic signature endpoints |
+| `export.ts` | `/api/export` | CSV/JSON export |
+| `import.ts` | `/api/import` | CSV import (preview, execute) |
+| `ai.ts` | `/api/ai` | Server-side AI proxy |
+| `sso.ts` | `/api/auth/sso` | OIDC SSO |
+| `webhooks.ts` | `/api/webhooks` | Webhook CRUD + test |
+| `auditmode.ts` | `/api/audit-mode` | Read-only audit mode links |
+| `dashboard.ts` | `/api/dashboard` | Server-side dashboard analytics |
+| `integrations/jira.ts` | `/api/integrations/jira` | Jira Cloud sync |
+| `integrations/github.ts` | `/api/integrations/github` | GitHub integration |
+
+Plus `GET /api/health` and `GET /api/status` defined inline in `server/index.ts`.
 
 ### How to Add a New API Route
 
@@ -200,13 +275,18 @@ app.route('/api/my-entity', myEntityRoutes);
 
 **Authentication (required for most routes):**
 ```typescript
-import { authMiddleware, getUser, requireRole } from '../middleware/auth.js';
+import { authMiddleware, getUser, requirePermission } from '../middleware/auth.js';
 
 router.use('*', authMiddleware);  // All endpoints need auth
 
-// For admin-only endpoints:
-router.post('/admin-action', requireRole('admin'), async (c) => {
+// For permission-restricted endpoints:
+router.post('/admin-action', requirePermission('canAdmin'), async (c) => {
   const user = getUser(c);  // Get user from JWT
+  // ...
+});
+
+// For edit-restricted endpoints:
+router.post('/', requirePermission('canEdit'), async (c) => {
   // ...
 });
 ```
@@ -216,9 +296,18 @@ router.post('/admin-action', requireRole('admin'), async (c) => {
 const user = getUser(c);
 // user.userId   -- UUID
 // user.email    -- Email address
-// user.role     -- "admin" | "editor" | "viewer"
+// user.role     -- "admin" | "qa_manager" | "qa_engineer" | "auditor" | "reviewer"
 // user.orgId    -- Organization UUID
 ```
+
+**Permission mapping:**
+
+| Permission | Roles |
+|------------|-------|
+| `canView` | admin, qa_manager, qa_engineer, auditor, reviewer |
+| `canEdit` | admin, qa_manager, qa_engineer |
+| `canApprove` | admin, qa_manager, reviewer |
+| `canAdmin` | admin |
 
 ### Audit Logging Pattern
 
@@ -265,7 +354,7 @@ await logAudit(prisma, {
 
 ### Modifying the Prisma Schema
 
-The schema lives at `server/prisma/schema.prisma`. To add or modify a model:
+The schema lives at `server/prisma/schema.prisma`. Currently has 15 models. To add or modify a model:
 
 1. Edit `server/prisma/schema.prisma`:
 
@@ -312,10 +401,11 @@ npm run db:migrate
 
 - All IDs are UUIDs: `@id @default(uuid())`
 - All project-scoped models have `projectId` with `onDelete: Cascade`
+- All org-scoped models (Webhook, Integration) have `orgId`
 - Use `@default(now())` for `createdAt`
 - Use `@updatedAt` for `updatedAt`
 - Array fields use PostgreSQL arrays: `String[] @default([])`
-- JSON fields use `Json?` type (for audit previousValue/newValue)
+- JSON fields use `Json?` type (for audit previousValue/newValue, integration config)
 
 ### Using Prisma Studio
 
@@ -337,15 +427,6 @@ This opens a web UI at `http://localhost:5555` where you can browse and edit dat
 curl -X POST http://localhost:3001/api/auth/register \
   -H "Content-Type: application/json" \
   -d '{"email":"dev@example.com","password":"password123","name":"Dev User"}'
-```
-
-Response:
-```json
-{
-  "accessToken": "eyJhbGci...",
-  "refreshToken": "eyJhbGci...",
-  "user": { "id": "...", "email": "dev@example.com", "name": "Dev User", "role": "admin" }
-}
 ```
 
 **Login:**
@@ -387,26 +468,18 @@ curl http://localhost:3001/api/requirements?projectId=<project-id> \
   -H "Authorization: Bearer $TOKEN"
 ```
 
-**Check server health:**
+**Check server status (public, no auth):**
+
+```bash
+curl http://localhost:3001/api/status
+# => {"status":"ok","version":"3.0.0","uptime":...,"database":"connected"}
+```
+
+**Check server health (public, no auth):**
 
 ```bash
 curl http://localhost:3001/api/health
 # => {"status":"ok","version":"3.0.0"}
-```
-
-**Get current user:**
-
-```bash
-curl http://localhost:3001/api/auth/me \
-  -H "Authorization: Bearer $TOKEN"
-```
-
-**Refresh an expired token:**
-
-```bash
-curl -X POST http://localhost:3001/api/auth/refresh \
-  -H "Content-Type: application/json" \
-  -d '{"refreshToken":"eyJhbGci..."}'
 ```
 
 **Export audit trail as CSV:**
@@ -415,6 +488,30 @@ curl -X POST http://localhost:3001/api/auth/refresh \
 curl "http://localhost:3001/api/audit/export?format=csv&projectId=<project-id>" \
   -H "Authorization: Bearer $TOKEN" \
   -o audit-trail.csv
+```
+
+**Import CSV preview:**
+
+```bash
+curl -X POST http://localhost:3001/api/import/preview \
+  -H "Authorization: Bearer $TOKEN" \
+  -F "file=@requirements.csv"
+```
+
+**Test a webhook:**
+
+```bash
+curl -X POST http://localhost:3001/api/webhooks/<webhook-id>/test \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+**Generate an audit mode link:**
+
+```bash
+curl -X POST http://localhost:3001/api/audit-mode/create \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN" \
+  -d '{"projectId":"<project-id>","expiresIn":"24h"}'
 ```
 
 ---
@@ -682,7 +779,7 @@ Update the `LanguageSelector` component in `src/components/shared/LanguageSelect
 
 ### Translation Key Reference
 
-The English locale file contains approximately 440 keys organized into groups: `app.*`, `nav.*`, `wizard.*`, `common.*`, `requirements.*`, `tests.*`, `dashboard.*`, `risk.*`, `ai.*`, `reports.*`, `audit.*`, `signature.*`, `statuses.*`, `countries.*`, `verticals.*`, `modules.*`, `projectTypes.*`.
+The English locale file contains approximately 440 keys organized into groups: `app.*`, `nav.*`, `wizard.*`, `common.*`, `requirements.*`, `tests.*`, `dashboard.*`, `risk.*`, `ai.*`, `reports.*`, `audit.*`, `signature.*`, `statuses.*`, `countries.*`, `verticals.*`, `modules.*`, `projectTypes.*`, `packs.*`, `settings.*`.
 
 ---
 
@@ -690,7 +787,17 @@ The English locale file contains approximately 440 keys organized into groups: `
 
 ### Prompt Template Pattern
 
-All prompts follow a consistent pattern in `src/ai/prompts/`:
+All prompts follow a consistent pattern in `src/ai/prompts/`. There are currently 9 prompt templates:
+
+1. `generateTests.ts` -- Test case generation
+2. `riskClassification.ts` -- Risk severity/likelihood
+3. `gapAnalysis.ts` -- Regulatory gap analysis
+4. `executiveBrief.ts` -- Executive compliance brief
+5. `capaSuggestion.ts` -- CAPA suggestion
+6. `vsrReport.ts` -- Validation Summary Report
+7. `qmsrGap.ts` -- QMSR gap analysis
+8. `reqExtraction.ts` -- Requirement extraction
+9. `qualityCheck.ts` -- Requirement quality check
 
 ```typescript
 // 1. Import the AI client and relevant types
@@ -959,7 +1066,204 @@ export function MyDashboardView() {
 
 ---
 
-## 15. Code Conventions
+## 15. Adding a Webhook Event
+
+### Step-by-Step
+
+To add a new webhook event (e.g., `myEntity.created`):
+
+#### 1. Define the event name
+
+Add the event string to the webhook events list. Events follow the pattern `entity.action`:
+
+```
+myEntity.created
+myEntity.updated
+myEntity.deleted
+```
+
+#### 2. Dispatch the event in your route handler
+
+After the mutation succeeds and audit is logged, dispatch the webhook:
+
+```typescript
+import { dispatchWebhook } from '../services/webhook.service.js';
+
+// After successful create:
+await dispatchWebhook(prisma, {
+  orgId: user.orgId,
+  event: 'myEntity.created',
+  payload: {
+    id: item.id,
+    projectId: item.projectId,
+    title: item.title,
+    createdBy: user.email,
+    timestamp: new Date().toISOString(),
+  },
+});
+```
+
+#### 3. Add the event to the UI
+
+In `src/components/settings/WebhookSettings.tsx`, add the new event to the event selector list so users can subscribe to it.
+
+#### 4. Document the event
+
+Add the event to the webhook events table in the API Reference.
+
+### Webhook Payload Format
+
+All webhook payloads follow this structure:
+
+```json
+{
+  "event": "myEntity.created",
+  "timestamp": "2026-04-01T12:00:00.000Z",
+  "data": {
+    "id": "uuid",
+    "projectId": "uuid",
+    "title": "...",
+    "createdBy": "user@example.com"
+  }
+}
+```
+
+The `X-QAtrial-Signature` header contains `sha256=<HMAC-SHA256 hex digest>` computed with the webhook's secret.
+
+---
+
+## 16. Adding an Integration
+
+### Overview
+
+QAtrial supports server-side integrations stored in the `Integration` database model. Currently Jira and GitHub are implemented.
+
+### Step-by-Step
+
+#### 1. Create the integration route file
+
+```typescript
+// server/routes/integrations/myTool.ts
+import { Hono } from 'hono';
+import { prisma } from '../../index.js';
+import { authMiddleware, getUser, requirePermission } from '../../middleware/auth.js';
+
+const myTool = new Hono();
+myTool.use('*', authMiddleware);
+
+// Connect: validate credentials and save config
+myTool.post('/connect', requirePermission('canAdmin'), async (c) => {
+  const user = getUser(c);
+  const body = await c.req.json();
+
+  // Validate credentials against the external API
+  // ...
+
+  // Save integration config
+  const integration = await prisma.integration.upsert({
+    where: { orgId_type: { orgId: user.orgId!, type: 'myTool' } },
+    update: { config: body, enabled: true },
+    create: { orgId: user.orgId!, type: 'myTool', config: body, enabled: true },
+  });
+
+  return c.json({ integration });
+});
+
+// Status: check if connected
+myTool.get('/status', async (c) => {
+  const user = getUser(c);
+  const integration = await prisma.integration.findFirst({
+    where: { orgId: user.orgId!, type: 'myTool', enabled: true },
+  });
+  return c.json({ connected: !!integration });
+});
+
+export default myTool;
+```
+
+#### 2. Mount the route
+
+In `server/index.ts`:
+
+```typescript
+import myToolRoutes from './routes/integrations/myTool.js';
+app.route('/api/integrations/my-tool', myToolRoutes);
+```
+
+#### 3. Add to the Settings UI
+
+In `src/components/settings/IntegrationSettings.tsx`, add a configuration card for the new integration with connect/disconnect buttons and status display.
+
+#### 4. Add the integration type
+
+If using TypeScript validation, add `'myTool'` to the allowed integration types.
+
+---
+
+## 17. Docker Development
+
+### Building the Docker Image
+
+```bash
+# Build the image
+docker build -t qatrial .
+
+# Run with a local PostgreSQL
+docker run -p 3001:3001 \
+  -e DATABASE_URL=postgresql://user:pass@host:5432/qatrial \
+  -e JWT_SECRET=your-secret \
+  qatrial
+```
+
+### Docker Compose Development
+
+```bash
+# Start all services
+docker-compose up
+
+# Start in background
+docker-compose up -d
+
+# View logs
+docker-compose logs -f app
+
+# Rebuild after code changes
+docker-compose build
+docker-compose up -d
+
+# Stop all services
+docker-compose down
+
+# Stop and remove volumes (WARNING: deletes database data)
+docker-compose down -v
+```
+
+### Multi-Stage Dockerfile Explained
+
+```
+Stage 1 (frontend):   node:20-alpine -> npm ci -> npm run build -> dist/
+Stage 2 (server):     node:20-alpine -> npm ci --omit=dev -> copy server/ + dist/
+Stage 3 (runtime):    node:20-alpine -> copy from Stage 2 -> EXPOSE 3001 -> CMD tsx server/index.ts
+```
+
+The multi-stage build ensures:
+- Dev dependencies are not included in the production image
+- The frontend is built once and served as static files
+- The final image is as small as possible (Alpine-based)
+
+### Running Database Migrations in Docker
+
+```bash
+# Push schema to the Docker PostgreSQL
+docker-compose exec app npx prisma db push --schema=server/prisma/schema.prisma
+
+# Open Prisma Studio against the Docker database
+docker-compose exec app npx prisma studio --schema=server/prisma/schema.prisma
+```
+
+---
+
+## 18. Code Conventions
 
 ### TypeScript Patterns
 
@@ -981,6 +1285,8 @@ export function MyDashboardView() {
   - `*Card` for card-style widgets
   - `*Chart` for chart components
   - `*Bar` for toolbar components
+  - `*Settings` for settings tab components
+  - `*Wizard` for multi-step wizard components
 - One component per file, filename matches component name
 
 ### i18n Key Conventions
@@ -1003,7 +1309,7 @@ export function MyDashboardView() {
 
 ---
 
-## 16. Test Infrastructure
+## 19. Test Infrastructure
 
 ### Framework
 
@@ -1050,7 +1356,7 @@ npm run test:coverage     # Generate coverage report
 
 ---
 
-## 17. Testing Checklist
+## 20. Testing Checklist
 
 ### Manual Testing Workflow
 
@@ -1059,15 +1365,16 @@ npm run test:coverage     # Generate coverage report
 - [ ] **Registration (API mode):** Register a new user. Verify org + workspace created. Verify admin role.
 - [ ] **Registration (localStorage mode):** Register with each role. Verify role is saved.
 - [ ] **Login/Logout:** Log in and out. Verify audit trail entries for login/logout.
+- [ ] **SSO Login:** (If SSO configured) Click "Sign in with SSO". Verify redirect to IdP. Verify auto-provisioning on first login.
 - [ ] **JWT Tokens:** Verify access token is stored in localStorage. Verify token is sent in API requests.
 - [ ] **Token Refresh:** Wait for token expiry (or shorten JWT_SECRET duration). Verify refresh works.
-- [ ] **Permissions (API mode):** Verify viewer cannot create records. Verify editor cannot manage users.
-- [ ] **Permissions (localStorage mode):** Verify each role's permissions (e.g., auditor cannot edit requirements).
+- [ ] **Permissions (5 roles):** Verify each role's canView/canEdit/canApprove/canAdmin permissions.
 - [ ] **Signature Re-auth:** Apply a signature, verify password prompt. Apply another within 15 minutes, verify no prompt.
 
 ### Backend API
 
 - [ ] **Health Check:** `curl http://localhost:3001/api/health` returns 200.
+- [ ] **Status Check:** `curl http://localhost:3001/api/status` returns version, uptime, DB status.
 - [ ] **CRUD Operations:** Create, read, update, delete requirements via API. Verify responses.
 - [ ] **Auto SeqId:** Create multiple requirements. Verify sequential IDs (REQ-001, REQ-002).
 - [ ] **Audit Logging:** After mutations, verify audit entries via `GET /api/audit`.
@@ -1075,9 +1382,42 @@ npm run test:coverage     # Generate coverage report
 - [ ] **CAPA Transitions:** Verify status transitions are enforced. Attempt invalid transition and verify 400 error.
 - [ ] **Risk Auto-Scoring:** Create a risk. Verify riskScore and riskLevel are computed correctly.
 
+### Import/Export
+
+- [ ] **CSV Import:** Upload a CSV file. Verify auto-detect delimiter. Map columns. Import and verify data.
+- [ ] **CSV Export:** Export requirements as CSV. Verify UTF-8 BOM. Open in Excel.
+- [ ] **JSON Import/Export:** Export, then reimport. Verify data integrity.
+
+### Compliance Starter Packs
+
+- [ ] **Pack Selection:** Select each of the 4 packs. Verify wizard auto-fills correctly.
+- [ ] **Start from Scratch:** Click "Start from Scratch". Verify wizard continues to Step 1.
+
+### Audit Mode
+
+- [ ] **Generate Link (Admin):** Generate a 24h audit mode link. Copy the URL.
+- [ ] **Auditor Access:** Open the URL in an incognito window. Verify no login required. Verify 7 tabs.
+- [ ] **Expiry:** Verify the link shows an expiry countdown. (Optionally test with a very short expiry.)
+
+### Webhooks
+
+- [ ] **Create Webhook:** Add a webhook with a URL and events. Save.
+- [ ] **Test Webhook:** Click "Test". Verify the endpoint receives a payload.
+- [ ] **HMAC Verification:** Verify the `X-QAtrial-Signature` header matches the computed HMAC.
+
+### Integrations
+
+- [ ] **Jira Connect:** Enter Jira credentials. Click Connect. Verify connection validation.
+- [ ] **GitHub Connect:** Enter GitHub token. Click Connect. Verify connection validation.
+
+### Docker
+
+- [ ] **docker-compose up:** Start QAtrial + PostgreSQL. Verify `http://localhost:3001` loads.
+- [ ] **Persistence:** Create data, restart containers, verify data persists.
+
 ### Core Functionality
 
-- [ ] **New Project Wizard:** Complete all 6 steps. Verify requirements and tests are created correctly.
+- [ ] **New Project Wizard (7 steps):** Complete all 7 steps. Verify requirements and tests are created correctly.
 - [ ] **Load Demo:** Load at least 2 different country demos. Verify all fields are populated.
 - [ ] **Requirements CRUD:** Create, edit, delete a requirement. Verify audit trail entries with real user identity.
 - [ ] **Tests CRUD:** Create, edit, delete a test. Verify linked requirements are preserved.
@@ -1098,6 +1438,7 @@ npm run test:coverage     # Generate coverage report
 - [ ] **Test Generation:** Generate tests for a requirement. Accept/reject individual tests.
 - [ ] **Risk Classification:** Classify a requirement. Accept the result and verify it saves.
 - [ ] **Gap Analysis:** Run gap analysis. Verify results table and critical gaps.
+- [ ] **Quality Check:** Run quality check on a requirement. Verify issue detection and apply suggestions.
 
 ### Compliance
 
@@ -1105,10 +1446,15 @@ npm run test:coverage     # Generate coverage report
 - [ ] **Audit Trail:** Open audit trail. Filter by date. Export as CSV.
 - [ ] **Change Control:** Verify strict verticals get full change control config.
 
+### Settings
+
+- [ ] **AI Providers tab:** Add, edit, delete provider. Test connection.
+- [ ] **Webhooks tab:** Add, edit, delete webhook. Test delivery.
+- [ ] **Integrations tab:** Connect/disconnect Jira and GitHub.
+- [ ] **SSO tab:** Verify SSO status display.
+
 ### Data Management
 
-- [ ] **Export:** Export project data. Verify JSON structure.
-- [ ] **Import:** Import a previously exported file. Verify all data loads correctly.
 - [ ] **Theme:** Toggle between light and dark mode.
 - [ ] **Language:** Switch to at least 2 non-English languages.
 

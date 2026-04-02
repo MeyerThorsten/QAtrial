@@ -24,15 +24,31 @@ Reference documentation for the REST API, stores, hooks, utilities, and types.
 
 The QAtrial backend exposes a REST API at `http://localhost:3001/api`. All endpoints return JSON. Endpoints marked with "Auth: Yes" require a valid JWT access token in the `Authorization: Bearer <token>` header.
 
-### Health Check
+**60+ endpoints across 21 route files.**
+
+### Health Check and Status
 
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
-| `GET` | `/api/health` | No | Server health check |
+| `GET` | `/api/health` | No | Basic health check |
+| `GET` | `/api/status` | No | Detailed status (version, uptime, DB, AI, memory) |
 
-**Response (200):**
+**GET /api/health Response (200):**
 ```json
 { "status": "ok", "version": "3.0.0" }
+```
+
+**GET /api/status Response (200):**
+```json
+{
+  "status": "ok",
+  "version": "3.0.0",
+  "uptime": 12345,
+  "database": "connected",
+  "aiProvider": "configured",
+  "storage": "ok",
+  "freeMemory": "512MB"
+}
 ```
 
 ---
@@ -159,6 +175,51 @@ Returns the current authenticated user's profile.
 
 ---
 
+### SSO Endpoints
+
+#### GET /api/auth/sso/login
+
+Redirects to the OIDC identity provider for authentication.
+
+**Auth:** No
+
+**Query Parameters:**
+- None
+
+**Response:** `302` redirect to IdP authorization endpoint.
+
+---
+
+#### GET /api/auth/sso/callback
+
+Handles the OIDC callback after IdP authentication. Exchanges the authorization code for tokens, looks up or provisions the user, and redirects to the frontend with QAtrial JWT tokens.
+
+**Auth:** No
+
+**Query Parameters:**
+- `code` -- Authorization code from IdP
+
+**Response:** `302` redirect to frontend with tokens.
+
+---
+
+#### GET /api/auth/sso/status
+
+Returns SSO configuration status.
+
+**Auth:** No
+
+**Response (200):**
+```json
+{
+  "enabled": true,
+  "type": "oidc",
+  "issuerUrl": "https://your-idp.okta.com"
+}
+```
+
+---
+
 ### Project Endpoints
 
 All project endpoints require authentication.
@@ -225,91 +286,35 @@ Create a new project.
 
 #### GET /api/projects/:id
 
-Get a single project by ID.
-
-**Auth:** Yes
-
-**Response (200):**
-```json
-{ "project": { "id": "uuid", "name": "Project Name", ... } }
-```
-
-**Error Responses:**
-- `404` -- Project not found
+Get a single project by ID. **Auth:** Yes
 
 ---
 
 #### PUT /api/projects/:id
 
-Update a project.
-
-**Auth:** Yes
-
-**Request Body:** Partial project fields to update.
-
-**Response (200):**
-```json
-{ "project": { "id": "uuid", "name": "Updated Name", ... } }
-```
+Update a project. **Auth:** Yes. Partial project fields to update.
 
 ---
 
 #### DELETE /api/projects/:id
 
-Delete a project and all its child records (requirements, tests, risks, CAPA, audit logs) via cascade delete.
-
-**Auth:** Yes
-
-**Response (200):**
-```json
-{ "message": "Project deleted" }
-```
+Delete a project and all its child records (cascade). **Auth:** Yes
 
 ---
 
 ### Requirement Endpoints
 
-All requirement endpoints require authentication.
-
 #### GET /api/requirements?projectId=uuid
 
-List all requirements for a project.
+List all requirements for a project. **Auth:** Yes
 
-**Auth:** Yes
-
-**Query Parameters:**
-- `projectId` (required) -- Project UUID
-
-**Response (200):**
-```json
-{
-  "requirements": [
-    {
-      "id": "uuid",
-      "projectId": "uuid",
-      "seqId": "REQ-001",
-      "title": "Data Integrity",
-      "description": "...",
-      "status": "Draft",
-      "tags": ["data-integrity", "alcoa"],
-      "riskLevel": "high",
-      "regulatoryRef": "21 CFR 11.10(e)",
-      "evidenceHints": [],
-      "createdBy": "uuid",
-      "createdAt": "2026-04-01T12:00:00.000Z",
-      "updatedAt": "2026-04-01T12:00:00.000Z"
-    }
-  ]
-}
-```
+**Query Parameters:** `projectId` (required)
 
 ---
 
 #### POST /api/requirements
 
-Create a new requirement. The server auto-generates the `seqId` (REQ-001, REQ-002, etc.) based on the count of existing requirements in the project.
-
-**Auth:** Yes
+Create a new requirement. Auto-generates `seqId` (REQ-001, REQ-002, etc.). **Auth:** Yes
 
 **Request Body:**
 ```json
@@ -324,273 +329,100 @@ Create a new requirement. The server auto-generates the `seqId` (REQ-001, REQ-00
 }
 ```
 
-**Response (201):**
-```json
-{ "requirement": { "id": "uuid", "seqId": "REQ-001", ... } }
-```
-
-**Error Responses:**
-- `400` -- Missing `projectId` or `title`
-
 ---
 
 #### GET /api/requirements/:id
 
-Get a single requirement by ID.
-
-**Auth:** Yes
-
-**Response (200):**
-```json
-{ "requirement": { "id": "uuid", "seqId": "REQ-001", ... } }
-```
+Get a single requirement. **Auth:** Yes
 
 ---
 
 #### PUT /api/requirements/:id
 
-Update a requirement. Logs an audit entry with previous and new values.
-
-**Auth:** Yes
-
-**Request Body:** Partial requirement fields to update.
-
-**Response (200):**
-```json
-{ "requirement": { "id": "uuid", "seqId": "REQ-001", ... } }
-```
+Update a requirement. **Auth:** Yes
 
 ---
 
 #### DELETE /api/requirements/:id
 
-Delete a requirement. Also cleans up references in linked tests' `linkedRequirementIds`.
-
-**Auth:** Yes
-
-**Response (200):**
-```json
-{ "message": "Requirement deleted" }
-```
+Delete a requirement. **Auth:** Yes
 
 ---
 
 ### Test Endpoints
 
-All test endpoints require authentication.
-
 #### GET /api/tests?projectId=uuid
 
-List all tests for a project.
-
-**Auth:** Yes
-
-**Query Parameters:**
-- `projectId` (required) -- Project UUID
-
-**Response (200):**
-```json
-{
-  "tests": [
-    {
-      "id": "uuid",
-      "projectId": "uuid",
-      "seqId": "TST-001",
-      "title": "Verify Data Integrity Controls",
-      "description": "...",
-      "status": "Not Run",
-      "linkedRequirementIds": ["uuid-of-req"],
-      "createdBy": "uuid",
-      "createdAt": "2026-04-01T12:00:00.000Z",
-      "updatedAt": "2026-04-01T12:00:00.000Z"
-    }
-  ]
-}
-```
+List all tests for a project. **Auth:** Yes
 
 ---
 
 #### POST /api/tests
 
-Create a new test with auto-generated `seqId`.
-
-**Auth:** Yes
+Create a new test. Auto-generates `seqId` (TST-001, etc.). **Auth:** Yes
 
 **Request Body:**
 ```json
 {
   "projectId": "uuid",
-  "title": "Verify Data Integrity Controls",
-  "description": "Test procedure...",
+  "title": "Verify Data Integrity",
+  "description": "Confirm ALCOA+ compliance...",
   "status": "Not Run",
-  "linkedRequirementIds": ["uuid-of-req"]
+  "linkedRequirementIds": ["uuid"]
 }
 ```
 
-**Response (201):**
-```json
-{ "test": { "id": "uuid", "seqId": "TST-001", ... } }
-```
-
 ---
 
-#### GET /api/tests/:id
+#### GET /api/tests/:id | PUT /api/tests/:id | DELETE /api/tests/:id
 
-Get a single test by ID.
-
-**Auth:** Yes
-
----
-
-#### PUT /api/tests/:id
-
-Update a test.
-
-**Auth:** Yes
-
----
-
-#### DELETE /api/tests/:id
-
-Delete a test.
-
-**Auth:** Yes
+Standard CRUD. **Auth:** Yes
 
 ---
 
 ### CAPA Endpoints
 
-All CAPA endpoints require authentication. The backend enforces valid status transitions.
-
-**Valid status transitions:**
-```
-open -> investigation -> in_progress -> verification -> resolved -> closed
-```
-
 #### GET /api/capa?projectId=uuid
 
-List all CAPA records for a project.
-
-**Auth:** Yes
-
-**Response (200):**
-```json
-{
-  "capas": [
-    {
-      "id": "uuid",
-      "projectId": "uuid",
-      "title": "Failed Test TST-003 Investigation",
-      "status": "open",
-      "rootCause": null,
-      "containment": null,
-      "correctiveAction": null,
-      "preventiveAction": null,
-      "effectivenessCheck": null,
-      "linkedTestId": "uuid",
-      "createdBy": "uuid",
-      "createdAt": "2026-04-01T12:00:00.000Z",
-      "updatedAt": "2026-04-01T12:00:00.000Z"
-    }
-  ]
-}
-```
+List all CAPA records. **Auth:** Yes
 
 ---
 
 #### POST /api/capa
 
-Create a new CAPA record (starts in "open" status).
-
-**Auth:** Yes
-
-**Request Body:**
-```json
-{
-  "projectId": "uuid",
-  "title": "Investigation for TST-003",
-  "rootCause": "Root cause analysis...",
-  "containment": "Immediate containment action...",
-  "correctiveAction": "Corrective steps...",
-  "preventiveAction": "Preventive measures...",
-  "effectivenessCheck": "How to verify...",
-  "linkedTestId": "uuid"
-}
-```
-
-**Response (201):**
-```json
-{ "capa": { "id": "uuid", "status": "open", ... } }
-```
+Create a new CAPA record (status defaults to "open"). **Auth:** Yes
 
 ---
 
 #### PUT /api/capa/:id
 
-Update a CAPA record. If `status` is included, the server validates that the transition is valid.
+Update a CAPA record. **Status transitions are enforced server-side:**
 
-**Auth:** Yes
-
-**Request Body:**
-```json
-{
-  "status": "investigation",
-  "rootCause": "Updated root cause analysis"
-}
+```
+open -> investigation -> in_progress -> verification -> resolved -> closed
 ```
 
-**Error Responses:**
-- `400` -- Invalid status transition (e.g., attempting `open -> resolved`)
+Attempting to skip a stage returns `400`. **Auth:** Yes
 
 ---
 
 #### DELETE /api/capa/:id
 
-Delete a CAPA record.
-
-**Auth:** Yes
+Delete a CAPA record. **Auth:** Yes
 
 ---
 
 ### Risk Endpoints
 
-All risk endpoints require authentication. The backend auto-computes `riskScore` (severity x likelihood) and `riskLevel`.
-
 #### GET /api/risks?projectId=uuid
 
-List all risk assessments for a project.
-
-**Auth:** Yes
-
-**Response (200):**
-```json
-{
-  "risks": [
-    {
-      "id": "uuid",
-      "projectId": "uuid",
-      "requirementId": "uuid",
-      "severity": 4,
-      "likelihood": 3,
-      "detectability": null,
-      "riskScore": 12,
-      "riskLevel": "high",
-      "mitigation": null,
-      "residualRisk": null,
-      "classifiedBy": "manual",
-      "createdAt": "2026-04-01T12:00:00.000Z"
-    }
-  ]
-}
-```
+List all risks. **Auth:** Yes
 
 ---
 
 #### POST /api/risks
 
-Create a risk assessment. `riskScore` and `riskLevel` are computed server-side.
-
-**Auth:** Yes
+Create a new risk. `riskScore` (severity x likelihood) and `riskLevel` are auto-computed. **Auth:** Yes
 
 **Request Body:**
 ```json
@@ -600,83 +432,37 @@ Create a risk assessment. `riskScore` and `riskLevel` are computed server-side.
   "severity": 4,
   "likelihood": 3,
   "detectability": 2,
-  "mitigation": "Mitigation strategy...",
-  "classifiedBy": "ai"
+  "mitigation": "..."
 }
 ```
 
-**Response (201):**
-```json
-{ "risk": { "id": "uuid", "riskScore": 12, "riskLevel": "high", ... } }
-```
-
 ---
 
-#### PUT /api/risks/:id
+#### PUT /api/risks/:id | DELETE /api/risks/:id
 
-Update a risk assessment. Score and level are recomputed if severity or likelihood change.
-
-**Auth:** Yes
-
----
-
-#### DELETE /api/risks/:id
-
-Delete a risk assessment.
-
-**Auth:** Yes
+Standard CRUD. **Auth:** Yes
 
 ---
 
 ### Audit Endpoints
 
-Audit endpoints are read-only. No audit records can be created, updated, or deleted through the API (they are created automatically by other endpoints).
-
 #### GET /api/audit
 
-List audit log entries with optional filters.
-
-**Auth:** Yes
+List audit entries (read-only). **Auth:** Yes
 
 **Query Parameters:**
-- `projectId` -- Filter by project UUID
-- `entityType` -- Filter by entity type (e.g., "requirement", "test", "capa")
-- `action` -- Filter by action (e.g., "create", "update", "delete")
-- `from` -- Start date (ISO 8601)
-- `to` -- End date (ISO 8601)
-
-**Response (200):**
-```json
-{
-  "entries": [
-    {
-      "id": "uuid",
-      "projectId": "uuid",
-      "timestamp": "2026-04-01T12:00:00.000Z",
-      "userId": "uuid",
-      "action": "create",
-      "entityType": "requirement",
-      "entityId": "uuid",
-      "previousValue": null,
-      "newValue": { "title": "Data Integrity", "status": "Draft", ... },
-      "reason": null
-    }
-  ]
-}
-```
+- `projectId` -- Filter by project
+- `entityType` -- Filter by entity type
+- `action` -- Filter by action
+- `from` / `to` -- Date range (ISO 8601)
 
 ---
 
 #### GET /api/audit/export?format=csv
 
-Export audit log entries as CSV.
+Export audit entries as CSV. **Auth:** Yes
 
-**Auth:** Yes
-
-**Query Parameters:** Same filters as `GET /api/audit`, plus:
-- `format` -- Currently only `csv` is supported
-
-**Response (200):** CSV file download with headers: Timestamp, Action, UserId, EntityType, EntityId, PreviousValue, NewValue, Reason
+Same query parameters as `GET /api/audit`.
 
 ---
 
@@ -684,541 +470,560 @@ Export audit log entries as CSV.
 
 #### GET /api/users
 
-List all users in the authenticated user's organization.
+List all users in the organization. **Auth:** Yes
+
+---
+
+#### POST /api/users/invite
+
+Invite a new user. **Auth:** Yes (admin only)
+
+**Request Body:**
+```json
+{
+  "email": "newuser@example.com",
+  "role": "qa_engineer"
+}
+```
+
+---
+
+#### PUT /api/users/:id/role
+
+Change a user's role. **Auth:** Yes (admin only)
+
+**Request Body:**
+```json
+{ "role": "qa_manager" }
+```
+
+---
+
+### Import Endpoints
+
+#### POST /api/import/preview
+
+Upload a CSV file for preview. Auto-detects delimiter (comma, semicolon, tab) and suggests column mapping.
+
+**Auth:** Yes
+
+**Content-Type:** `multipart/form-data`
+
+**Response (200):**
+```json
+{
+  "columns": ["Title", "Description", "Status"],
+  "sampleRows": [...],
+  "suggestedMapping": {
+    "Title": "title",
+    "Description": "description",
+    "Status": "status"
+  },
+  "delimiter": ","
+}
+```
+
+---
+
+#### POST /api/import/execute
+
+Execute the import with mapped columns.
+
+**Auth:** Yes
+
+**Request Body:**
+```json
+{
+  "projectId": "uuid",
+  "entityType": "requirement",
+  "mapping": { "Title": "title", "Description": "description" },
+  "data": [...],
+  "duplicateHandling": "skip"
+}
+```
+
+**Response (200):**
+```json
+{
+  "created": 15,
+  "skipped": 2,
+  "overwritten": 0,
+  "errors": []
+}
+```
+
+---
+
+### Export Endpoints
+
+#### GET /api/export/:projectId/csv?type=requirements|tests|all
+
+Export project data as CSV with UTF-8 BOM.
+
+**Auth:** Yes
+
+**Query Parameters:**
+- `type` -- `requirements`, `tests`, or `all`
+
+**Response:** CSV file download.
+
+---
+
+### AI Endpoints
+
+#### POST /api/ai/complete
+
+Server-side AI proxy. Sends prompts to the configured AI provider (API keys stay on server).
+
+**Auth:** Yes
+
+**Request Body:**
+```json
+{
+  "prompt": "...",
+  "purpose": "test_generation",
+  "maxTokens": 2000,
+  "temperature": 0.3
+}
+```
+
+**Response (200):**
+```json
+{
+  "text": "...",
+  "model": "claude-sonnet-4-20250514",
+  "tokensUsed": 1234
+}
+```
+
+---
+
+#### GET /api/ai/providers
+
+List configured AI providers (API keys masked).
+
+**Auth:** Yes
+
+---
+
+#### POST /api/ai/providers/:id/test
+
+Test connection to an AI provider.
+
+**Auth:** Yes
+
+---
+
+### Webhook Endpoints
+
+#### GET /api/webhooks
+
+List all webhooks for the organization (secrets masked).
+
+**Auth:** Yes
+
+---
+
+#### POST /api/webhooks
+
+Create a new webhook.
+
+**Auth:** Yes (admin)
+
+**Request Body:**
+```json
+{
+  "name": "CI Pipeline",
+  "url": "https://example.com/webhook",
+  "secret": "optional-hmac-secret",
+  "events": ["requirement.created", "test.failed"]
+}
+```
+
+---
+
+#### PUT /api/webhooks/:id
+
+Update a webhook. **Auth:** Yes (admin)
+
+---
+
+#### DELETE /api/webhooks/:id
+
+Delete a webhook. **Auth:** Yes (admin)
+
+---
+
+#### POST /api/webhooks/:id/test
+
+Send a test payload to the webhook. **Auth:** Yes (admin)
+
+---
+
+### Jira Integration Endpoints
+
+#### POST /api/integrations/jira/connect
+
+Connect to Jira Cloud. Validates credentials and project key.
+
+**Auth:** Yes (admin)
+
+**Request Body:**
+```json
+{
+  "baseUrl": "https://yourcompany.atlassian.net",
+  "email": "user@example.com",
+  "apiToken": "...",
+  "projectKey": "PROJ"
+}
+```
+
+---
+
+#### GET /api/integrations/jira/status
+
+Check Jira connection status. **Auth:** Yes
+
+---
+
+#### POST /api/integrations/jira/sync
+
+Bidirectional sync between QAtrial and Jira. **Auth:** Yes
+
+---
+
+#### GET /api/integrations/jira/issues
+
+List Jira issues from the connected project. **Auth:** Yes
+
+---
+
+#### POST /api/integrations/jira/import
+
+Import a Jira issue as a QAtrial requirement. **Auth:** Yes
+
+**Request Body:**
+```json
+{ "issueKey": "PROJ-123", "projectId": "uuid" }
+```
+
+---
+
+### GitHub Integration Endpoints
+
+#### POST /api/integrations/github/connect
+
+Connect to a GitHub repository. Validates token and repo.
+
+**Auth:** Yes (admin)
+
+**Request Body:**
+```json
+{
+  "owner": "MeyerThorsten",
+  "repo": "QAtrial",
+  "token": "ghp_..."
+}
+```
+
+---
+
+#### GET /api/integrations/github/status
+
+Check GitHub connection status. **Auth:** Yes
+
+---
+
+#### POST /api/integrations/github/link-pr
+
+Link a GitHub PR to a QAtrial requirement. **Auth:** Yes
+
+**Request Body:**
+```json
+{ "prNumber": 42, "requirementId": "uuid" }
+```
+
+---
+
+#### POST /api/integrations/github/import-tests
+
+Import test results from a GitHub Actions workflow run. **Auth:** Yes
+
+**Request Body:**
+```json
+{ "runId": 12345, "projectId": "uuid" }
+```
+
+---
+
+### Audit Mode Endpoints
+
+#### POST /api/audit-mode/create
+
+Generate a time-limited read-only audit link.
+
+**Auth:** Yes (admin only)
+
+**Request Body:**
+```json
+{ "projectId": "uuid", "expiresIn": "24h" }
+```
+
+**Response (200):**
+```json
+{
+  "token": "eyJhbGci...",
+  "url": "/audit/eyJhbGci...",
+  "expiresAt": "2026-04-02T12:00:00.000Z"
+}
+```
+
+---
+
+#### GET /api/audit-mode/:token/project
+
+Read project data via audit mode token (no auth required).
+
+---
+
+#### GET /api/audit-mode/:token/requirements
+
+Read requirements via audit mode token (no auth required).
+
+---
+
+#### GET /api/audit-mode/:token/tests
+
+Read tests via audit mode token (no auth required).
+
+---
+
+#### GET /api/audit-mode/:token/traceability
+
+Read traceability matrix via audit mode token (no auth required).
+
+---
+
+#### GET /api/audit-mode/:token/evidence
+
+Read evidence data via audit mode token (no auth required).
+
+---
+
+#### GET /api/audit-mode/:token/audit-trail
+
+Read audit trail via audit mode token (no auth required).
+
+---
+
+#### GET /api/audit-mode/:token/signatures
+
+Read electronic signatures via audit mode token (no auth required).
+
+---
+
+### Dashboard Endpoints
+
+#### GET /api/dashboard/:projectId/readiness
+
+Weighted compliance readiness score.
 
 **Auth:** Yes
 
 **Response (200):**
 ```json
 {
-  "users": [
-    {
-      "id": "uuid",
-      "email": "user@example.com",
-      "name": "Full Name",
-      "role": "admin",
-      "createdAt": "2026-04-01T12:00:00.000Z"
-    }
-  ]
+  "score": 78.5,
+  "metrics": {
+    "requirementCoverage": 0.85,
+    "testCoverage": 0.72,
+    "testPassRate": 0.90,
+    "riskAssessed": 0.65,
+    "signatureCompleteness": 0.50
+  }
 }
 ```
 
 ---
 
-#### POST /api/users/invite
+#### GET /api/dashboard/:projectId/missing-evidence
 
-Invite a new user to the organization. Creates a user record with a temporary password.
+Requirements and tests without evidence.
 
-**Auth:** Yes (Admin only)
-
-**Request Body:**
-```json
-{
-  "email": "newuser@example.com",
-  "name": "New User",
-  "role": "editor"
-}
-```
-
-**Response (201):**
-```json
-{ "user": { "id": "uuid", "email": "newuser@example.com", "role": "editor" } }
-```
-
-**Error Responses:**
-- `403` -- Not an admin
-- `409` -- Email already exists
+**Auth:** Yes
 
 ---
 
-#### PUT /api/users/:id/role
+#### GET /api/dashboard/:projectId/approval-status
 
-Change a user's role.
+Counts by entity type and approval status.
 
-**Auth:** Yes (Admin only)
+**Auth:** Yes
 
-**Request Body:**
-```json
-{
-  "role": "viewer"
-}
-```
+---
 
-**Response (200):**
-```json
-{ "user": { "id": "uuid", "role": "viewer" } }
-```
+#### GET /api/dashboard/:projectId/capa-aging
 
-**Error Responses:**
-- `403` -- Not an admin
-- `404` -- User not found
+Open CAPAs with aging buckets (0-7d, 7-30d, 30-90d, 90d+).
+
+**Auth:** Yes
+
+---
+
+#### GET /api/dashboard/:projectId/risk-summary
+
+Risk level counts and matrix data.
+
+**Auth:** Yes
 
 ---
 
 ## 2. Authentication
 
-### Token Format
+### Token-Based Authentication
 
-QAtrial uses JSON Web Tokens (JWT) for authentication.
+QAtrial uses JWT-based authentication. After login, include the access token in every API request:
 
-**Access Token:**
-- Expires: 24 hours
-- Payload: `{ userId, email, role, orgId }`
-- Used in: `Authorization: Bearer <accessToken>` header
+```
+Authorization: Bearer <accessToken>
+```
 
-**Refresh Token:**
-- Expires: 7 days
-- Payload: `{ userId, email, role, orgId, type: "refresh" }`
-- Used in: `POST /api/auth/refresh` body
-
-### How to Get a Token
+Access tokens expire after **24 hours**. Use the refresh token to get a new pair:
 
 ```bash
-# Register
-curl -X POST http://localhost:3001/api/auth/register \
+curl -X POST /api/auth/refresh \
   -H "Content-Type: application/json" \
-  -d '{"email":"user@example.com","password":"password123","name":"User"}'
-
-# Or login
-curl -X POST http://localhost:3001/api/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"email":"user@example.com","password":"password123"}'
+  -d '{"refreshToken":"eyJhbGci..."}'
 ```
 
-Both return `{ accessToken, refreshToken, user }`.
+### SSO Authentication
 
-### How to Use Bearer Auth
-
-Include the access token in every authenticated request:
-
-```bash
-curl http://localhost:3001/api/projects \
-  -H "Authorization: Bearer eyJhbGci..."
-```
-
-### Frontend API Client
-
-The `src/lib/apiClient.ts` module automatically injects the Bearer token:
-
-```typescript
-import { apiFetch } from './lib/apiClient';
-
-// The token is read from localStorage('qatrial:token') automatically
-const { projects } = await apiFetch<{ projects: Project[] }>('/projects');
-```
+When SSO is enabled, users authenticate via OIDC redirect flow. The callback endpoint exchanges the IdP code for QAtrial JWT tokens.
 
 ---
 
 ## 3. Error Handling
 
-### Standard Error Response
-
-All API errors return a JSON object with a `message` field:
+All endpoints return JSON error responses:
 
 ```json
 { "message": "Human-readable error description" }
 ```
 
-### HTTP Status Codes
-
-| Status | Meaning | Example |
-|--------|---------|---------|
-| `200` | Success | Successful GET, PUT, DELETE |
-| `201` | Created | Successful POST |
-| `400` | Bad Request | Missing required fields, invalid status transition |
-| `401` | Unauthorized | Missing, invalid, or expired JWT token |
-| `403` | Forbidden | Insufficient role (e.g., viewer trying to create) |
-| `404` | Not Found | Entity with given ID does not exist |
-| `409` | Conflict | Duplicate email on registration |
-| `500` | Internal Server Error | Unexpected server failure |
-
-### Frontend Error Handling
-
-The `apiFetch()` function in `src/lib/apiClient.ts` throws an `Error` with the server's message for any non-2xx response:
-
-```typescript
-if (!res.ok) {
-  const error = await res.json().catch(() => ({ message: res.statusText }));
-  throw new Error(error.message || res.statusText);
-}
-```
+| Status Code | Meaning |
+|-------------|---------|
+| `200` | Success |
+| `201` | Created |
+| `400` | Validation error |
+| `401` | Authentication error |
+| `403` | Authorization error (insufficient permission) |
+| `404` | Not found |
+| `409` | Conflict |
+| `500` | Internal server error |
 
 ---
 
 ## 4. Stores
 
-### useProjectStore
-
-**File:** `src/store/useProjectStore.ts`
-**Persistence Key:** `qatrial:project`
-
-#### State Shape
-
-```typescript
-interface ProjectState {
-  project: ProjectMeta | null;
-}
-```
-
-#### Actions
-
-| Action | Signature | Description |
-|--------|-----------|-------------|
-| `setProject` | `(meta: ProjectMeta) => void` | Sets the project metadata. Overwrites any existing project. |
-| `clearProject` | `() => void` | Sets project to `null`. |
-
----
-
-### useRequirementsStore
-
-**File:** `src/store/useRequirementsStore.ts`
-**Persistence Key:** `qatrial:requirements`
-
-#### State Shape
-
-```typescript
-interface RequirementsState {
-  requirements: Requirement[];
-  reqCounter: number;
-}
-```
-
-#### Actions
-
-| Action | Signature | Description |
-|--------|-----------|-------------|
-| `addRequirement` | `(data: { title: string; description: string; status: RequirementStatus }) => void` | Creates a new requirement with auto-generated ID (REQ-{counter}). |
-| `updateRequirement` | `(id: string, data: Partial<Omit<Requirement, 'id' \| 'createdAt'>>) => void` | Updates fields on an existing requirement. |
-| `deleteRequirement` | `(id: string) => void` | Deletes a requirement and removes its ID from all test links. |
-| `setRequirements` | `(reqs: Requirement[], counter: number) => void` | Bulk-replaces all requirements and resets the counter. |
-
-#### Cross-Store Side Effects
-
-`deleteRequirement` calls `useTestsStore.getState().removeRequirementLink(id)` to maintain referential integrity.
-
----
-
-### useTestsStore
-
-**File:** `src/store/useTestsStore.ts`
-**Persistence Key:** `qatrial:tests`
-
-#### Actions
-
-| Action | Signature | Description |
-|--------|-----------|-------------|
-| `addTest` | `(data: { title: string; description: string; status: TestStatus; linkedRequirementIds: string[] }) => void` | Creates a new test with auto-generated ID. |
-| `updateTest` | `(id: string, data: Partial<Omit<Test, 'id' \| 'createdAt'>>) => void` | Updates fields on an existing test. |
-| `deleteTest` | `(id: string) => void` | Deletes a test. |
-| `removeRequirementLink` | `(reqId: string) => void` | Removes a requirement ID from all tests' `linkedRequirementIds`. |
-| `setTests` | `(tests: Test[], counter: number) => void` | Bulk-replaces all tests and resets the counter. |
-
----
-
-### useAuditStore
-
-**File:** `src/store/useAuditStore.ts`
-**Persistence Key:** `qatrial:audit`
-
-#### Actions
-
-| Action | Signature | Description |
-|--------|-----------|-------------|
-| `log` | `(action: AuditAction, entityType: string, entityId: string, previousValue?: string, newValue?: string, reason?: string) => void` | Appends a new audit entry. |
-| `getEntriesForEntity` | `(entityId: string) => AuditEntry[]` | Returns all audit entries for a specific entity. |
-| `getEntriesByDateRange` | `(from: Date, to: Date) => AuditEntry[]` | Returns entries within the given date range. |
-| `clearEntries` | `() => void` | Removes all audit entries. |
-
----
-
-### useLLMStore
-
-**File:** `src/store/useLLMStore.ts`
-**Persistence Key:** `qatrial:llm`
-
-#### Actions
-
-| Action | Signature | Description |
-|--------|-----------|-------------|
-| `addProvider` | `(provider: LLMProvider) => void` | Adds a new LLM provider configuration. |
-| `updateProvider` | `(id: string, data: Partial<Omit<LLMProvider, 'id'>>) => void` | Updates an existing provider's configuration. |
-| `removeProvider` | `(id: string) => void` | Removes a provider by ID. |
-| `trackUsage` | `(providerId: string, input: number, output: number) => void` | Increments token usage counters. |
-| `getProviderForPurpose` | `(purpose: LLMPurpose) => LLMProvider \| null` | Resolves the best provider for a purpose. |
-| `hasAnyProvider` | `() => boolean` | Returns `true` if at least one enabled provider exists. |
-| `testConnection` | `(id: string) => Promise<{ ok: boolean; latencyMs: number; error?: string }>` | Sends a test prompt to verify the provider is reachable. |
-
----
-
-### useThemeStore
-
-**File:** `src/store/useThemeStore.ts`
-**Persistence Key:** `qatrial:theme`
-
-| Action | Signature | Description |
-|--------|-----------|-------------|
-| `setTheme` | `(theme: Theme) => void` | Sets theme and toggles the `dark` CSS class. |
-| `toggleTheme` | `() => void` | Flips between light and dark. |
-
----
-
-### useLocaleStore
-
-**File:** `src/store/useLocaleStore.ts`
-**Persistence Key:** `qatrial:locale`
-
-| Action | Signature | Description |
-|--------|-----------|-------------|
-| `setLanguage` | `(lang: string) => void` | Changes the i18next language. |
-| `setCountry` | `(country: string \| null) => void` | Stores the selected country code. |
-
----
-
-### useChangeControlStore
-
-**File:** `src/store/useChangeControlStore.ts`
-**Persistence Key:** `qatrial:change-control`
-
-| Action | Signature | Description |
-|--------|-----------|-------------|
-| `setConfig` | `(config: Partial<ChangeControlConfig>) => void` | Updates the change control configuration. |
-| `isApprovalRequired` | `(entityType: string) => boolean` | Checks if the given entity type requires approval. |
-
----
-
-### useImportExport
-
-**File:** `src/store/useImportExport.ts`
-**Persistence Key:** None (hook, not persisted)
-
-| Function | Signature | Description |
-|----------|-----------|-------------|
-| `exportData` | `() => void` | Triggers a JSON file download of project data. |
-| `importData` | `(file: File) => Promise<{ success: boolean; message: string }>` | Reads, validates, and loads a JSON file. |
-
----
-
-### useAuthStore
-
-**File:** `src/store/useAuthStore.ts`
-**Persistence Key:** `qatrial:auth`
-
-#### State Shape
-
-```typescript
-interface AuthState {
-  user: UserProfile | null;
-  signatureVerifiedAt: number | null;
-}
-```
-
-#### Actions
-
-| Action | Signature | Description |
-|--------|-----------|-------------|
-| `login` | `(email: string, password: string) => boolean` | Authenticates a user (localStorage mode). |
-| `logout` | `() => void` | Clears the current user session. |
-| `register` | `(name: string, email: string, password: string, role: UserRole) => void` | Creates a new user profile (localStorage mode). |
-| `verifyForSignature` | `(password: string) => boolean` | Re-authenticates for signing (15-minute window). |
-| `isSignatureValid` | `() => boolean` | Returns `true` if the signature window is still active. |
-| `hasPermission` | `(action: string) => boolean` | Checks role permissions via `ROLE_PERMISSIONS`. |
-
----
-
-### useRiskStore
-
-**File:** `src/store/useRiskStore.ts`
-**Persistence Key:** `qatrial:risks`
-
-| Action | Signature | Description |
-|--------|-----------|-------------|
-| `addAssessment` | `(assessment: Omit<RiskAssessment, 'id'>) => void` | Creates a new risk assessment. |
-| `updateAssessment` | `(id: string, data: Partial<RiskAssessment>) => void` | Updates an assessment. |
-| `deleteAssessment` | `(id: string) => void` | Removes an assessment. |
-| `getForRequirement` | `(requirementId: string) => RiskAssessment \| undefined` | Returns the latest assessment for a requirement. |
-| `getAllForRequirement` | `(requirementId: string) => RiskAssessment[]` | Returns all assessments for a requirement. |
-
----
-
-### useCAPAStore
-
-**File:** `src/store/useCAPAStore.ts`
-**Persistence Key:** `qatrial:capa`
-
-| Action | Signature | Description |
-|--------|-----------|-------------|
-| `addRecord` | `(record: Omit<CAPARecord, 'id' \| 'createdAt' \| 'updatedAt'>) => void` | Creates a new CAPA record. |
-| `updateRecord` | `(id: string, data: Partial<CAPARecord>) => void` | Updates an existing record. |
-| `deleteRecord` | `(id: string) => void` | Removes a record. |
-| `advanceStatus` | `(id: string) => void` | Moves to the next lifecycle stage. |
-| `getByStatus` | `(status: CAPAStatus) => CAPARecord[]` | Returns records by status. |
-
----
-
-### useGapStore
-
-**File:** `src/store/useGapStore.ts`
-**Persistence Key:** `qatrial:gaps`
-
-| Action | Signature | Description |
-|--------|-----------|-------------|
-| `addRun` | `(run: Omit<GapAnalysisRun, 'id'>) => void` | Stores a new gap analysis run. |
-| `updateReviewStatus` | `(id: string, status: string, reviewedBy?: string) => void` | Updates review status. |
-| `getLatestRun` | `() => GapAnalysisRun \| undefined` | Returns the most recent run. |
-| `deleteRun` | `(id: string) => void` | Removes a run. |
-
----
-
-### useEvidenceStore
-
-**File:** `src/store/useEvidenceStore.ts`
-**Persistence Key:** `qatrial:evidence`
-
-| Action | Signature | Description |
-|--------|-----------|-------------|
-| `addAttachment` | `(attachment: Omit<EvidenceAttachment, 'id' \| 'createdAt'>) => void` | Adds evidence. |
-| `deleteAttachment` | `(id: string) => void` | Removes evidence. |
-| `getForRequirement` | `(requirementId: string) => EvidenceAttachment[]` | Returns evidence for a requirement. |
-| `getCompletenessScore` | `() => number` | Returns percentage with complete evidence. |
-
----
-
-### useAIHistoryStore
-
-**File:** `src/store/useAIHistoryStore.ts`
-**Persistence Key:** `qatrial:ai-history`
-
-| Action | Signature | Description |
-|--------|-----------|-------------|
-| `addArtifact` | `(artifact: Omit<AIArtifact, 'id'>) => void` | Records an AI artifact. |
-| `markAccepted` | `(id: string, accepted: boolean) => void` | Updates accepted status. |
-| `getForEntity` | `(entityId: string) => AIArtifact[]` | Returns artifacts for an entity. |
-| `getReRunHistory` | `(type: string, entityId: string) => AIArtifact[]` | Returns re-run history. |
-| `getUsageStats` | `() => AIUsageStats` | Returns usage statistics. |
-
----
-
-### useConnectorStore
-
-**File:** `src/store/useConnectorStore.ts`
-**Persistence Key:** `qatrial:connectors`
-
-| Action | Signature | Description |
-|--------|-----------|-------------|
-| `addConfig` | `(config: Omit<ConnectorConfig, 'id'>) => void` | Adds a connector config. |
-| `updateConfig` | `(id: string, data: Partial<ConnectorConfig>) => void` | Updates a config. |
-| `removeConfig` | `(id: string) => void` | Removes a config. |
-| `addSyncRecord` | `(record: Omit<SyncRecord, 'id'>) => void` | Records a sync operation. |
-| `getConfigById` | `(id: string) => ConnectorConfig \| undefined` | Returns a config by ID. |
-| `getSyncHistory` | `(connectorId: string) => SyncRecord[]` | Returns sync history. |
+QAtrial uses 20 Zustand stores with localStorage persistence. See [Architecture > State Management](ARCHITECTURE.md#11-state-management) for the full store reference table.
 
 ---
 
 ## 5. AI Client
 
-### complete()
+### complete(request)
 
 **File:** `src/ai/client.ts`
 
-```typescript
-async function complete(req: CompletionRequest): Promise<CompletionResponse>
-```
-
-#### Parameters (CompletionRequest)
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `prompt` | `string` | Yes | The full prompt text to send |
-| `purpose` | `LLMPurpose` | Yes | The AI purpose for provider routing |
-| `maxTokens` | `number` | No | Override provider's default max tokens |
-| `temperature` | `number` | No | Override provider's default temperature |
-
-#### Returns (CompletionResponse)
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `text` | `string` | The generated text response |
-| `model` | `string` | The model that generated the response |
-| `providerId` | `string` | The provider that was used |
-| `tokensUsed` | `{ input: number; output: number }` | Token counts |
-
-#### Behavior
-
-1. Reads providers from `useLLMStore`
-2. Calls `resolveProvider(purpose, providers)` to find the best provider
-3. Throws `Error("No AI provider configured for purpose: ...")` if no match
-4. Branches based on `provider.type` (anthropic vs openai-compatible)
-5. Parses the response and extracts text + token counts
-6. Calls `trackUsage()` to record consumption
-7. Returns `CompletionResponse`
-
----
-
-### resolveProvider()
-
-**File:** `src/ai/provider.ts`
+Sends a prompt to the resolved AI provider.
 
 ```typescript
-function resolveProvider(purpose: LLMPurpose, providers: LLMProvider[]): LLMProvider | null
+interface CompletionRequest {
+  prompt: string;
+  purpose: LLMPurpose;
+  maxTokens?: number;
+  temperature?: number;
+}
+
+interface CompletionResponse {
+  text: string;
+  model: string;
+  providerId: string;
+  tokensUsed: number;
+}
+
+async function complete(request: CompletionRequest): Promise<CompletionResponse>
 ```
 
-Algorithm: Filter enabled -> match specific purpose -> sort by priority -> fallback to "all" purpose -> return null.
+**Purpose routing:** The function checks for a server-side proxy URL first, then resolves the provider from `useLLMStore` based on the purpose. If `VITE_AI_PROXY_URL` is set or the server's `/api/ai/complete` endpoint is configured, it proxies through the server.
 
 ---
 
 ## 6. AI Validation
 
-### safeParse()
+### safeParse(text, schema)
 
 **File:** `src/ai/validation.ts`
 
+Parses AI response text and validates against a JSON schema:
+
 ```typescript
-function safeParse<T>(text: string, schema: JSONSchema): T
+function safeParse<T>(text: string, schema: JsonSchema): T
 ```
 
-Strips markdown code fences, parses JSON, validates against schema, throws `ValidationError` on failure.
+Strips markdown code fences, parses JSON, validates against schema. Throws `ValidationError` on failure.
 
-### completeWithValidation()
+### completeWithValidation(options)
+
+Combines `complete()` with schema validation and automatic retry:
 
 ```typescript
 async function completeWithValidation<T>(options: {
   prompt: string;
   purpose: LLMPurpose;
-  schema: JSONSchema;
+  schema: JsonSchema;
   maxRetries?: number;
 }): Promise<T>
-```
-
-Combines `complete()` with `safeParse()` and automatic retry logic.
-
-### ValidationError
-
-```typescript
-class ValidationError extends Error {
-  violations: string[];
-  rawText: string;
-}
 ```
 
 ---
 
 ## 7. Template System
 
-### composeTemplate()
+### composeTemplate(config)
 
 **File:** `src/templates/composer.ts`
 
+Composes templates from country, vertical, project type, and modules:
+
 ```typescript
-async function composeTemplate(config: ComposeConfig): Promise<ComposeResult>
+function composeTemplate(config: {
+  country: string;
+  vertical?: IndustryVertical;
+  projectType?: ProjectType;
+  modules?: string[];
+}): { requirements: TemplateRequirement[]; tests: TemplateTest[] }
 ```
 
-Loading order: Regional base -> Country base -> Vertical common -> Vertical project type -> Country+Vertical overlay -> Modules -> Deduplicate.
+### Compliance Packs
 
-### Registry Lookup
+**File:** `src/templates/packs/index.ts`
 
-- `VERTICAL_DEFINITIONS` -- 10 vertical definitions
-- `COUNTRY_REGISTRY` -- 37+ country entries
-- `MODULE_DEFINITIONS` -- 15+ module definitions with requirements and tests
+```typescript
+interface CompliancePack {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  country: string;
+  vertical: string;
+  projectType: string;
+  modules: string[];
+  tags: string[];
+}
+
+const COMPLIANCE_PACKS: CompliancePack[]  // 4 packs
+```
 
 ---
 
@@ -1230,6 +1035,9 @@ Loading order: Regional base -> Country base -> Vertical common -> Vertical proj
 type ConnectorType = 'jira' | 'azure_devops' | 'csv' | 'custom';
 
 interface Connector {
+  id: string;
+  type: ConnectorType;
+  name: string;
   connect(config: ConnectorConfig): Promise<boolean>;
   disconnect(): Promise<void>;
   sync(direction: SyncRecord['direction']): Promise<SyncRecord>;
@@ -1241,226 +1049,112 @@ interface Connector {
 
 ## 9. PDF Export
 
-### exportReportAsPDF()
-
 **File:** `src/lib/pdfExport.ts`
 
 ```typescript
-async function exportReportAsPDF(options: {
-  project: ProjectMeta;
+function exportReportAsPDF(options: {
+  projectName: string;
+  version: string;
   sections: ReportSection[];
-  signatures?: ElectronicSignature[];
-  filename?: string;
-}): Promise<void>
+  includeSignatures: boolean;
+}): void
 ```
 
-Generates a PDF with cover page, table of contents, report sections, and signature blocks.
+Generates a professional PDF with cover page, table of contents, report sections, and optional signature blocks.
 
 ---
 
 ## 10. Utilities
 
-### generateId()
+### apiClient.ts
 
-**File:** `src/lib/idGenerator.ts`
+```typescript
+function apiFetch<T>(path: string, options?: RequestInit): Promise<T>
+```
+
+Authenticated fetch wrapper. Injects Bearer token from localStorage, handles error responses.
+
+### idGenerator.ts
 
 ```typescript
 function generateId(prefix: string, counter: number): string
-// generateId('REQ', 1) -> "REQ-001"
-// generateId('TST', 42) -> "TST-042"
+// generateId("REQ", 1) => "REQ-001"
+// generateId("TST", 42) => "TST-042"
 ```
-
-### apiFetch()
-
-**File:** `src/lib/apiClient.ts`
-
-```typescript
-async function apiFetch<T>(path: string, options?: RequestInit): Promise<T>
-```
-
-Authenticated fetch wrapper that automatically injects the Bearer token from `localStorage('qatrial:token')` and throws on non-2xx responses. Uses `VITE_API_URL` (defaults to `http://localhost:3001/api`) as the base URL.
-
-### Demo Project Helpers
-
-**File:** `src/lib/demoProjects.ts`
-
-- `getDemoProject(countryCode: string)` -- Returns demo project for a country
-- `DEMO_COUNTRY_CODES` -- Set of country codes with demo projects
-
-### useEvaluationData Hook
-
-**File:** `src/hooks/useEvaluationData.ts`
-
-```typescript
-function useEvaluationData(filters: DashboardFilters): EvaluationMetrics
-```
-
-Computes dashboard metrics (coverage, status counts, orphaned items) from requirements and tests.
 
 ---
 
 ## 11. Type Reference
 
-All types are defined in `src/types/index.ts`.
+### Core Types
 
-### Status Types
+```typescript
+type RequirementStatus = 'Draft' | 'Active' | 'Closed';
+type TestStatus = 'Not Run' | 'Passed' | 'Failed';
+type CAPAStatus = 'open' | 'investigation' | 'in_progress' | 'verification' | 'resolved' | 'closed';
+type RiskLevel = 'low' | 'medium' | 'high' | 'critical';
+type SignatureMeaning = 'authored' | 'reviewed' | 'approved' | 'verified' | 'rejected';
+type GapStatus = 'covered' | 'partial' | 'missing';
 
-| Type | Values |
-|------|--------|
-| `RequirementStatus` | `'Draft' \| 'Active' \| 'Closed'` |
-| `TestStatus` | `'Not Run' \| 'Passed' \| 'Failed'` |
-| `RiskLevel` | `'low' \| 'medium' \| 'high' \| 'critical'` |
-| `GapStatus` | `'covered' \| 'partial' \| 'missing'` |
-| `SignatureMeaning` | `'authored' \| 'reviewed' \| 'approved' \| 'verified' \| 'rejected'` |
-| `CAPAStatus` | `'open' \| 'investigation' \| 'in_progress' \| 'verification' \| 'resolved' \| 'closed'` |
+type UserRole = 'admin' | 'qa_manager' | 'qa_engineer' | 'auditor' | 'reviewer';
 
-### Configuration Types
+type LLMPurpose =
+  | 'all'
+  | 'test_generation'
+  | 'gap_analysis'
+  | 'risk_classification'
+  | 'report_narrative'
+  | 'requirement_decomp'
+  | 'capa'
+  | 'quality_check';
 
-| Type | Values |
-|------|--------|
-| `IndustryVertical` | `'pharma' \| 'biotech' \| 'medical_devices' \| 'cro' \| 'clinical_lab' \| 'logistics' \| 'cosmetics' \| 'aerospace' \| 'chemical_env' \| 'software_it'` |
-| `ProjectType` | `'software' \| 'embedded' \| 'compliance' \| 'empty'` |
-| `LLMProviderType` | `'openai-compatible' \| 'anthropic'` |
-| `LLMPurpose` | `'all' \| 'test_generation' \| 'gap_analysis' \| 'risk_classification' \| 'report_narrative' \| 'requirement_decomp' \| 'capa'` |
-| `RiskTaxonomyType` | `'iso14971' \| 'ichQ9' \| 'fmea' \| 'gamp5' \| 'generic'` |
-| `AuditAction` | `'create' \| 'update' \| 'delete' \| 'status_change' \| 'link' \| 'unlink' \| 'approve' \| 'reject' \| 'sign' \| 'export' \| 'generate_report' \| 'ai_generate' \| 'ai_accept' \| 'ai_reject' \| 'login' \| 'logout' \| 'import'` |
-| `ReportType` | `'validation_summary' \| 'traceability_matrix' \| 'gap_analysis' \| 'risk_assessment' \| 'executive_brief' \| 'submission_package'` |
-| `UserRole` | `'admin' \| 'qa_manager' \| 'qa_engineer' \| 'auditor' \| 'reviewer'` |
-| `ConnectorType` | `'jira' \| 'azure_devops' \| 'csv' \| 'custom'` |
+type ProjectType =
+  | 'software'
+  | 'embedded'
+  | 'quality_system'
+  | 'validation'
+  | 'clinical'
+  | 'compliance'
+  | 'supplier_quality'
+  | 'empty';
 
-### Core Domain Interfaces
+type IndustryVertical =
+  | 'pharma'
+  | 'biotech'
+  | 'medical_devices'
+  | 'cro'
+  | 'clinical_lab'
+  | 'logistics'
+  | 'software_it'
+  | 'cosmetics'
+  | 'aerospace'
+  | 'chemical_env';
 
-#### Requirement
+type AuditAction =
+  | 'create' | 'update' | 'delete' | 'status_change'
+  | 'link' | 'unlink' | 'approve' | 'reject' | 'sign'
+  | 'export' | 'generate_report'
+  | 'ai_generate' | 'ai_accept' | 'ai_reject'
+  | 'login' | 'logout' | 'import';
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `id` | `string` | Yes | Auto-generated: "REQ-001" |
-| `title` | `string` | Yes | Requirement statement |
-| `description` | `string` | Yes | Detailed specification |
-| `status` | `RequirementStatus` | Yes | Draft / Active / Closed |
-| `createdAt` | `string` | Yes | ISO 8601 timestamp |
-| `updatedAt` | `string` | Yes | ISO 8601 timestamp |
-| `tags` | `string[]` | No | Categorical labels |
-| `jurisdictions` | `string[]` | No | Country codes |
-| `verticals` | `string[]` | No | Applicable verticals |
-| `riskLevel` | `RiskLevel` | No | low / medium / high / critical |
-| `regulatoryRef` | `string` | No | Regulatory clause ref |
-| `evidenceHints` | `string[]` | No | Standards needing evidence |
+type WebhookEvent =
+  | 'requirement.created' | 'requirement.updated' | 'requirement.deleted'
+  | 'test.created' | 'test.updated' | 'test.failed'
+  | 'capa.created' | 'capa.status_changed'
+  | 'approval.requested' | 'approval.approved' | 'approval.rejected'
+  | 'signature.created'
+  | 'evidence.uploaded';
+```
 
-#### Test
+### Quality Check Types
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `id` | `string` | Yes | Auto-generated: "TST-001" |
-| `title` | `string` | Yes | Test case title |
-| `description` | `string` | Yes | Procedure and expected outcomes |
-| `status` | `TestStatus` | Yes | Not Run / Passed / Failed |
-| `linkedRequirementIds` | `string[]` | Yes | Referenced requirement IDs |
-| `createdAt` | `string` | Yes | ISO 8601 timestamp |
-| `updatedAt` | `string` | Yes | ISO 8601 timestamp |
+```typescript
+interface QualityIssue {
+  type: 'vague' | 'untestable' | 'ambiguous' | 'incomplete' | 'duplicate_risk' | 'missing_criteria';
+  severity: 'error' | 'warning' | 'info';
+  message: string;
+  suggestion: string;
+}
+```
 
-#### ProjectMeta
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `name` | `string` | Yes | Project name |
-| `description` | `string` | Yes | Description |
-| `owner` | `string` | Yes | Owner name |
-| `version` | `string` | Yes | Version string |
-| `type` | `ProjectType` | Yes | software / embedded / compliance / empty |
-| `createdAt` | `string` | Yes | ISO 8601 timestamp |
-| `country` | `string` | No | ISO 3166-1 alpha-2 |
-| `vertical` | `IndustryVertical` | No | Industry vertical |
-| `modules` | `string[]` | No | Selected module IDs |
-
-#### RiskAssessment
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `id` | `string` | Yes | Unique ID |
-| `requirementId` | `string` | Yes | Linked requirement |
-| `severity` | `Severity` | Yes | 1-5 |
-| `likelihood` | `Likelihood` | Yes | 1-5 |
-| `detectability` | `Detectability` | No | 1-5 (for FMEA) |
-| `riskScore` | `number` | Yes | Computed score |
-| `riskLevel` | `RiskLevel` | Yes | Derived level |
-| `mitigationStrategy` | `string` | No | Mitigation description |
-| `classifiedBy` | `'manual' \| 'ai'` | Yes | Who classified |
-| `classifiedAt` | `string` | Yes | ISO 8601 timestamp |
-
-#### AuditEntry (Client)
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `id` | `string` | Yes | Auto-generated audit ID |
-| `timestamp` | `string` | Yes | ISO 8601 |
-| `userId` | `string` | Yes | User identifier |
-| `userName` | `string` | Yes | Display name |
-| `action` | `AuditAction` | Yes | What happened |
-| `entityType` | `string` | Yes | e.g., "requirement", "test" |
-| `entityId` | `string` | Yes | Entity identifier |
-| `previousValue` | `string` | No | Before value (for diffs) |
-| `newValue` | `string` | No | After value (for diffs) |
-| `reason` | `string` | No | Why the action was taken |
-| `signature` | `ElectronicSignature` | No | Attached signature |
-
-#### AuditLog (Server/PostgreSQL)
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `id` | `string` | Yes | UUID |
-| `projectId` | `string` | Yes | Project UUID |
-| `timestamp` | `DateTime` | Yes | Server-generated timestamp |
-| `userId` | `string` | Yes | User UUID from JWT |
-| `action` | `string` | Yes | Action type |
-| `entityType` | `string` | Yes | Entity type |
-| `entityId` | `string` | Yes | Entity UUID |
-| `previousValue` | `Json?` | No | Previous state as JSON |
-| `newValue` | `Json?` | No | New state as JSON |
-| `reason` | `string?` | No | Reason for action |
-
-#### ElectronicSignature
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `signerId` | `string` | Yes | Unique signer identifier |
-| `signerName` | `string` | Yes | Display name |
-| `signerRole` | `string` | Yes | Role |
-| `timestamp` | `string` | Yes | ISO 8601 |
-| `meaning` | `SignatureMeaning` | Yes | authored / reviewed / approved / verified / rejected |
-| `method` | `string` | Yes | Authentication method |
-
-#### LLMProvider
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `id` | `string` | Yes | Unique provider ID |
-| `name` | `string` | Yes | Display name |
-| `type` | `LLMProviderType` | Yes | anthropic / openai-compatible |
-| `baseUrl` | `string` | Yes | API base URL |
-| `apiKey` | `string` | Yes | API key |
-| `model` | `string` | Yes | Model identifier |
-| `purpose` | `LLMPurpose[]` | Yes | Which AI purposes this handles |
-| `maxTokens` | `number` | Yes | Default max token limit |
-| `temperature` | `number` | Yes | Default temperature |
-| `enabled` | `boolean` | Yes | Whether active |
-| `priority` | `number` | Yes | Lower = higher priority |
-
-#### CAPARecord
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `id` | `string` | Yes | Unique ID |
-| `title` | `string` | Yes | CAPA title |
-| `description` | `string` | Yes | Description |
-| `status` | `CAPAStatus` | Yes | Lifecycle state |
-| `linkedTestId` | `string` | No | Related failed test |
-| `linkedRequirementId` | `string` | No | Related requirement |
-| `rootCause` | `string` | No | Root cause analysis |
-| `containment` | `string` | No | Containment action |
-| `correctiveAction` | `string` | No | Corrective steps |
-| `preventiveAction` | `string` | No | Preventive measures |
-| `effectivenessCheck` | `string` | No | Verification criteria |
-| `createdAt` | `string` | Yes | ISO 8601 |
-| `updatedAt` | `string` | Yes | ISO 8601 |
-| `closedAt` | `string` | No | ISO 8601 (when closed) |
+See `src/types/index.ts` for the full set of 60+ type definitions.
