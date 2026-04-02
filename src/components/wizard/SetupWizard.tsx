@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { Rocket } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { StepCompliancePack } from './StepCompliancePack';
 import { StepCountry } from './StepCountry';
 import { StepVertical } from './StepVertical';
 import { StepMetadata } from './StepMetadata';
@@ -16,8 +17,9 @@ import { useAuditStore } from '../../store/useAuditStore';
 import { generateId } from '../../lib/idGenerator';
 import type { IndustryVertical } from '../../types';
 import type { DemoProject } from '../../lib/demoProjects';
+import type { CompliancePack } from '../../templates/packs';
 
-const TOTAL_STEPS = 6;
+const TOTAL_STEPS = 7; // 0=packs, 1=country, 2=vertical, 3=metadata, 4=type, 5=modules, 6=preview
 
 interface MetaData {
   name: string;
@@ -29,7 +31,7 @@ interface MetaData {
 export function SetupWizard({ onComplete }: { onComplete: () => void }) {
   const { t } = useTranslation();
 
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState(0);
   const [country, setCountry] = useState<string | null>(null);
   const [vertical, setVertical] = useState<string | null>(null);
   const [meta, setMeta] = useState<MetaData>({ name: '', description: '', owner: '', version: '1.0' });
@@ -45,7 +47,16 @@ export function SetupWizard({ onComplete }: { onComplete: () => void }) {
     );
   }, []);
 
-  /** Pre-fill all wizard fields from a demo project and jump to the preview step */
+  /** Handle compliance pack selection — auto-fills fields and skips to metadata */
+  const handleSelectPack = useCallback((pack: CompliancePack) => {
+    setCountry(pack.country);
+    setVertical(pack.vertical);
+    setProjectType(pack.projectType);
+    setSelectedModules(pack.modules);
+    setStep(3); // Jump to metadata step
+  }, []);
+
+  /** Pre-fill all wizard fields from a demo project and jump to the vertical step */
   const handleLoadDemo = useCallback((demo: DemoProject) => {
     setCountry(demo.countryCode);
     setVertical(demo.vertical);
@@ -193,6 +204,9 @@ export function SetupWizard({ onComplete }: { onComplete: () => void }) {
     onComplete();
   }, [meta, projectType, country, vertical, selectedModules, composedTemplate, selectedReqs, selectedTests, onComplete]);
 
+  // Display step is 1-indexed for the progress bar; internal step is 0-indexed
+  const displayStep = step + 1;
+
   return (
     <div className="min-h-screen bg-surface-secondary flex items-center justify-center p-4">
       <div className="bg-surface rounded-2xl shadow-lg w-full max-w-2xl border border-border">
@@ -204,16 +218,16 @@ export function SetupWizard({ onComplete }: { onComplete: () => void }) {
             </div>
             <div>
               <h1 className="text-xl font-bold text-text-primary">{t('wizard.title')}</h1>
-              <p className="text-sm text-text-tertiary">{t('wizard.stepOf', { step, total: TOTAL_STEPS })}</p>
+              <p className="text-sm text-text-tertiary">{t('wizard.stepOf', { step: displayStep, total: TOTAL_STEPS })}</p>
             </div>
           </div>
           {/* Progress bar */}
           <div className="flex gap-2 mt-4">
-            {Array.from({ length: TOTAL_STEPS }, (_, i) => i + 1).map((s) => (
+            {Array.from({ length: TOTAL_STEPS }, (_, i) => (
               <div
-                key={s}
+                key={i}
                 className={`h-1.5 flex-1 rounded-full transition-colors ${
-                  s <= step ? 'bg-accent' : 'bg-surface-tertiary'
+                  i <= step ? 'bg-accent' : 'bg-surface-tertiary'
                 }`}
               />
             ))}
@@ -222,6 +236,12 @@ export function SetupWizard({ onComplete }: { onComplete: () => void }) {
 
         {/* Content */}
         <div className="px-8 py-4">
+          {step === 0 && (
+            <StepCompliancePack
+              onSelectPack={handleSelectPack}
+              onSkip={() => setStep(1)}
+            />
+          )}
           {step === 1 && (
             <StepCountry
               selected={country}

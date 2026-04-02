@@ -343,4 +343,145 @@ exportRoutes.get('/:projectId/bundle', async (c) => {
   }
 });
 
+// ── CSV Export Helpers ─────────────────────────────────────────────────────
+
+const CSV_BOM = '\ufeff'; // UTF-8 BOM for Excel compatibility
+
+function escapeCsvField(value: string | null | undefined): string {
+  if (value === null || value === undefined) return '""';
+  const str = String(value);
+  // Always quote fields for safety
+  return `"${str.replace(/"/g, '""')}"`;
+}
+
+function formatCsvDate(date: Date | string | null | undefined): string {
+  if (!date) return '';
+  return new Date(date).toISOString();
+}
+
+function buildRequirementsCsv(requirements: any[]): string {
+  const headers = ['ID', 'Title', 'Description', 'Status', 'Tags', 'Risk Level', 'Regulatory Ref', 'Created', 'Updated'];
+  const rows = requirements.map((r) => [
+    escapeCsvField(r.seqId),
+    escapeCsvField(r.title),
+    escapeCsvField(r.description),
+    escapeCsvField(r.status),
+    escapeCsvField(Array.isArray(r.tags) ? r.tags.join(', ') : ''),
+    escapeCsvField(r.riskLevel),
+    escapeCsvField(r.regulatoryRef),
+    escapeCsvField(formatCsvDate(r.createdAt)),
+    escapeCsvField(formatCsvDate(r.updatedAt)),
+  ]);
+
+  return CSV_BOM + [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
+}
+
+function buildTestsCsv(tests: any[]): string {
+  const headers = ['ID', 'Title', 'Description', 'Status', 'Linked Requirements', 'Created', 'Updated'];
+  const rows = tests.map((t) => [
+    escapeCsvField(t.seqId),
+    escapeCsvField(t.title),
+    escapeCsvField(t.description),
+    escapeCsvField(t.status),
+    escapeCsvField(Array.isArray(t.linkedRequirementIds) ? t.linkedRequirementIds.join(', ') : ''),
+    escapeCsvField(formatCsvDate(t.createdAt)),
+    escapeCsvField(formatCsvDate(t.updatedAt)),
+  ]);
+
+  return CSV_BOM + [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
+}
+
+function buildRisksCsv(risks: any[]): string {
+  const headers = ['ID', 'Requirement ID', 'Severity', 'Likelihood', 'Detectability', 'Risk Score', 'Risk Level', 'Mitigation', 'Created'];
+  const rows = risks.map((r) => [
+    escapeCsvField(r.id?.slice(0, 8)),
+    escapeCsvField(r.requirementId),
+    escapeCsvField(String(r.severity)),
+    escapeCsvField(String(r.likelihood)),
+    escapeCsvField(String(r.detectability ?? '')),
+    escapeCsvField(String(r.riskScore)),
+    escapeCsvField(r.riskLevel),
+    escapeCsvField(r.mitigationStrategy),
+    escapeCsvField(formatCsvDate(r.createdAt)),
+  ]);
+
+  return CSV_BOM + [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
+}
+
+function buildCapaCsv(capas: any[]): string {
+  const headers = ['ID', 'Title', 'Status', 'Root Cause', 'Corrective Action', 'Preventive Action', 'Created'];
+  const rows = capas.map((ca) => [
+    escapeCsvField(ca.id?.slice(0, 8)),
+    escapeCsvField(ca.title),
+    escapeCsvField(ca.status),
+    escapeCsvField(ca.rootCause),
+    escapeCsvField(ca.correctiveAction),
+    escapeCsvField(ca.preventiveAction),
+    escapeCsvField(formatCsvDate(ca.createdAt)),
+  ]);
+
+  return CSV_BOM + [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
+}
+
+// GET /:projectId/csv — CSV export
+exportRoutes.get('/:projectId/csv', async (c) => {
+  try {
+    const { projectId } = c.req.param();
+    const type = c.req.query('type') ?? 'requirements';
+
+    const data = await gatherProjectData(projectId);
+    if (!data) {
+      return c.json({ message: 'Project not found' }, 404);
+    }
+
+    let csv: string;
+    let filename: string;
+
+    switch (type) {
+      case 'requirements':
+        csv = buildRequirementsCsv(data.requirements);
+        filename = `qatrial-requirements-${projectId.slice(0, 8)}.csv`;
+        break;
+
+      case 'tests':
+        csv = buildTestsCsv(data.tests);
+        filename = `qatrial-tests-${projectId.slice(0, 8)}.csv`;
+        break;
+
+      case 'all': {
+        // Combine all entity types with section separators
+        const sections = [
+          '# REQUIREMENTS',
+          buildRequirementsCsv(data.requirements).replace(CSV_BOM, ''),
+          '',
+          '# TESTS',
+          buildTestsCsv(data.tests).replace(CSV_BOM, ''),
+          '',
+          '# RISKS',
+          buildRisksCsv(data.risks).replace(CSV_BOM, ''),
+          '',
+          '# CAPA',
+          buildCapaCsv(data.capas).replace(CSV_BOM, ''),
+        ];
+        csv = CSV_BOM + sections.join('\n');
+        filename = `qatrial-all-${projectId.slice(0, 8)}.csv`;
+        break;
+      }
+
+      default:
+        return c.json({ message: 'Invalid type. Use: requirements, tests, or all' }, 400);
+    }
+
+    return new Response(csv, {
+      headers: {
+        'Content-Type': 'text/csv; charset=utf-8',
+        'Content-Disposition': `attachment; filename="${filename}"`,
+      },
+    });
+  } catch (error: any) {
+    console.error('CSV export error:', error);
+    return c.json({ message: 'Failed to export CSV' }, 500);
+  }
+});
+
 export default exportRoutes;

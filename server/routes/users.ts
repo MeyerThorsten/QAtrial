@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 import * as bcrypt from 'bcryptjs';
 import { prisma } from '../index.js';
-import { authMiddleware, requireRole, getUser } from '../middleware/auth.js';
+import { authMiddleware, requireRole, requirePermission, getUser, VALID_ROLES } from '../middleware/auth.js';
 
 const users = new Hono();
 
@@ -28,13 +28,23 @@ users.get('/', async (c) => {
   }
 });
 
-users.post('/invite', requireRole('admin'), async (c) => {
+// All valid roles including legacy for backward compat
+const ALL_VALID_ROLES = [...VALID_ROLES, 'editor', 'viewer'];
+
+users.post('/invite', requirePermission('canAdmin'), async (c) => {
   try {
     const currentUser = getUser(c);
     const body = await c.req.json();
 
     if (!body.email || !body.name) {
       return c.json({ message: 'Email and name are required' }, 400);
+    }
+
+    const requestedRole = body.role ?? 'qa_engineer';
+    if (!ALL_VALID_ROLES.includes(requestedRole)) {
+      return c.json({
+        message: `Invalid role. Valid roles: ${VALID_ROLES.join(', ')}`,
+      }, 400);
     }
 
     const existing = await prisma.user.findUnique({ where: { email: body.email } });
@@ -51,7 +61,7 @@ users.post('/invite', requireRole('admin'), async (c) => {
         email: body.email,
         passwordHash,
         name: body.name,
-        role: body.role ?? 'editor',
+        role: requestedRole,
         orgId: currentUser.orgId,
       },
     });
@@ -66,14 +76,16 @@ users.post('/invite', requireRole('admin'), async (c) => {
   }
 });
 
-users.put('/:id/role', requireRole('admin'), async (c) => {
+users.put('/:id/role', requirePermission('canAdmin'), async (c) => {
   try {
     const currentUser = getUser(c);
     const { id } = c.req.param();
     const body = await c.req.json();
 
-    if (!body.role || !['admin', 'editor', 'viewer'].includes(body.role)) {
-      return c.json({ message: 'Valid role is required (admin, editor, viewer)' }, 400);
+    if (!body.role || !ALL_VALID_ROLES.includes(body.role)) {
+      return c.json({
+        message: `Valid role is required. Options: ${VALID_ROLES.join(', ')}`,
+      }, 400);
     }
 
     const targetUser = await prisma.user.findUnique({ where: { id } });

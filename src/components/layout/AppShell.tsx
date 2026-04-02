@@ -1,7 +1,9 @@
 import { useState, lazy, Suspense } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ClipboardList, FlaskConical, BarChart3, FolderPlus, ScrollText, X, FileText, Settings, Layers, LogOut, Users } from 'lucide-react';
+import { ClipboardList, FlaskConical, BarChart3, FolderPlus, ScrollText, X, FileText, Settings, Layers, LogOut, Users, FileSpreadsheet, Download } from 'lucide-react';
 import { ImportExportBar } from '../shared/ImportExportBar';
+import { ImportWizard } from '../import/ImportWizard';
+import { ExportPanel } from '../import/ExportPanel';
 import { ThemeToggle } from '../shared/ThemeToggle';
 import { LanguageSelector } from '../shared/LanguageSelector';
 import { ConfirmDialog } from '../shared/ConfirmDialog';
@@ -13,6 +15,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { useAppMode } from '../../hooks/useAppMode';
 import { WorkspaceManager } from '../auth/WorkspaceManager';
 import { MigrateDataButton } from '../auth/MigrateDataButton';
+import { ShareAuditLink } from '../audit/ShareAuditLink';
 import type { ViewTab } from '../../types';
 
 // Lazy-loaded components for code splitting
@@ -49,6 +52,8 @@ export function AppShell() {
   const [confirmNewProject, setConfirmNewProject] = useState(false);
   const [showAuditTrail, setShowAuditTrail] = useState(false);
   const [showTeam, setShowTeam] = useState(false);
+  const [showImportWizard, setShowImportWizard] = useState(false);
+  const [showExportPanel, setShowExportPanel] = useState(false);
 
   const hasData = project !== null || requirements.length > 0 || tests.length > 0;
   const wizardVisible = showWizard || !hasData;
@@ -114,6 +119,9 @@ export function AppShell() {
               {isServerMode && isAuthenticated && <MigrateDataButton />}
 
               <NotificationBell />
+              {/* Share Audit Link — admin only */}
+              {isServerMode && isAuthenticated && <ShareAuditLink />}
+
               <button
                 onClick={() => setShowAuditTrail(true)}
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-text-secondary bg-surface border border-border rounded-lg hover:bg-surface-hover transition-colors"
@@ -154,6 +162,22 @@ export function AppShell() {
                 {t('app.newProject')}
               </button>
               <ImportExportBar />
+              <button
+                onClick={() => setShowImportWizard(true)}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-text-secondary bg-surface border border-border rounded-lg hover:bg-surface-hover transition-colors"
+                title={t('import.title')}
+              >
+                <FileSpreadsheet className="w-4 h-4" />
+                {t('import.title')}
+              </button>
+              <button
+                onClick={() => setShowExportPanel(true)}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-text-secondary bg-surface border border-border rounded-lg hover:bg-surface-hover transition-colors"
+                title={t('import.exportCsv')}
+              >
+                <Download className="w-4 h-4" />
+                {t('import.exportCsv')}
+              </button>
 
               {/* Server mode: user display + logout */}
               {isServerMode && isAuthenticated && user && (
@@ -243,6 +267,12 @@ export function AppShell() {
 
       {/* Team / Workspace Modal */}
       <WorkspaceManager open={showTeam} onClose={() => setShowTeam(false)} />
+
+      {/* Import Wizard */}
+      <ImportWizard open={showImportWizard} onClose={() => setShowImportWizard(false)} />
+
+      {/* Export Panel */}
+      <ExportPanel open={showExportPanel} onClose={() => setShowExportPanel(false)} />
     </div>
   );
 }

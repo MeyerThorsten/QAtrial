@@ -27,6 +27,7 @@ import { EvidencePanel } from '../evidence/EvidencePanel';
 import { ApprovalPanel } from '../approval/ApprovalPanel';
 import { TestGenerationPanel } from '../ai/TestGenerationPanel';
 import { RiskClassificationPanel } from '../ai/RiskClassificationPanel';
+import { QualityCheckPanel } from '../ai/QualityCheckPanel';
 import { isApproved } from '../../lib/approvalHelpers';
 import type { Requirement } from '../../types';
 
@@ -50,6 +51,7 @@ export function RequirementsTable() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [testGenReqId, setTestGenReqId] = useState<string | null>(null);
   const [riskClassReqId, setRiskClassReqId] = useState<string | null>(null);
+  const [qualityCheckReq, setQualityCheckReq] = useState<Requirement | null>(null);
   const [signReq, setSignReq] = useState<Requirement | null>(null);
   const [evidenceReq, setEvidenceReq] = useState<Requirement | null>(null);
   const [approvalReq, setApprovalReq] = useState<Requirement | null>(null);
@@ -158,6 +160,13 @@ export function RequirementsTable() {
               {hasAnyProvider && (
                 <>
                   <button
+                    onClick={() => setQualityCheckReq(row.original)}
+                    className="p-1.5 text-text-tertiary hover:text-emerald-500 rounded-lg hover:bg-emerald-500/10 transition-colors"
+                    title={t('quality.checkQuality')}
+                  >
+                    <Sparkles className="w-3.5 h-3.5" />
+                  </button>
+                  <button
                     onClick={() => setTestGenReqId(row.original.id)}
                     className="p-1.5 text-text-tertiary hover:text-accent rounded-lg hover:bg-accent-subtle transition-colors"
                     title={t('requirements.generateTests')}
@@ -188,7 +197,7 @@ export function RequirementsTable() {
             </div>
           );
         },
-        size: hasAnyProvider ? 220 : 160,
+        size: hasAnyProvider ? 260 : 160,
       }),
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -303,6 +312,13 @@ export function RequirementsTable() {
         <RiskClassificationPanel
           requirementId={riskClassReqId}
           onClose={() => setRiskClassReqId(null)}
+        />
+      )}
+
+      {qualityCheckReq && (
+        <QualityCheckPanel
+          requirement={qualityCheckReq}
+          onClose={() => setQualityCheckReq(null)}
         />
       )}
 

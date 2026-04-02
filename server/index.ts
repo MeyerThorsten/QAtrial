@@ -14,6 +14,10 @@ import evidenceRoutes from './routes/evidence.js';
 import approvalRoutes from './routes/approvals.js';
 import signatureRoutes from './routes/signatures.js';
 import exportRoutes from './routes/export.js';
+import importRoutes from './routes/import.js';
+import aiRoutes from './routes/ai.js';
+import auditModeRoutes from './routes/auditmode.js';
+import dashboardRoutes from './routes/dashboard.js';
 
 const app = new Hono();
 const prisma = new PrismaClient();
@@ -37,6 +41,10 @@ app.route('/api/evidence', evidenceRoutes);
 app.route('/api/approvals', approvalRoutes);
 app.route('/api/signatures', signatureRoutes);
 app.route('/api/export', exportRoutes);
+app.route('/api/import', importRoutes);
+app.route('/api/ai', aiRoutes);
+app.route('/api/audit-mode', auditModeRoutes);
+app.route('/api/dashboard', dashboardRoutes);
 
 app.get('/api/health', (c) => c.json({ status: 'ok', version: '3.0.0' }));
 

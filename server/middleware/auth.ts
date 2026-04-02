@@ -10,6 +10,33 @@ export interface JwtPayload {
   orgId: string | null;
 }
 
+// ── Role → Permission Matrix ────────────────────────────────────────────────
+
+export type Permission = 'canView' | 'canEdit' | 'canApprove' | 'canAdmin';
+
+export const VALID_ROLES = ['admin', 'qa_manager', 'qa_engineer', 'auditor', 'reviewer'] as const;
+export type UserRole = (typeof VALID_ROLES)[number];
+
+const ROLE_PERMISSIONS: Record<string, Record<Permission, boolean>> = {
+  admin:       { canView: true,  canEdit: true,  canApprove: true,  canAdmin: true  },
+  qa_manager:  { canView: true,  canEdit: true,  canApprove: true,  canAdmin: false },
+  qa_engineer: { canView: true,  canEdit: true,  canApprove: false, canAdmin: false },
+  auditor:     { canView: true,  canEdit: false, canApprove: false, canAdmin: false },
+  reviewer:    { canView: true,  canEdit: false, canApprove: true,  canAdmin: false },
+  // Legacy roles mapped for backward compatibility
+  editor:      { canView: true,  canEdit: true,  canApprove: false, canAdmin: false },
+  viewer:      { canView: true,  canEdit: false, canApprove: false, canAdmin: false },
+};
+
+/**
+ * Check if a role has a specific permission.
+ */
+export function roleHasPermission(role: string, permission: Permission): boolean {
+  const perms = ROLE_PERMISSIONS[role];
+  if (!perms) return false;
+  return perms[permission] === true;
+}
+
 // Helper to get the user from context (stored as a plain property to avoid Hono generic complexity)
 export function getUser(c: Context): JwtPayload {
   return (c as any)._user as JwtPayload;
@@ -42,6 +69,24 @@ export function requireRole(...roles: string[]) {
     }
     if (!roles.includes(user.role)) {
       return c.json({ message: `Requires one of roles: ${roles.join(', ')}` }, 403);
+    }
+    await next();
+  };
+}
+
+/**
+ * Middleware that checks if the authenticated user has a specific permission.
+ *
+ * Usage: `requirePermission('canEdit')` or `requirePermission('canApprove')`
+ */
+export function requirePermission(permission: Permission) {
+  return async (c: Context, next: Next) => {
+    const user = getUser(c);
+    if (!user) {
+      return c.json({ message: 'Authentication required' }, 401);
+    }
+    if (!roleHasPermission(user.role, permission)) {
+      return c.json({ message: `Insufficient permissions: requires ${permission}` }, 403);
     }
     await next();
   };
