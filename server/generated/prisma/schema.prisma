@@ -241,20 +241,31 @@ model Complaint {
 }
 
 model Supplier {
-  id                  String          @id @default(uuid())
+  id                  String               @id @default(uuid())
   orgId               String
   name                String
-  category            String          @default("component") // component, service, raw_material, contract_manufacturer
-  riskLevel           String          @default("medium") // low, medium, high, critical
-  qualificationStatus String          @default("pending") // pending, qualified, conditional, disqualified
+  category            String               @default("component") // component, service, raw_material, contract_manufacturer
+  riskLevel           String               @default("medium") // low, medium, high, critical
+  qualificationStatus String               @default("pending") // pending, qualified, conditional, disqualified
   overallScore        Int? // 0-100
   defectRate          Float?
   onTimeDelivery      Float?
   lastAuditDate       DateTime?
   nextAuditDate       DateTime?
   audits              SupplierAudit[]
-  createdAt           DateTime        @default(now())
-  updatedAt           DateTime        @updatedAt
+  portalLinks         SupplierPortalLink[]
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+}
+
+model SupplierPortalLink {
+  id         String   @id @default(uuid())
+  supplierId String
+  supplier   Supplier @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+  token      String   @unique @default(uuid())
+  expiresAt  DateTime
+  createdBy  String
+  createdAt  DateTime @default(now())
 }
 
 model SupplierAudit {
@@ -498,21 +509,26 @@ model WorkflowStep {
   slaHours          Int?
   escalateTo        String?
   conditions        Json?
+  logic             String           @default("and") // and, or — for parallel approvals
+  skipCondition     Json? // { field, operator, value } — skip step if condition met
+  rejectAction      String           @default("cancel") // cancel, restart, goto_step
+  rejectTarget      Int? // step order to go back to on reject
   createdAt         DateTime         @default(now())
 }
 
 model WorkflowExecution {
-  id          String           @id @default(uuid())
-  templateId  String
-  template    WorkflowTemplate @relation(fields: [templateId], references: [id])
-  entityType  String
-  entityId    String
-  projectId   String
-  currentStep Int              @default(0)
-  status      String           @default("active")
-  startedAt   DateTime         @default(now())
-  completedAt DateTime?
-  actions     WorkflowAction[]
+  id           String           @id @default(uuid())
+  templateId   String
+  template     WorkflowTemplate @relation(fields: [templateId], references: [id])
+  entityType   String
+  entityId     String
+  projectId    String
+  currentStep  Int              @default(0)
+  status       String           @default("active")
+  restartCount Int              @default(0)
+  startedAt    DateTime         @default(now())
+  completedAt  DateTime?
+  actions      WorkflowAction[]
 }
 
 model WorkflowAction {
@@ -687,4 +703,31 @@ model QTask {
   createdBy    String
   createdAt    DateTime  @default(now())
   completedAt  DateTime?
+}
+
+model CustomDashboard {
+  id          String            @id @default(uuid())
+  orgId       String
+  name        String
+  description String            @default("")
+  createdBy   String
+  isPublic    Boolean           @default(true)
+  widgets     DashboardWidget[]
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+}
+
+model DashboardWidget {
+  id          String          @id @default(uuid())
+  dashboardId String
+  dashboard   CustomDashboard @relation(fields: [dashboardId], references: [id], onDelete: Cascade)
+  type        String // counter, trend, bar, pie, table, gauge
+  title       String
+  dataSource  String // requirements, tests, capa, deviations, complaints, training, suppliers, batches, stability
+  metric      String // count, pass_rate, avg_score, compliance_pct, overdue_count, yield_avg, oos_count
+  groupBy     String? // status, severity, area, classification, month, product
+  filters     Json? // { projectId?, dateRange?, area? }
+  position    Int             @default(0)
+  size        String          @default("medium") // small, medium, large
+  createdAt   DateTime        @default(now())
 }

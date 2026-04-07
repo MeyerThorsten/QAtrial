@@ -3,6 +3,12 @@ import { useTranslation } from 'react-i18next';
 import { Plus, Trash2, GripVertical, Save } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 
+interface SkipCondition {
+  field: string;
+  operator: string;
+  value: string;
+}
+
 interface StepDraft {
   name: string;
   type: string;
@@ -10,6 +16,10 @@ interface StepDraft {
   requiredApprovers: number;
   slaHours: number | null;
   escalateTo: string;
+  logic: string;
+  skipCondition: SkipCondition | null;
+  rejectAction: string;
+  rejectTarget: number | null;
 }
 
 interface TemplateDraft {
@@ -24,6 +34,8 @@ interface TemplateDraft {
 const ENTITY_TYPES = ['requirement', 'document', 'capa', 'batch', 'design_item', 'change_control'];
 const STEP_TYPES = ['approval', 'review', 'sign', 'notify'];
 const ROLES = ['admin', 'qa_manager', 'qa_engineer', 'auditor', 'reviewer'];
+const CONDITION_OPERATORS = ['eq', 'neq', 'gt', 'lt', 'gte', 'lte', 'contains', 'in'];
+const CONDITION_FIELDS = ['status', 'riskLevel', 'severity', 'classification', 'type', 'area', 'priority'];
 
 const emptyStep = (): StepDraft => ({
   name: '',
@@ -32,6 +44,10 @@ const emptyStep = (): StepDraft => ({
   requiredApprovers: 1,
   slaHours: null,
   escalateTo: '',
+  logic: 'and',
+  skipCondition: null,
+  rejectAction: 'cancel',
+  rejectTarget: null,
 });
 
 const emptyTemplate = (): TemplateDraft => ({
@@ -78,6 +94,10 @@ export function WorkflowBuilder({ templateId, onSaved, onCancel }: Props) {
                 requiredApprovers: s.requiredApprovers,
                 slaHours: s.slaHours,
                 escalateTo: s.escalateTo || '',
+                logic: s.logic || 'and',
+                skipCondition: s.skipCondition || null,
+                rejectAction: s.rejectAction || 'cancel',
+                rejectTarget: s.rejectTarget ?? null,
               })),
             });
           }
@@ -109,6 +129,24 @@ export function WorkflowBuilder({ templateId, onSaved, onCancel }: Props) {
     setTemplate({ ...template, steps });
   };
 
+  const toggleSkipCondition = (index: number) => {
+    const steps = [...template.steps];
+    if (steps[index].skipCondition) {
+      steps[index] = { ...steps[index], skipCondition: null };
+    } else {
+      steps[index] = { ...steps[index], skipCondition: { field: 'status', operator: 'eq', value: '' } };
+    }
+    setTemplate({ ...template, steps });
+  };
+
+  const updateSkipCondition = (index: number, field: keyof SkipCondition, value: string) => {
+    const steps = [...template.steps];
+    const cond = steps[index].skipCondition;
+    if (!cond) return;
+    steps[index] = { ...steps[index], skipCondition: { ...cond, [field]: value } };
+    setTemplate({ ...template, steps });
+  };
+
   const handleSave = async () => {
     if (!template.name.trim()) {
       setError(t('workflows.nameRequired'));
@@ -130,6 +168,10 @@ export function WorkflowBuilder({ templateId, onSaved, onCancel }: Props) {
         requiredApprovers: s.requiredApprovers,
         slaHours: s.slaHours || null,
         escalateTo: s.escalateTo || null,
+        logic: s.logic,
+        skipCondition: s.skipCondition,
+        rejectAction: s.rejectAction,
+        rejectTarget: s.rejectAction === 'goto_step' ? s.rejectTarget : null,
       })),
     };
 
@@ -330,6 +372,102 @@ export function WorkflowBuilder({ templateId, onSaved, onCancel }: Props) {
                     <option key={r} value={r}>{r.replace(/_/g, ' ')}</option>
                   ))}
                 </select>
+              </div>
+            </div>
+
+            {/* Conditional Routing Section */}
+            <div className="border-t border-border pt-3 space-y-3">
+              <h5 className="text-xs font-semibold text-text-secondary uppercase tracking-wide">{t('workflows.conditionalRouting')}</h5>
+
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                {/* Logic Toggle */}
+                <div>
+                  <label className="block text-xs text-text-tertiary mb-1">{t('workflows.approvalLogic')}</label>
+                  <select
+                    value={step.logic}
+                    onChange={(e) => updateStep(i, 'logic', e.target.value)}
+                    className="w-full px-2 py-1.5 bg-surface border border-border rounded text-text-primary text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+                  >
+                    <option value="and">{t('workflows.logicAnd')}</option>
+                    <option value="or">{t('workflows.logicOr')}</option>
+                  </select>
+                </div>
+
+                {/* Reject Action */}
+                <div>
+                  <label className="block text-xs text-text-tertiary mb-1">{t('workflows.rejectAction')}</label>
+                  <select
+                    value={step.rejectAction}
+                    onChange={(e) => updateStep(i, 'rejectAction', e.target.value)}
+                    className="w-full px-2 py-1.5 bg-surface border border-border rounded text-text-primary text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+                  >
+                    <option value="cancel">{t('workflows.rejectCancel')}</option>
+                    <option value="restart">{t('workflows.rejectRestart')}</option>
+                    <option value="goto_step">{t('workflows.rejectGotoStep')}</option>
+                  </select>
+                </div>
+
+                {/* Reject Target (only visible if goto_step) */}
+                {step.rejectAction === 'goto_step' && (
+                  <div>
+                    <label className="block text-xs text-text-tertiary mb-1">{t('workflows.rejectTargetStep')}</label>
+                    <select
+                      value={step.rejectTarget ?? 0}
+                      onChange={(e) => updateStep(i, 'rejectTarget', parseInt(e.target.value))}
+                      className="w-full px-2 py-1.5 bg-surface border border-border rounded text-text-primary text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+                    >
+                      {template.steps.map((_, si) => (
+                        <option key={si} value={si}>
+                          {t('workflows.stepN', { n: si + 1 })} {template.steps[si].name ? `- ${template.steps[si].name}` : ''}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+              </div>
+
+              {/* Skip Condition */}
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <input
+                    type="checkbox"
+                    checked={step.skipCondition !== null}
+                    onChange={() => toggleSkipCondition(i)}
+                    className="rounded border-border"
+                  />
+                  <span className="text-xs text-text-secondary">{t('workflows.enableSkipCondition')}</span>
+                </div>
+
+                {step.skipCondition && (
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-xs text-text-tertiary">{t('workflows.skipIf')}</span>
+                    <select
+                      value={step.skipCondition.field}
+                      onChange={(e) => updateSkipCondition(i, 'field', e.target.value)}
+                      className="px-2 py-1 bg-surface border border-border rounded text-text-primary text-xs focus:outline-none focus:ring-2 focus:ring-accent"
+                    >
+                      {CONDITION_FIELDS.map((f) => (
+                        <option key={f} value={f}>{f}</option>
+                      ))}
+                    </select>
+                    <select
+                      value={step.skipCondition.operator}
+                      onChange={(e) => updateSkipCondition(i, 'operator', e.target.value)}
+                      className="px-2 py-1 bg-surface border border-border rounded text-text-primary text-xs focus:outline-none focus:ring-2 focus:ring-accent"
+                    >
+                      {CONDITION_OPERATORS.map((op) => (
+                        <option key={op} value={op}>{op}</option>
+                      ))}
+                    </select>
+                    <input
+                      type="text"
+                      value={step.skipCondition.value}
+                      onChange={(e) => updateSkipCondition(i, 'value', e.target.value)}
+                      className="px-2 py-1 bg-surface border border-border rounded text-text-primary text-xs focus:outline-none focus:ring-2 focus:ring-accent w-32"
+                      placeholder={t('workflows.conditionValue')}
+                    />
+                  </div>
+                )}
               </div>
             </div>
           </div>

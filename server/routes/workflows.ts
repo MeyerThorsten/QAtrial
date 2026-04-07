@@ -8,6 +8,54 @@ const workflows = new Hono();
 
 workflows.use('*', authMiddleware);
 
+// ── Condition Evaluation Engine ────────────────────────────────────────────
+
+function evaluateCondition(condition: any, entityData: any): boolean {
+  if (!condition || !condition.field || !condition.operator) return false;
+
+  const fieldValue = entityData?.[condition.field];
+  const target = condition.value;
+
+  switch (condition.operator) {
+    case 'eq':
+      return fieldValue === target;
+    case 'neq':
+      return fieldValue !== target;
+    case 'gt':
+      return typeof fieldValue === 'number' && typeof target === 'number' && fieldValue > target;
+    case 'lt':
+      return typeof fieldValue === 'number' && typeof target === 'number' && fieldValue < target;
+    case 'gte':
+      return typeof fieldValue === 'number' && typeof target === 'number' && fieldValue >= target;
+    case 'lte':
+      return typeof fieldValue === 'number' && typeof target === 'number' && fieldValue <= target;
+    case 'contains':
+      return typeof fieldValue === 'string' && typeof target === 'string' && fieldValue.toLowerCase().includes(target.toLowerCase());
+    case 'in':
+      return Array.isArray(target) && target.includes(fieldValue);
+    default:
+      return false;
+  }
+}
+
+/**
+ * Find the next active step index starting from `fromStep`, skipping steps whose
+ * skipCondition evaluates to true against `entityData`.
+ * Returns the next active step index, or steps.length if all remaining are skipped.
+ */
+function findNextActiveStep(steps: any[], fromStep: number, entityData: any): number {
+  let step = fromStep;
+  while (step < steps.length) {
+    const stepDef = steps[step];
+    if (stepDef.skipCondition && evaluateCondition(stepDef.skipCondition as any, entityData)) {
+      step++;
+      continue;
+    }
+    return step;
+  }
+  return step; // past end = completed
+}
+
 // ── Template CRUD (admin only for mutations) ────────────────────────────────
 
 // GET /templates — list workflow templates by orgId
@@ -55,6 +103,10 @@ workflows.post('/templates', requirePermission('canAdmin'), async (c) => {
             slaHours: s.slaHours ?? null,
             escalateTo: s.escalateTo ?? null,
             conditions: s.conditions ?? null,
+            logic: s.logic || 'and',
+            skipCondition: s.skipCondition ?? null,
+            rejectAction: s.rejectAction || 'cancel',
+            rejectTarget: s.rejectTarget ?? null,
           })),
         },
       },
@@ -114,6 +166,10 @@ workflows.put('/templates/:id', requirePermission('canAdmin'), async (c) => {
             slaHours: s.slaHours ?? null,
             escalateTo: s.escalateTo ?? null,
             conditions: s.conditions ?? null,
+            logic: s.logic || 'and',
+            skipCondition: s.skipCondition ?? null,
+            rejectAction: s.rejectAction || 'cancel',
+            rejectTarget: s.rejectTarget ?? null,
           })),
         },
       },
@@ -136,6 +192,46 @@ workflows.delete('/templates/:id', requirePermission('canAdmin'), async (c) => {
   } catch (error: any) {
     console.error('Delete workflow template error:', error);
     return c.json({ message: 'Failed to delete workflow template' }, 500);
+  }
+});
+
+// POST /templates/:id/simulate — simulate workflow path for entity data
+workflows.post('/templates/:id/simulate', async (c) => {
+  try {
+    const { id } = c.req.param();
+    const body = await c.req.json();
+    const { entityData } = body;
+
+    const template = await prisma.workflowTemplate.findUnique({
+      where: { id },
+      include: { steps: { orderBy: { order: 'asc' } } },
+    });
+    if (!template) return c.json({ message: 'Template not found' }, 404);
+
+    const steps = template.steps;
+    const simulatedPath: { stepOrder: number; name: string; status: 'active' | 'skipped' }[] = [];
+
+    let currentStep = 0;
+    while (currentStep < steps.length) {
+      const stepDef = steps[currentStep];
+      if (stepDef.skipCondition && evaluateCondition(stepDef.skipCondition as any, entityData || {})) {
+        simulatedPath.push({ stepOrder: currentStep, name: stepDef.name, status: 'skipped' });
+      } else {
+        simulatedPath.push({ stepOrder: currentStep, name: stepDef.name, status: 'active' });
+      }
+      currentStep++;
+    }
+
+    return c.json({
+      templateId: id,
+      templateName: template.name,
+      steps: simulatedPath,
+      activeStepCount: simulatedPath.filter((s) => s.status === 'active').length,
+      skippedStepCount: simulatedPath.filter((s) => s.status === 'skipped').length,
+    });
+  } catch (error: any) {
+    console.error('Simulate workflow error:', error);
+    return c.json({ message: 'Failed to simulate workflow' }, 500);
   }
 });
 
@@ -168,6 +264,7 @@ workflows.post('/execute', async (c) => {
         projectId,
         currentStep: 0,
         status: 'active',
+        restartCount: 0,
       },
       include: { template: { include: { steps: { orderBy: { order: 'asc' } } } }, actions: true },
     });
@@ -198,7 +295,7 @@ workflows.put('/executions/:id/act', async (c) => {
     const user = getUser(c);
     const { id } = c.req.param();
     const body = await c.req.json();
-    const { action, reason, delegatedTo } = body;
+    const { action, reason, delegatedTo, entityData } = body;
 
     if (!action || !['approved', 'rejected', 'delegated', 'held', 'escalated'].includes(action)) {
       return c.json({ message: 'action must be approved, rejected, delegated, held, or escalated' }, 400);
@@ -267,24 +364,67 @@ workflows.put('/executions/:id/act', async (c) => {
       return c.json({ execution: { ...execution, status: 'escalated' }, workflowAction, message: 'Escalated' });
     }
 
-    // Handle rejection
+    // Handle rejection with configurable reject action
     if (action === 'rejected') {
-      await prisma.workflowExecution.update({
-        where: { id },
-        data: { status: 'cancelled', completedAt: new Date() },
-      });
+      const rejectAction = currentStepDef.rejectAction || 'cancel';
 
-      await logAudit({
-        projectId: execution.projectId,
-        userId: user.userId,
-        action: 'workflow_rejected',
-        entityType: 'workflow_execution',
-        entityId: id,
-        newValue: { stepOrder: execution.currentStep, reason },
-      });
+      if (rejectAction === 'restart') {
+        // Reset to step 0 and increment restart count
+        await prisma.workflowExecution.update({
+          where: { id },
+          data: {
+            currentStep: 0,
+            restartCount: { increment: 1 },
+          },
+        });
 
-      if (user.orgId) {
-        dispatchWebhook(user.orgId, 'workflow.rejected', { executionId: id });
+        await logAudit({
+          projectId: execution.projectId,
+          userId: user.userId,
+          action: 'workflow_rejected',
+          entityType: 'workflow_execution',
+          entityId: id,
+          newValue: { stepOrder: execution.currentStep, reason, rejectAction: 'restart' },
+        });
+
+        if (user.orgId) {
+          dispatchWebhook(user.orgId, 'workflow.restarted', { executionId: id });
+        }
+      } else if (rejectAction === 'goto_step' && currentStepDef.rejectTarget != null) {
+        // Go to specific step
+        const targetStep = Math.max(0, Math.min(currentStepDef.rejectTarget, steps.length - 1));
+        await prisma.workflowExecution.update({
+          where: { id },
+          data: { currentStep: targetStep },
+        });
+
+        await logAudit({
+          projectId: execution.projectId,
+          userId: user.userId,
+          action: 'workflow_rejected',
+          entityType: 'workflow_execution',
+          entityId: id,
+          newValue: { stepOrder: execution.currentStep, reason, rejectAction: 'goto_step', targetStep },
+        });
+      } else {
+        // Default: cancel
+        await prisma.workflowExecution.update({
+          where: { id },
+          data: { status: 'cancelled', completedAt: new Date() },
+        });
+
+        await logAudit({
+          projectId: execution.projectId,
+          userId: user.userId,
+          action: 'workflow_rejected',
+          entityType: 'workflow_execution',
+          entityId: id,
+          newValue: { stepOrder: execution.currentStep, reason },
+        });
+
+        if (user.orgId) {
+          dispatchWebhook(user.orgId, 'workflow.rejected', { executionId: id });
+        }
       }
 
       const updatedExecution = await prisma.workflowExecution.findUnique({
@@ -294,16 +434,32 @@ workflows.put('/executions/:id/act', async (c) => {
       return c.json({ execution: updatedExecution, workflowAction, message: 'Rejected' });
     }
 
-    // Handle approval: count approvals for current step
+    // Handle approval: check logic mode (AND vs OR)
+    const stepLogic = currentStepDef.logic || 'and';
+
     const allActionsForStep = await prisma.workflowAction.findMany({
       where: { executionId: id, stepOrder: execution.currentStep, action: 'approved' },
     });
-    // Include the current action
     const approvalCount = allActionsForStep.length;
 
-    if (approvalCount >= currentStepDef.requiredApprovers) {
-      // Advance to next step or complete
-      const nextStep = execution.currentStep + 1;
+    // OR logic: advance if ANY approver approves (1 is enough)
+    // AND logic: advance when ALL required approvers approve
+    const shouldAdvance = stepLogic === 'or'
+      ? approvalCount >= 1
+      : approvalCount >= currentStepDef.requiredApprovers;
+
+    if (shouldAdvance) {
+      // Calculate next step, skipping steps with met skip conditions
+      let nextStep = execution.currentStep + 1;
+
+      // Check for skip conditions on subsequent steps
+      if (entityData) {
+        nextStep = findNextActiveStep(steps, nextStep, entityData);
+      } else {
+        // Without entity data, just advance linearly but still check skipConditions with empty data
+        nextStep = findNextActiveStep(steps, nextStep, {});
+      }
+
       if (nextStep >= steps.length) {
         // Workflow complete
         await prisma.workflowExecution.update({
@@ -324,7 +480,7 @@ workflows.put('/executions/:id/act', async (c) => {
           dispatchWebhook(user.orgId, 'workflow.completed', { executionId: id });
         }
       } else {
-        // Move to next step
+        // Move to next (non-skipped) step
         await prisma.workflowExecution.update({
           where: { id },
           data: { currentStep: nextStep },

@@ -1,6 +1,6 @@
 import { useState, lazy, Suspense } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ClipboardList, FlaskConical, BarChart3, FolderPlus, ScrollText, X, FileText, Settings, Layers, LogOut, Users, FileSpreadsheet, Download, AlertTriangle, Building2, Beaker, GraduationCap, FileCheck, Server, GitBranch, Activity, Barcode, TestTube2, Thermometer, ClipboardCheck, Workflow, RefreshCw, TriangleAlert, CheckSquare } from 'lucide-react';
+import { ClipboardList, FlaskConical, BarChart3, FolderPlus, ScrollText, X, FileText, Settings, Layers, LogOut, Users, FileSpreadsheet, Download, AlertTriangle, Building2, Beaker, GraduationCap, FileCheck, Server, GitBranch, Activity, Barcode, TestTube2, Thermometer, ClipboardCheck, Workflow, RefreshCw, TriangleAlert, CheckSquare, Gauge } from 'lucide-react';
 import { ImportExportBar } from '../shared/ImportExportBar';
 import { ImportWizard } from '../import/ImportWizard';
 import { ExportPanel } from '../import/ExportPanel';
@@ -16,6 +16,7 @@ import { useAppMode } from '../../hooks/useAppMode';
 import { WorkspaceManager } from '../auth/WorkspaceManager';
 import { MigrateDataButton } from '../auth/MigrateDataButton';
 import { ShareAuditLink } from '../audit/ShareAuditLink';
+import { ShareSupplierLink } from '../suppliers/ShareSupplierLink';
 import type { ViewTab } from '../../types';
 
 // Lazy-loaded components for code splitting
@@ -43,6 +44,7 @@ const WorkflowInbox = lazy(() => import('../workflows/WorkflowInbox').then((m) =
 const ChangeControlTracker = lazy(() => import('../change/ChangeControlTracker').then((m) => ({ default: m.ChangeControlTracker })));
 const DeviationInvestigationView = lazy(() => import('../deviations/DeviationInvestigation').then((m) => ({ default: m.DeviationInvestigation })));
 const TaskDashboard = lazy(() => import('../tasks/TaskDashboard').then((m) => ({ default: m.TaskDashboard })));
+const KPIDashboardManager = lazy(() => import('../kpi/KPIDashboardManager').then((m) => ({ default: m.KPIDashboardManager })));
 
 function TabSpinner() {
   return (
@@ -96,6 +98,7 @@ export function AppShell() {
     { id: 'change_control', label: t('nav.changeControl'), icon: <RefreshCw className="w-4 h-4" /> },
     { id: 'deviations', label: t('nav.deviations'), icon: <TriangleAlert className="w-4 h-4" /> },
     { id: 'tasks', label: t('nav.tasks'), icon: <CheckSquare className="w-4 h-4" /> },
+    { id: 'kpi', label: t('nav.kpi'), icon: <Gauge className="w-4 h-4" /> },
   ];
 
   if (wizardVisible) {
@@ -153,6 +156,8 @@ export function AppShell() {
               <NotificationInbox />
               {/* Share Audit Link — admin only */}
               {isServerMode && isAuthenticated && <ShareAuditLink />}
+              {/* Share Supplier Portal — admin only */}
+              {isServerMode && isAuthenticated && <ShareSupplierLink />}
 
               <button
                 onClick={() => setShowAuditTrail(true)}
@@ -273,6 +278,7 @@ export function AppShell() {
           {activeTab === 'change_control' && <ChangeControlTracker />}
           {activeTab === 'deviations' && <DeviationInvestigationView />}
           {activeTab === 'tasks' && <TaskDashboard />}
+          {activeTab === 'kpi' && <KPIDashboardManager />}
           {activeTab === 'settings' && <SettingsPage />}
         </Suspense>
       </main>

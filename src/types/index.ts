@@ -123,7 +123,7 @@ export interface DashboardFilters {
   testStatus: TestStatus | 'All';
 }
 
-export type ViewTab = 'requirements' | 'tests' | 'dashboard' | 'reports' | 'settings' | 'design_control' | 'complaints' | 'suppliers' | 'batches' | 'training' | 'documents' | 'systems' | 'impact' | 'pms' | 'udi' | 'stability' | 'envmon' | 'audit_records' | 'workflows' | 'change_control' | 'deviations' | 'tasks';
+export type ViewTab = 'requirements' | 'tests' | 'dashboard' | 'reports' | 'settings' | 'design_control' | 'complaints' | 'suppliers' | 'batches' | 'training' | 'documents' | 'systems' | 'impact' | 'pms' | 'udi' | 'stability' | 'envmon' | 'audit_records' | 'workflows' | 'change_control' | 'deviations' | 'tasks' | 'kpi';
 
 // ── Templates ─────────────────────────────────────────────────────────────────
 

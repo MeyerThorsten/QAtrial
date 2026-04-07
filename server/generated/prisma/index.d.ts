@@ -94,6 +94,11 @@ export type Complaint = $Result.DefaultSelection<Prisma.$ComplaintPayload>
  */
 export type Supplier = $Result.DefaultSelection<Prisma.$SupplierPayload>
 /**
+ * Model SupplierPortalLink
+ * 
+ */
+export type SupplierPortalLink = $Result.DefaultSelection<Prisma.$SupplierPortalLinkPayload>
+/**
  * Model SupplierAudit
  * 
  */
@@ -233,6 +238,16 @@ export type Comment = $Result.DefaultSelection<Prisma.$CommentPayload>
  * 
  */
 export type QTask = $Result.DefaultSelection<Prisma.$QTaskPayload>
+/**
+ * Model CustomDashboard
+ * 
+ */
+export type CustomDashboard = $Result.DefaultSelection<Prisma.$CustomDashboardPayload>
+/**
+ * Model DashboardWidget
+ * 
+ */
+export type DashboardWidget = $Result.DefaultSelection<Prisma.$DashboardWidgetPayload>
 
 /**
  * ##  Prisma Client ʲˢ
@@ -516,6 +531,16 @@ export class PrismaClient<
   get supplier(): Prisma.SupplierDelegate<ExtArgs, ClientOptions>;
 
   /**
+   * `prisma.supplierPortalLink`: Exposes CRUD operations for the **SupplierPortalLink** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more SupplierPortalLinks
+    * const supplierPortalLinks = await prisma.supplierPortalLink.findMany()
+    * ```
+    */
+  get supplierPortalLink(): Prisma.SupplierPortalLinkDelegate<ExtArgs, ClientOptions>;
+
+  /**
    * `prisma.supplierAudit`: Exposes CRUD operations for the **SupplierAudit** model.
     * Example usage:
     * ```ts
@@ -794,6 +819,26 @@ export class PrismaClient<
     * ```
     */
   get qTask(): Prisma.QTaskDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.customDashboard`: Exposes CRUD operations for the **CustomDashboard** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more CustomDashboards
+    * const customDashboards = await prisma.customDashboard.findMany()
+    * ```
+    */
+  get customDashboard(): Prisma.CustomDashboardDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.dashboardWidget`: Exposes CRUD operations for the **DashboardWidget** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more DashboardWidgets
+    * const dashboardWidgets = await prisma.dashboardWidget.findMany()
+    * ```
+    */
+  get dashboardWidget(): Prisma.DashboardWidgetDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -1244,6 +1289,7 @@ export namespace Prisma {
     Integration: 'Integration',
     Complaint: 'Complaint',
     Supplier: 'Supplier',
+    SupplierPortalLink: 'SupplierPortalLink',
     SupplierAudit: 'SupplierAudit',
     BatchRecord: 'BatchRecord',
     BatchStep: 'BatchStep',
@@ -1271,7 +1317,9 @@ export namespace Prisma {
     AuditFinding: 'AuditFinding',
     Notification: 'Notification',
     Comment: 'Comment',
-    QTask: 'QTask'
+    QTask: 'QTask',
+    CustomDashboard: 'CustomDashboard',
+    DashboardWidget: 'DashboardWidget'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -1287,7 +1335,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "organization" | "workspace" | "project" | "requirement" | "test" | "risk" | "cAPA" | "auditLog" | "evidence" | "approval" | "signature" | "webhook" | "integration" | "complaint" | "supplier" | "supplierAudit" | "batchRecord" | "batchStep" | "trainingPlan" | "course" | "trainingRecord" | "document" | "documentVersion" | "computerizedSystem" | "periodicReview" | "pMSEntry" | "uDI" | "stabilityStudy" | "stabilitySample" | "workflowTemplate" | "workflowStep" | "workflowExecution" | "workflowAction" | "changeControl" | "changeTask" | "deviation" | "monitoringPoint" | "monitoringReading" | "auditRecord" | "auditFinding" | "notification" | "comment" | "qTask"
+      modelProps: "user" | "organization" | "workspace" | "project" | "requirement" | "test" | "risk" | "cAPA" | "auditLog" | "evidence" | "approval" | "signature" | "webhook" | "integration" | "complaint" | "supplier" | "supplierPortalLink" | "supplierAudit" | "batchRecord" | "batchStep" | "trainingPlan" | "course" | "trainingRecord" | "document" | "documentVersion" | "computerizedSystem" | "periodicReview" | "pMSEntry" | "uDI" | "stabilityStudy" | "stabilitySample" | "workflowTemplate" | "workflowStep" | "workflowExecution" | "workflowAction" | "changeControl" | "changeTask" | "deviation" | "monitoringPoint" | "monitoringReading" | "auditRecord" | "auditFinding" | "notification" | "comment" | "qTask" | "customDashboard" | "dashboardWidget"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -2472,6 +2520,80 @@ export namespace Prisma {
           count: {
             args: Prisma.SupplierCountArgs<ExtArgs>
             result: $Utils.Optional<SupplierCountAggregateOutputType> | number
+          }
+        }
+      }
+      SupplierPortalLink: {
+        payload: Prisma.$SupplierPortalLinkPayload<ExtArgs>
+        fields: Prisma.SupplierPortalLinkFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.SupplierPortalLinkFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SupplierPortalLinkPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.SupplierPortalLinkFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SupplierPortalLinkPayload>
+          }
+          findFirst: {
+            args: Prisma.SupplierPortalLinkFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SupplierPortalLinkPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.SupplierPortalLinkFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SupplierPortalLinkPayload>
+          }
+          findMany: {
+            args: Prisma.SupplierPortalLinkFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SupplierPortalLinkPayload>[]
+          }
+          create: {
+            args: Prisma.SupplierPortalLinkCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SupplierPortalLinkPayload>
+          }
+          createMany: {
+            args: Prisma.SupplierPortalLinkCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.SupplierPortalLinkCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SupplierPortalLinkPayload>[]
+          }
+          delete: {
+            args: Prisma.SupplierPortalLinkDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SupplierPortalLinkPayload>
+          }
+          update: {
+            args: Prisma.SupplierPortalLinkUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SupplierPortalLinkPayload>
+          }
+          deleteMany: {
+            args: Prisma.SupplierPortalLinkDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.SupplierPortalLinkUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.SupplierPortalLinkUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SupplierPortalLinkPayload>[]
+          }
+          upsert: {
+            args: Prisma.SupplierPortalLinkUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SupplierPortalLinkPayload>
+          }
+          aggregate: {
+            args: Prisma.SupplierPortalLinkAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateSupplierPortalLink>
+          }
+          groupBy: {
+            args: Prisma.SupplierPortalLinkGroupByArgs<ExtArgs>
+            result: $Utils.Optional<SupplierPortalLinkGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.SupplierPortalLinkCountArgs<ExtArgs>
+            result: $Utils.Optional<SupplierPortalLinkCountAggregateOutputType> | number
           }
         }
       }
@@ -4547,6 +4669,154 @@ export namespace Prisma {
           }
         }
       }
+      CustomDashboard: {
+        payload: Prisma.$CustomDashboardPayload<ExtArgs>
+        fields: Prisma.CustomDashboardFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.CustomDashboardFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomDashboardPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.CustomDashboardFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomDashboardPayload>
+          }
+          findFirst: {
+            args: Prisma.CustomDashboardFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomDashboardPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.CustomDashboardFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomDashboardPayload>
+          }
+          findMany: {
+            args: Prisma.CustomDashboardFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomDashboardPayload>[]
+          }
+          create: {
+            args: Prisma.CustomDashboardCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomDashboardPayload>
+          }
+          createMany: {
+            args: Prisma.CustomDashboardCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.CustomDashboardCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomDashboardPayload>[]
+          }
+          delete: {
+            args: Prisma.CustomDashboardDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomDashboardPayload>
+          }
+          update: {
+            args: Prisma.CustomDashboardUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomDashboardPayload>
+          }
+          deleteMany: {
+            args: Prisma.CustomDashboardDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.CustomDashboardUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.CustomDashboardUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomDashboardPayload>[]
+          }
+          upsert: {
+            args: Prisma.CustomDashboardUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomDashboardPayload>
+          }
+          aggregate: {
+            args: Prisma.CustomDashboardAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateCustomDashboard>
+          }
+          groupBy: {
+            args: Prisma.CustomDashboardGroupByArgs<ExtArgs>
+            result: $Utils.Optional<CustomDashboardGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.CustomDashboardCountArgs<ExtArgs>
+            result: $Utils.Optional<CustomDashboardCountAggregateOutputType> | number
+          }
+        }
+      }
+      DashboardWidget: {
+        payload: Prisma.$DashboardWidgetPayload<ExtArgs>
+        fields: Prisma.DashboardWidgetFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.DashboardWidgetFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DashboardWidgetPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.DashboardWidgetFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DashboardWidgetPayload>
+          }
+          findFirst: {
+            args: Prisma.DashboardWidgetFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DashboardWidgetPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.DashboardWidgetFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DashboardWidgetPayload>
+          }
+          findMany: {
+            args: Prisma.DashboardWidgetFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DashboardWidgetPayload>[]
+          }
+          create: {
+            args: Prisma.DashboardWidgetCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DashboardWidgetPayload>
+          }
+          createMany: {
+            args: Prisma.DashboardWidgetCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.DashboardWidgetCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DashboardWidgetPayload>[]
+          }
+          delete: {
+            args: Prisma.DashboardWidgetDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DashboardWidgetPayload>
+          }
+          update: {
+            args: Prisma.DashboardWidgetUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DashboardWidgetPayload>
+          }
+          deleteMany: {
+            args: Prisma.DashboardWidgetDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.DashboardWidgetUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.DashboardWidgetUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DashboardWidgetPayload>[]
+          }
+          upsert: {
+            args: Prisma.DashboardWidgetUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DashboardWidgetPayload>
+          }
+          aggregate: {
+            args: Prisma.DashboardWidgetAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateDashboardWidget>
+          }
+          groupBy: {
+            args: Prisma.DashboardWidgetGroupByArgs<ExtArgs>
+            result: $Utils.Optional<DashboardWidgetGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.DashboardWidgetCountArgs<ExtArgs>
+            result: $Utils.Optional<DashboardWidgetCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -4671,6 +4941,7 @@ export namespace Prisma {
     integration?: IntegrationOmit
     complaint?: ComplaintOmit
     supplier?: SupplierOmit
+    supplierPortalLink?: SupplierPortalLinkOmit
     supplierAudit?: SupplierAuditOmit
     batchRecord?: BatchRecordOmit
     batchStep?: BatchStepOmit
@@ -4699,6 +4970,8 @@ export namespace Prisma {
     notification?: NotificationOmit
     comment?: CommentOmit
     qTask?: QTaskOmit
+    customDashboard?: CustomDashboardOmit
+    dashboardWidget?: DashboardWidgetOmit
   }
 
   /* Types for Logging */
@@ -5044,10 +5317,12 @@ export namespace Prisma {
 
   export type SupplierCountOutputType = {
     audits: number
+    portalLinks: number
   }
 
   export type SupplierCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     audits?: boolean | SupplierCountOutputTypeCountAuditsArgs
+    portalLinks?: boolean | SupplierCountOutputTypeCountPortalLinksArgs
   }
 
   // Custom InputTypes
@@ -5066,6 +5341,13 @@ export namespace Prisma {
    */
   export type SupplierCountOutputTypeCountAuditsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: SupplierAuditWhereInput
+  }
+
+  /**
+   * SupplierCountOutputType without action
+   */
+  export type SupplierCountOutputTypeCountPortalLinksArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: SupplierPortalLinkWhereInput
   }
 
 
@@ -5385,6 +5667,37 @@ export namespace Prisma {
    */
   export type AuditRecordCountOutputTypeCountFindingsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: AuditFindingWhereInput
+  }
+
+
+  /**
+   * Count Type CustomDashboardCountOutputType
+   */
+
+  export type CustomDashboardCountOutputType = {
+    widgets: number
+  }
+
+  export type CustomDashboardCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    widgets?: boolean | CustomDashboardCountOutputTypeCountWidgetsArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * CustomDashboardCountOutputType without action
+   */
+  export type CustomDashboardCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomDashboardCountOutputType
+     */
+    select?: CustomDashboardCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * CustomDashboardCountOutputType without action
+   */
+  export type CustomDashboardCountOutputTypeCountWidgetsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: DashboardWidgetWhereInput
   }
 
 
@@ -23246,6 +23559,7 @@ export namespace Prisma {
     createdAt?: boolean
     updatedAt?: boolean
     audits?: boolean | Supplier$auditsArgs<ExtArgs>
+    portalLinks?: boolean | Supplier$portalLinksArgs<ExtArgs>
     _count?: boolean | SupplierCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["supplier"]>
 
@@ -23300,6 +23614,7 @@ export namespace Prisma {
   export type SupplierOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "orgId" | "name" | "category" | "riskLevel" | "qualificationStatus" | "overallScore" | "defectRate" | "onTimeDelivery" | "lastAuditDate" | "nextAuditDate" | "createdAt" | "updatedAt", ExtArgs["result"]["supplier"]>
   export type SupplierInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     audits?: boolean | Supplier$auditsArgs<ExtArgs>
+    portalLinks?: boolean | Supplier$portalLinksArgs<ExtArgs>
     _count?: boolean | SupplierCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type SupplierIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
@@ -23309,6 +23624,7 @@ export namespace Prisma {
     name: "Supplier"
     objects: {
       audits: Prisma.$SupplierAuditPayload<ExtArgs>[]
+      portalLinks: Prisma.$SupplierPortalLinkPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -23719,6 +24035,7 @@ export namespace Prisma {
   export interface Prisma__SupplierClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     audits<T extends Supplier$auditsArgs<ExtArgs> = {}>(args?: Subset<T, Supplier$auditsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SupplierAuditPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    portalLinks<T extends Supplier$portalLinksArgs<ExtArgs> = {}>(args?: Subset<T, Supplier$portalLinksArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SupplierPortalLinkPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -24178,6 +24495,30 @@ export namespace Prisma {
   }
 
   /**
+   * Supplier.portalLinks
+   */
+  export type Supplier$portalLinksArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SupplierPortalLink
+     */
+    select?: SupplierPortalLinkSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SupplierPortalLink
+     */
+    omit?: SupplierPortalLinkOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SupplierPortalLinkInclude<ExtArgs> | null
+    where?: SupplierPortalLinkWhereInput
+    orderBy?: SupplierPortalLinkOrderByWithRelationInput | SupplierPortalLinkOrderByWithRelationInput[]
+    cursor?: SupplierPortalLinkWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: SupplierPortalLinkScalarFieldEnum | SupplierPortalLinkScalarFieldEnum[]
+  }
+
+  /**
    * Supplier without action
    */
   export type SupplierDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -24193,6 +24534,1082 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: SupplierInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model SupplierPortalLink
+   */
+
+  export type AggregateSupplierPortalLink = {
+    _count: SupplierPortalLinkCountAggregateOutputType | null
+    _min: SupplierPortalLinkMinAggregateOutputType | null
+    _max: SupplierPortalLinkMaxAggregateOutputType | null
+  }
+
+  export type SupplierPortalLinkMinAggregateOutputType = {
+    id: string | null
+    supplierId: string | null
+    token: string | null
+    expiresAt: Date | null
+    createdBy: string | null
+    createdAt: Date | null
+  }
+
+  export type SupplierPortalLinkMaxAggregateOutputType = {
+    id: string | null
+    supplierId: string | null
+    token: string | null
+    expiresAt: Date | null
+    createdBy: string | null
+    createdAt: Date | null
+  }
+
+  export type SupplierPortalLinkCountAggregateOutputType = {
+    id: number
+    supplierId: number
+    token: number
+    expiresAt: number
+    createdBy: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type SupplierPortalLinkMinAggregateInputType = {
+    id?: true
+    supplierId?: true
+    token?: true
+    expiresAt?: true
+    createdBy?: true
+    createdAt?: true
+  }
+
+  export type SupplierPortalLinkMaxAggregateInputType = {
+    id?: true
+    supplierId?: true
+    token?: true
+    expiresAt?: true
+    createdBy?: true
+    createdAt?: true
+  }
+
+  export type SupplierPortalLinkCountAggregateInputType = {
+    id?: true
+    supplierId?: true
+    token?: true
+    expiresAt?: true
+    createdBy?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type SupplierPortalLinkAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which SupplierPortalLink to aggregate.
+     */
+    where?: SupplierPortalLinkWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of SupplierPortalLinks to fetch.
+     */
+    orderBy?: SupplierPortalLinkOrderByWithRelationInput | SupplierPortalLinkOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: SupplierPortalLinkWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` SupplierPortalLinks from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` SupplierPortalLinks.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned SupplierPortalLinks
+    **/
+    _count?: true | SupplierPortalLinkCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: SupplierPortalLinkMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: SupplierPortalLinkMaxAggregateInputType
+  }
+
+  export type GetSupplierPortalLinkAggregateType<T extends SupplierPortalLinkAggregateArgs> = {
+        [P in keyof T & keyof AggregateSupplierPortalLink]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateSupplierPortalLink[P]>
+      : GetScalarType<T[P], AggregateSupplierPortalLink[P]>
+  }
+
+
+
+
+  export type SupplierPortalLinkGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: SupplierPortalLinkWhereInput
+    orderBy?: SupplierPortalLinkOrderByWithAggregationInput | SupplierPortalLinkOrderByWithAggregationInput[]
+    by: SupplierPortalLinkScalarFieldEnum[] | SupplierPortalLinkScalarFieldEnum
+    having?: SupplierPortalLinkScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: SupplierPortalLinkCountAggregateInputType | true
+    _min?: SupplierPortalLinkMinAggregateInputType
+    _max?: SupplierPortalLinkMaxAggregateInputType
+  }
+
+  export type SupplierPortalLinkGroupByOutputType = {
+    id: string
+    supplierId: string
+    token: string
+    expiresAt: Date
+    createdBy: string
+    createdAt: Date
+    _count: SupplierPortalLinkCountAggregateOutputType | null
+    _min: SupplierPortalLinkMinAggregateOutputType | null
+    _max: SupplierPortalLinkMaxAggregateOutputType | null
+  }
+
+  type GetSupplierPortalLinkGroupByPayload<T extends SupplierPortalLinkGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<SupplierPortalLinkGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof SupplierPortalLinkGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], SupplierPortalLinkGroupByOutputType[P]>
+            : GetScalarType<T[P], SupplierPortalLinkGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type SupplierPortalLinkSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    supplierId?: boolean
+    token?: boolean
+    expiresAt?: boolean
+    createdBy?: boolean
+    createdAt?: boolean
+    supplier?: boolean | SupplierDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["supplierPortalLink"]>
+
+  export type SupplierPortalLinkSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    supplierId?: boolean
+    token?: boolean
+    expiresAt?: boolean
+    createdBy?: boolean
+    createdAt?: boolean
+    supplier?: boolean | SupplierDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["supplierPortalLink"]>
+
+  export type SupplierPortalLinkSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    supplierId?: boolean
+    token?: boolean
+    expiresAt?: boolean
+    createdBy?: boolean
+    createdAt?: boolean
+    supplier?: boolean | SupplierDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["supplierPortalLink"]>
+
+  export type SupplierPortalLinkSelectScalar = {
+    id?: boolean
+    supplierId?: boolean
+    token?: boolean
+    expiresAt?: boolean
+    createdBy?: boolean
+    createdAt?: boolean
+  }
+
+  export type SupplierPortalLinkOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "supplierId" | "token" | "expiresAt" | "createdBy" | "createdAt", ExtArgs["result"]["supplierPortalLink"]>
+  export type SupplierPortalLinkInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    supplier?: boolean | SupplierDefaultArgs<ExtArgs>
+  }
+  export type SupplierPortalLinkIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    supplier?: boolean | SupplierDefaultArgs<ExtArgs>
+  }
+  export type SupplierPortalLinkIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    supplier?: boolean | SupplierDefaultArgs<ExtArgs>
+  }
+
+  export type $SupplierPortalLinkPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "SupplierPortalLink"
+    objects: {
+      supplier: Prisma.$SupplierPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      supplierId: string
+      token: string
+      expiresAt: Date
+      createdBy: string
+      createdAt: Date
+    }, ExtArgs["result"]["supplierPortalLink"]>
+    composites: {}
+  }
+
+  type SupplierPortalLinkGetPayload<S extends boolean | null | undefined | SupplierPortalLinkDefaultArgs> = $Result.GetResult<Prisma.$SupplierPortalLinkPayload, S>
+
+  type SupplierPortalLinkCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<SupplierPortalLinkFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: SupplierPortalLinkCountAggregateInputType | true
+    }
+
+  export interface SupplierPortalLinkDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['SupplierPortalLink'], meta: { name: 'SupplierPortalLink' } }
+    /**
+     * Find zero or one SupplierPortalLink that matches the filter.
+     * @param {SupplierPortalLinkFindUniqueArgs} args - Arguments to find a SupplierPortalLink
+     * @example
+     * // Get one SupplierPortalLink
+     * const supplierPortalLink = await prisma.supplierPortalLink.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends SupplierPortalLinkFindUniqueArgs>(args: SelectSubset<T, SupplierPortalLinkFindUniqueArgs<ExtArgs>>): Prisma__SupplierPortalLinkClient<$Result.GetResult<Prisma.$SupplierPortalLinkPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one SupplierPortalLink that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {SupplierPortalLinkFindUniqueOrThrowArgs} args - Arguments to find a SupplierPortalLink
+     * @example
+     * // Get one SupplierPortalLink
+     * const supplierPortalLink = await prisma.supplierPortalLink.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends SupplierPortalLinkFindUniqueOrThrowArgs>(args: SelectSubset<T, SupplierPortalLinkFindUniqueOrThrowArgs<ExtArgs>>): Prisma__SupplierPortalLinkClient<$Result.GetResult<Prisma.$SupplierPortalLinkPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first SupplierPortalLink that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SupplierPortalLinkFindFirstArgs} args - Arguments to find a SupplierPortalLink
+     * @example
+     * // Get one SupplierPortalLink
+     * const supplierPortalLink = await prisma.supplierPortalLink.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends SupplierPortalLinkFindFirstArgs>(args?: SelectSubset<T, SupplierPortalLinkFindFirstArgs<ExtArgs>>): Prisma__SupplierPortalLinkClient<$Result.GetResult<Prisma.$SupplierPortalLinkPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first SupplierPortalLink that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SupplierPortalLinkFindFirstOrThrowArgs} args - Arguments to find a SupplierPortalLink
+     * @example
+     * // Get one SupplierPortalLink
+     * const supplierPortalLink = await prisma.supplierPortalLink.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends SupplierPortalLinkFindFirstOrThrowArgs>(args?: SelectSubset<T, SupplierPortalLinkFindFirstOrThrowArgs<ExtArgs>>): Prisma__SupplierPortalLinkClient<$Result.GetResult<Prisma.$SupplierPortalLinkPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more SupplierPortalLinks that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SupplierPortalLinkFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all SupplierPortalLinks
+     * const supplierPortalLinks = await prisma.supplierPortalLink.findMany()
+     * 
+     * // Get first 10 SupplierPortalLinks
+     * const supplierPortalLinks = await prisma.supplierPortalLink.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const supplierPortalLinkWithIdOnly = await prisma.supplierPortalLink.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends SupplierPortalLinkFindManyArgs>(args?: SelectSubset<T, SupplierPortalLinkFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SupplierPortalLinkPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a SupplierPortalLink.
+     * @param {SupplierPortalLinkCreateArgs} args - Arguments to create a SupplierPortalLink.
+     * @example
+     * // Create one SupplierPortalLink
+     * const SupplierPortalLink = await prisma.supplierPortalLink.create({
+     *   data: {
+     *     // ... data to create a SupplierPortalLink
+     *   }
+     * })
+     * 
+     */
+    create<T extends SupplierPortalLinkCreateArgs>(args: SelectSubset<T, SupplierPortalLinkCreateArgs<ExtArgs>>): Prisma__SupplierPortalLinkClient<$Result.GetResult<Prisma.$SupplierPortalLinkPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many SupplierPortalLinks.
+     * @param {SupplierPortalLinkCreateManyArgs} args - Arguments to create many SupplierPortalLinks.
+     * @example
+     * // Create many SupplierPortalLinks
+     * const supplierPortalLink = await prisma.supplierPortalLink.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends SupplierPortalLinkCreateManyArgs>(args?: SelectSubset<T, SupplierPortalLinkCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many SupplierPortalLinks and returns the data saved in the database.
+     * @param {SupplierPortalLinkCreateManyAndReturnArgs} args - Arguments to create many SupplierPortalLinks.
+     * @example
+     * // Create many SupplierPortalLinks
+     * const supplierPortalLink = await prisma.supplierPortalLink.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many SupplierPortalLinks and only return the `id`
+     * const supplierPortalLinkWithIdOnly = await prisma.supplierPortalLink.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends SupplierPortalLinkCreateManyAndReturnArgs>(args?: SelectSubset<T, SupplierPortalLinkCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SupplierPortalLinkPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a SupplierPortalLink.
+     * @param {SupplierPortalLinkDeleteArgs} args - Arguments to delete one SupplierPortalLink.
+     * @example
+     * // Delete one SupplierPortalLink
+     * const SupplierPortalLink = await prisma.supplierPortalLink.delete({
+     *   where: {
+     *     // ... filter to delete one SupplierPortalLink
+     *   }
+     * })
+     * 
+     */
+    delete<T extends SupplierPortalLinkDeleteArgs>(args: SelectSubset<T, SupplierPortalLinkDeleteArgs<ExtArgs>>): Prisma__SupplierPortalLinkClient<$Result.GetResult<Prisma.$SupplierPortalLinkPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one SupplierPortalLink.
+     * @param {SupplierPortalLinkUpdateArgs} args - Arguments to update one SupplierPortalLink.
+     * @example
+     * // Update one SupplierPortalLink
+     * const supplierPortalLink = await prisma.supplierPortalLink.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends SupplierPortalLinkUpdateArgs>(args: SelectSubset<T, SupplierPortalLinkUpdateArgs<ExtArgs>>): Prisma__SupplierPortalLinkClient<$Result.GetResult<Prisma.$SupplierPortalLinkPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more SupplierPortalLinks.
+     * @param {SupplierPortalLinkDeleteManyArgs} args - Arguments to filter SupplierPortalLinks to delete.
+     * @example
+     * // Delete a few SupplierPortalLinks
+     * const { count } = await prisma.supplierPortalLink.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends SupplierPortalLinkDeleteManyArgs>(args?: SelectSubset<T, SupplierPortalLinkDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more SupplierPortalLinks.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SupplierPortalLinkUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many SupplierPortalLinks
+     * const supplierPortalLink = await prisma.supplierPortalLink.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends SupplierPortalLinkUpdateManyArgs>(args: SelectSubset<T, SupplierPortalLinkUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more SupplierPortalLinks and returns the data updated in the database.
+     * @param {SupplierPortalLinkUpdateManyAndReturnArgs} args - Arguments to update many SupplierPortalLinks.
+     * @example
+     * // Update many SupplierPortalLinks
+     * const supplierPortalLink = await prisma.supplierPortalLink.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more SupplierPortalLinks and only return the `id`
+     * const supplierPortalLinkWithIdOnly = await prisma.supplierPortalLink.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends SupplierPortalLinkUpdateManyAndReturnArgs>(args: SelectSubset<T, SupplierPortalLinkUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SupplierPortalLinkPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one SupplierPortalLink.
+     * @param {SupplierPortalLinkUpsertArgs} args - Arguments to update or create a SupplierPortalLink.
+     * @example
+     * // Update or create a SupplierPortalLink
+     * const supplierPortalLink = await prisma.supplierPortalLink.upsert({
+     *   create: {
+     *     // ... data to create a SupplierPortalLink
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the SupplierPortalLink we want to update
+     *   }
+     * })
+     */
+    upsert<T extends SupplierPortalLinkUpsertArgs>(args: SelectSubset<T, SupplierPortalLinkUpsertArgs<ExtArgs>>): Prisma__SupplierPortalLinkClient<$Result.GetResult<Prisma.$SupplierPortalLinkPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of SupplierPortalLinks.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SupplierPortalLinkCountArgs} args - Arguments to filter SupplierPortalLinks to count.
+     * @example
+     * // Count the number of SupplierPortalLinks
+     * const count = await prisma.supplierPortalLink.count({
+     *   where: {
+     *     // ... the filter for the SupplierPortalLinks we want to count
+     *   }
+     * })
+    **/
+    count<T extends SupplierPortalLinkCountArgs>(
+      args?: Subset<T, SupplierPortalLinkCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], SupplierPortalLinkCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a SupplierPortalLink.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SupplierPortalLinkAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends SupplierPortalLinkAggregateArgs>(args: Subset<T, SupplierPortalLinkAggregateArgs>): Prisma.PrismaPromise<GetSupplierPortalLinkAggregateType<T>>
+
+    /**
+     * Group by SupplierPortalLink.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SupplierPortalLinkGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends SupplierPortalLinkGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: SupplierPortalLinkGroupByArgs['orderBy'] }
+        : { orderBy?: SupplierPortalLinkGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, SupplierPortalLinkGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetSupplierPortalLinkGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the SupplierPortalLink model
+   */
+  readonly fields: SupplierPortalLinkFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for SupplierPortalLink.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__SupplierPortalLinkClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    supplier<T extends SupplierDefaultArgs<ExtArgs> = {}>(args?: Subset<T, SupplierDefaultArgs<ExtArgs>>): Prisma__SupplierClient<$Result.GetResult<Prisma.$SupplierPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the SupplierPortalLink model
+   */
+  interface SupplierPortalLinkFieldRefs {
+    readonly id: FieldRef<"SupplierPortalLink", 'String'>
+    readonly supplierId: FieldRef<"SupplierPortalLink", 'String'>
+    readonly token: FieldRef<"SupplierPortalLink", 'String'>
+    readonly expiresAt: FieldRef<"SupplierPortalLink", 'DateTime'>
+    readonly createdBy: FieldRef<"SupplierPortalLink", 'String'>
+    readonly createdAt: FieldRef<"SupplierPortalLink", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * SupplierPortalLink findUnique
+   */
+  export type SupplierPortalLinkFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SupplierPortalLink
+     */
+    select?: SupplierPortalLinkSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SupplierPortalLink
+     */
+    omit?: SupplierPortalLinkOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SupplierPortalLinkInclude<ExtArgs> | null
+    /**
+     * Filter, which SupplierPortalLink to fetch.
+     */
+    where: SupplierPortalLinkWhereUniqueInput
+  }
+
+  /**
+   * SupplierPortalLink findUniqueOrThrow
+   */
+  export type SupplierPortalLinkFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SupplierPortalLink
+     */
+    select?: SupplierPortalLinkSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SupplierPortalLink
+     */
+    omit?: SupplierPortalLinkOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SupplierPortalLinkInclude<ExtArgs> | null
+    /**
+     * Filter, which SupplierPortalLink to fetch.
+     */
+    where: SupplierPortalLinkWhereUniqueInput
+  }
+
+  /**
+   * SupplierPortalLink findFirst
+   */
+  export type SupplierPortalLinkFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SupplierPortalLink
+     */
+    select?: SupplierPortalLinkSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SupplierPortalLink
+     */
+    omit?: SupplierPortalLinkOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SupplierPortalLinkInclude<ExtArgs> | null
+    /**
+     * Filter, which SupplierPortalLink to fetch.
+     */
+    where?: SupplierPortalLinkWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of SupplierPortalLinks to fetch.
+     */
+    orderBy?: SupplierPortalLinkOrderByWithRelationInput | SupplierPortalLinkOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for SupplierPortalLinks.
+     */
+    cursor?: SupplierPortalLinkWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` SupplierPortalLinks from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` SupplierPortalLinks.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of SupplierPortalLinks.
+     */
+    distinct?: SupplierPortalLinkScalarFieldEnum | SupplierPortalLinkScalarFieldEnum[]
+  }
+
+  /**
+   * SupplierPortalLink findFirstOrThrow
+   */
+  export type SupplierPortalLinkFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SupplierPortalLink
+     */
+    select?: SupplierPortalLinkSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SupplierPortalLink
+     */
+    omit?: SupplierPortalLinkOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SupplierPortalLinkInclude<ExtArgs> | null
+    /**
+     * Filter, which SupplierPortalLink to fetch.
+     */
+    where?: SupplierPortalLinkWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of SupplierPortalLinks to fetch.
+     */
+    orderBy?: SupplierPortalLinkOrderByWithRelationInput | SupplierPortalLinkOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for SupplierPortalLinks.
+     */
+    cursor?: SupplierPortalLinkWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` SupplierPortalLinks from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` SupplierPortalLinks.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of SupplierPortalLinks.
+     */
+    distinct?: SupplierPortalLinkScalarFieldEnum | SupplierPortalLinkScalarFieldEnum[]
+  }
+
+  /**
+   * SupplierPortalLink findMany
+   */
+  export type SupplierPortalLinkFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SupplierPortalLink
+     */
+    select?: SupplierPortalLinkSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SupplierPortalLink
+     */
+    omit?: SupplierPortalLinkOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SupplierPortalLinkInclude<ExtArgs> | null
+    /**
+     * Filter, which SupplierPortalLinks to fetch.
+     */
+    where?: SupplierPortalLinkWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of SupplierPortalLinks to fetch.
+     */
+    orderBy?: SupplierPortalLinkOrderByWithRelationInput | SupplierPortalLinkOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing SupplierPortalLinks.
+     */
+    cursor?: SupplierPortalLinkWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` SupplierPortalLinks from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` SupplierPortalLinks.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of SupplierPortalLinks.
+     */
+    distinct?: SupplierPortalLinkScalarFieldEnum | SupplierPortalLinkScalarFieldEnum[]
+  }
+
+  /**
+   * SupplierPortalLink create
+   */
+  export type SupplierPortalLinkCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SupplierPortalLink
+     */
+    select?: SupplierPortalLinkSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SupplierPortalLink
+     */
+    omit?: SupplierPortalLinkOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SupplierPortalLinkInclude<ExtArgs> | null
+    /**
+     * The data needed to create a SupplierPortalLink.
+     */
+    data: XOR<SupplierPortalLinkCreateInput, SupplierPortalLinkUncheckedCreateInput>
+  }
+
+  /**
+   * SupplierPortalLink createMany
+   */
+  export type SupplierPortalLinkCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many SupplierPortalLinks.
+     */
+    data: SupplierPortalLinkCreateManyInput | SupplierPortalLinkCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * SupplierPortalLink createManyAndReturn
+   */
+  export type SupplierPortalLinkCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SupplierPortalLink
+     */
+    select?: SupplierPortalLinkSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the SupplierPortalLink
+     */
+    omit?: SupplierPortalLinkOmit<ExtArgs> | null
+    /**
+     * The data used to create many SupplierPortalLinks.
+     */
+    data: SupplierPortalLinkCreateManyInput | SupplierPortalLinkCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SupplierPortalLinkIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * SupplierPortalLink update
+   */
+  export type SupplierPortalLinkUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SupplierPortalLink
+     */
+    select?: SupplierPortalLinkSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SupplierPortalLink
+     */
+    omit?: SupplierPortalLinkOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SupplierPortalLinkInclude<ExtArgs> | null
+    /**
+     * The data needed to update a SupplierPortalLink.
+     */
+    data: XOR<SupplierPortalLinkUpdateInput, SupplierPortalLinkUncheckedUpdateInput>
+    /**
+     * Choose, which SupplierPortalLink to update.
+     */
+    where: SupplierPortalLinkWhereUniqueInput
+  }
+
+  /**
+   * SupplierPortalLink updateMany
+   */
+  export type SupplierPortalLinkUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update SupplierPortalLinks.
+     */
+    data: XOR<SupplierPortalLinkUpdateManyMutationInput, SupplierPortalLinkUncheckedUpdateManyInput>
+    /**
+     * Filter which SupplierPortalLinks to update
+     */
+    where?: SupplierPortalLinkWhereInput
+    /**
+     * Limit how many SupplierPortalLinks to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * SupplierPortalLink updateManyAndReturn
+   */
+  export type SupplierPortalLinkUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SupplierPortalLink
+     */
+    select?: SupplierPortalLinkSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the SupplierPortalLink
+     */
+    omit?: SupplierPortalLinkOmit<ExtArgs> | null
+    /**
+     * The data used to update SupplierPortalLinks.
+     */
+    data: XOR<SupplierPortalLinkUpdateManyMutationInput, SupplierPortalLinkUncheckedUpdateManyInput>
+    /**
+     * Filter which SupplierPortalLinks to update
+     */
+    where?: SupplierPortalLinkWhereInput
+    /**
+     * Limit how many SupplierPortalLinks to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SupplierPortalLinkIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * SupplierPortalLink upsert
+   */
+  export type SupplierPortalLinkUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SupplierPortalLink
+     */
+    select?: SupplierPortalLinkSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SupplierPortalLink
+     */
+    omit?: SupplierPortalLinkOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SupplierPortalLinkInclude<ExtArgs> | null
+    /**
+     * The filter to search for the SupplierPortalLink to update in case it exists.
+     */
+    where: SupplierPortalLinkWhereUniqueInput
+    /**
+     * In case the SupplierPortalLink found by the `where` argument doesn't exist, create a new SupplierPortalLink with this data.
+     */
+    create: XOR<SupplierPortalLinkCreateInput, SupplierPortalLinkUncheckedCreateInput>
+    /**
+     * In case the SupplierPortalLink was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<SupplierPortalLinkUpdateInput, SupplierPortalLinkUncheckedUpdateInput>
+  }
+
+  /**
+   * SupplierPortalLink delete
+   */
+  export type SupplierPortalLinkDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SupplierPortalLink
+     */
+    select?: SupplierPortalLinkSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SupplierPortalLink
+     */
+    omit?: SupplierPortalLinkOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SupplierPortalLinkInclude<ExtArgs> | null
+    /**
+     * Filter which SupplierPortalLink to delete.
+     */
+    where: SupplierPortalLinkWhereUniqueInput
+  }
+
+  /**
+   * SupplierPortalLink deleteMany
+   */
+  export type SupplierPortalLinkDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which SupplierPortalLinks to delete
+     */
+    where?: SupplierPortalLinkWhereInput
+    /**
+     * Limit how many SupplierPortalLinks to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * SupplierPortalLink without action
+   */
+  export type SupplierPortalLinkDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SupplierPortalLink
+     */
+    select?: SupplierPortalLinkSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SupplierPortalLink
+     */
+    omit?: SupplierPortalLinkOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SupplierPortalLinkInclude<ExtArgs> | null
   }
 
 
@@ -41703,12 +43120,14 @@ export namespace Prisma {
     order: number | null
     requiredApprovers: number | null
     slaHours: number | null
+    rejectTarget: number | null
   }
 
   export type WorkflowStepSumAggregateOutputType = {
     order: number | null
     requiredApprovers: number | null
     slaHours: number | null
+    rejectTarget: number | null
   }
 
   export type WorkflowStepMinAggregateOutputType = {
@@ -41721,6 +43140,9 @@ export namespace Prisma {
     requiredApprovers: number | null
     slaHours: number | null
     escalateTo: string | null
+    logic: string | null
+    rejectAction: string | null
+    rejectTarget: number | null
     createdAt: Date | null
   }
 
@@ -41734,6 +43156,9 @@ export namespace Prisma {
     requiredApprovers: number | null
     slaHours: number | null
     escalateTo: string | null
+    logic: string | null
+    rejectAction: string | null
+    rejectTarget: number | null
     createdAt: Date | null
   }
 
@@ -41748,6 +43173,10 @@ export namespace Prisma {
     slaHours: number
     escalateTo: number
     conditions: number
+    logic: number
+    skipCondition: number
+    rejectAction: number
+    rejectTarget: number
     createdAt: number
     _all: number
   }
@@ -41757,12 +43186,14 @@ export namespace Prisma {
     order?: true
     requiredApprovers?: true
     slaHours?: true
+    rejectTarget?: true
   }
 
   export type WorkflowStepSumAggregateInputType = {
     order?: true
     requiredApprovers?: true
     slaHours?: true
+    rejectTarget?: true
   }
 
   export type WorkflowStepMinAggregateInputType = {
@@ -41775,6 +43206,9 @@ export namespace Prisma {
     requiredApprovers?: true
     slaHours?: true
     escalateTo?: true
+    logic?: true
+    rejectAction?: true
+    rejectTarget?: true
     createdAt?: true
   }
 
@@ -41788,6 +43222,9 @@ export namespace Prisma {
     requiredApprovers?: true
     slaHours?: true
     escalateTo?: true
+    logic?: true
+    rejectAction?: true
+    rejectTarget?: true
     createdAt?: true
   }
 
@@ -41802,6 +43239,10 @@ export namespace Prisma {
     slaHours?: true
     escalateTo?: true
     conditions?: true
+    logic?: true
+    skipCondition?: true
+    rejectAction?: true
+    rejectTarget?: true
     createdAt?: true
     _all?: true
   }
@@ -41903,6 +43344,10 @@ export namespace Prisma {
     slaHours: number | null
     escalateTo: string | null
     conditions: JsonValue | null
+    logic: string
+    skipCondition: JsonValue | null
+    rejectAction: string
+    rejectTarget: number | null
     createdAt: Date
     _count: WorkflowStepCountAggregateOutputType | null
     _avg: WorkflowStepAvgAggregateOutputType | null
@@ -41936,6 +43381,10 @@ export namespace Prisma {
     slaHours?: boolean
     escalateTo?: boolean
     conditions?: boolean
+    logic?: boolean
+    skipCondition?: boolean
+    rejectAction?: boolean
+    rejectTarget?: boolean
     createdAt?: boolean
     template?: boolean | WorkflowTemplateDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["workflowStep"]>
@@ -41951,6 +43400,10 @@ export namespace Prisma {
     slaHours?: boolean
     escalateTo?: boolean
     conditions?: boolean
+    logic?: boolean
+    skipCondition?: boolean
+    rejectAction?: boolean
+    rejectTarget?: boolean
     createdAt?: boolean
     template?: boolean | WorkflowTemplateDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["workflowStep"]>
@@ -41966,6 +43419,10 @@ export namespace Prisma {
     slaHours?: boolean
     escalateTo?: boolean
     conditions?: boolean
+    logic?: boolean
+    skipCondition?: boolean
+    rejectAction?: boolean
+    rejectTarget?: boolean
     createdAt?: boolean
     template?: boolean | WorkflowTemplateDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["workflowStep"]>
@@ -41981,10 +43438,14 @@ export namespace Prisma {
     slaHours?: boolean
     escalateTo?: boolean
     conditions?: boolean
+    logic?: boolean
+    skipCondition?: boolean
+    rejectAction?: boolean
+    rejectTarget?: boolean
     createdAt?: boolean
   }
 
-  export type WorkflowStepOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "templateId" | "order" | "name" | "type" | "assigneeRole" | "requiredApprovers" | "slaHours" | "escalateTo" | "conditions" | "createdAt", ExtArgs["result"]["workflowStep"]>
+  export type WorkflowStepOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "templateId" | "order" | "name" | "type" | "assigneeRole" | "requiredApprovers" | "slaHours" | "escalateTo" | "conditions" | "logic" | "skipCondition" | "rejectAction" | "rejectTarget" | "createdAt", ExtArgs["result"]["workflowStep"]>
   export type WorkflowStepInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     template?: boolean | WorkflowTemplateDefaultArgs<ExtArgs>
   }
@@ -42011,6 +43472,10 @@ export namespace Prisma {
       slaHours: number | null
       escalateTo: string | null
       conditions: Prisma.JsonValue | null
+      logic: string
+      skipCondition: Prisma.JsonValue | null
+      rejectAction: string
+      rejectTarget: number | null
       createdAt: Date
     }, ExtArgs["result"]["workflowStep"]>
     composites: {}
@@ -42446,6 +43911,10 @@ export namespace Prisma {
     readonly slaHours: FieldRef<"WorkflowStep", 'Int'>
     readonly escalateTo: FieldRef<"WorkflowStep", 'String'>
     readonly conditions: FieldRef<"WorkflowStep", 'Json'>
+    readonly logic: FieldRef<"WorkflowStep", 'String'>
+    readonly skipCondition: FieldRef<"WorkflowStep", 'Json'>
+    readonly rejectAction: FieldRef<"WorkflowStep", 'String'>
+    readonly rejectTarget: FieldRef<"WorkflowStep", 'Int'>
     readonly createdAt: FieldRef<"WorkflowStep", 'DateTime'>
   }
     
@@ -42880,10 +44349,12 @@ export namespace Prisma {
 
   export type WorkflowExecutionAvgAggregateOutputType = {
     currentStep: number | null
+    restartCount: number | null
   }
 
   export type WorkflowExecutionSumAggregateOutputType = {
     currentStep: number | null
+    restartCount: number | null
   }
 
   export type WorkflowExecutionMinAggregateOutputType = {
@@ -42894,6 +44365,7 @@ export namespace Prisma {
     projectId: string | null
     currentStep: number | null
     status: string | null
+    restartCount: number | null
     startedAt: Date | null
     completedAt: Date | null
   }
@@ -42906,6 +44378,7 @@ export namespace Prisma {
     projectId: string | null
     currentStep: number | null
     status: string | null
+    restartCount: number | null
     startedAt: Date | null
     completedAt: Date | null
   }
@@ -42918,6 +44391,7 @@ export namespace Prisma {
     projectId: number
     currentStep: number
     status: number
+    restartCount: number
     startedAt: number
     completedAt: number
     _all: number
@@ -42926,10 +44400,12 @@ export namespace Prisma {
 
   export type WorkflowExecutionAvgAggregateInputType = {
     currentStep?: true
+    restartCount?: true
   }
 
   export type WorkflowExecutionSumAggregateInputType = {
     currentStep?: true
+    restartCount?: true
   }
 
   export type WorkflowExecutionMinAggregateInputType = {
@@ -42940,6 +44416,7 @@ export namespace Prisma {
     projectId?: true
     currentStep?: true
     status?: true
+    restartCount?: true
     startedAt?: true
     completedAt?: true
   }
@@ -42952,6 +44429,7 @@ export namespace Prisma {
     projectId?: true
     currentStep?: true
     status?: true
+    restartCount?: true
     startedAt?: true
     completedAt?: true
   }
@@ -42964,6 +44442,7 @@ export namespace Prisma {
     projectId?: true
     currentStep?: true
     status?: true
+    restartCount?: true
     startedAt?: true
     completedAt?: true
     _all?: true
@@ -43063,6 +44542,7 @@ export namespace Prisma {
     projectId: string
     currentStep: number
     status: string
+    restartCount: number
     startedAt: Date
     completedAt: Date | null
     _count: WorkflowExecutionCountAggregateOutputType | null
@@ -43094,6 +44574,7 @@ export namespace Prisma {
     projectId?: boolean
     currentStep?: boolean
     status?: boolean
+    restartCount?: boolean
     startedAt?: boolean
     completedAt?: boolean
     template?: boolean | WorkflowTemplateDefaultArgs<ExtArgs>
@@ -43109,6 +44590,7 @@ export namespace Prisma {
     projectId?: boolean
     currentStep?: boolean
     status?: boolean
+    restartCount?: boolean
     startedAt?: boolean
     completedAt?: boolean
     template?: boolean | WorkflowTemplateDefaultArgs<ExtArgs>
@@ -43122,6 +44604,7 @@ export namespace Prisma {
     projectId?: boolean
     currentStep?: boolean
     status?: boolean
+    restartCount?: boolean
     startedAt?: boolean
     completedAt?: boolean
     template?: boolean | WorkflowTemplateDefaultArgs<ExtArgs>
@@ -43135,11 +44618,12 @@ export namespace Prisma {
     projectId?: boolean
     currentStep?: boolean
     status?: boolean
+    restartCount?: boolean
     startedAt?: boolean
     completedAt?: boolean
   }
 
-  export type WorkflowExecutionOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "templateId" | "entityType" | "entityId" | "projectId" | "currentStep" | "status" | "startedAt" | "completedAt", ExtArgs["result"]["workflowExecution"]>
+  export type WorkflowExecutionOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "templateId" | "entityType" | "entityId" | "projectId" | "currentStep" | "status" | "restartCount" | "startedAt" | "completedAt", ExtArgs["result"]["workflowExecution"]>
   export type WorkflowExecutionInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     template?: boolean | WorkflowTemplateDefaultArgs<ExtArgs>
     actions?: boolean | WorkflowExecution$actionsArgs<ExtArgs>
@@ -43166,6 +44650,7 @@ export namespace Prisma {
       projectId: string
       currentStep: number
       status: string
+      restartCount: number
       startedAt: Date
       completedAt: Date | null
     }, ExtArgs["result"]["workflowExecution"]>
@@ -43600,6 +45085,7 @@ export namespace Prisma {
     readonly projectId: FieldRef<"WorkflowExecution", 'String'>
     readonly currentStep: FieldRef<"WorkflowExecution", 'Int'>
     readonly status: FieldRef<"WorkflowExecution", 'String'>
+    readonly restartCount: FieldRef<"WorkflowExecution", 'Int'>
     readonly startedAt: FieldRef<"WorkflowExecution", 'DateTime'>
     readonly completedAt: FieldRef<"WorkflowExecution", 'DateTime'>
   }
@@ -56759,6 +58245,2291 @@ export namespace Prisma {
 
 
   /**
+   * Model CustomDashboard
+   */
+
+  export type AggregateCustomDashboard = {
+    _count: CustomDashboardCountAggregateOutputType | null
+    _min: CustomDashboardMinAggregateOutputType | null
+    _max: CustomDashboardMaxAggregateOutputType | null
+  }
+
+  export type CustomDashboardMinAggregateOutputType = {
+    id: string | null
+    orgId: string | null
+    name: string | null
+    description: string | null
+    createdBy: string | null
+    isPublic: boolean | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type CustomDashboardMaxAggregateOutputType = {
+    id: string | null
+    orgId: string | null
+    name: string | null
+    description: string | null
+    createdBy: string | null
+    isPublic: boolean | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type CustomDashboardCountAggregateOutputType = {
+    id: number
+    orgId: number
+    name: number
+    description: number
+    createdBy: number
+    isPublic: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type CustomDashboardMinAggregateInputType = {
+    id?: true
+    orgId?: true
+    name?: true
+    description?: true
+    createdBy?: true
+    isPublic?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type CustomDashboardMaxAggregateInputType = {
+    id?: true
+    orgId?: true
+    name?: true
+    description?: true
+    createdBy?: true
+    isPublic?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type CustomDashboardCountAggregateInputType = {
+    id?: true
+    orgId?: true
+    name?: true
+    description?: true
+    createdBy?: true
+    isPublic?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type CustomDashboardAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which CustomDashboard to aggregate.
+     */
+    where?: CustomDashboardWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CustomDashboards to fetch.
+     */
+    orderBy?: CustomDashboardOrderByWithRelationInput | CustomDashboardOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: CustomDashboardWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CustomDashboards from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CustomDashboards.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned CustomDashboards
+    **/
+    _count?: true | CustomDashboardCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: CustomDashboardMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: CustomDashboardMaxAggregateInputType
+  }
+
+  export type GetCustomDashboardAggregateType<T extends CustomDashboardAggregateArgs> = {
+        [P in keyof T & keyof AggregateCustomDashboard]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateCustomDashboard[P]>
+      : GetScalarType<T[P], AggregateCustomDashboard[P]>
+  }
+
+
+
+
+  export type CustomDashboardGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: CustomDashboardWhereInput
+    orderBy?: CustomDashboardOrderByWithAggregationInput | CustomDashboardOrderByWithAggregationInput[]
+    by: CustomDashboardScalarFieldEnum[] | CustomDashboardScalarFieldEnum
+    having?: CustomDashboardScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: CustomDashboardCountAggregateInputType | true
+    _min?: CustomDashboardMinAggregateInputType
+    _max?: CustomDashboardMaxAggregateInputType
+  }
+
+  export type CustomDashboardGroupByOutputType = {
+    id: string
+    orgId: string
+    name: string
+    description: string
+    createdBy: string
+    isPublic: boolean
+    createdAt: Date
+    updatedAt: Date
+    _count: CustomDashboardCountAggregateOutputType | null
+    _min: CustomDashboardMinAggregateOutputType | null
+    _max: CustomDashboardMaxAggregateOutputType | null
+  }
+
+  type GetCustomDashboardGroupByPayload<T extends CustomDashboardGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<CustomDashboardGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof CustomDashboardGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], CustomDashboardGroupByOutputType[P]>
+            : GetScalarType<T[P], CustomDashboardGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type CustomDashboardSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    orgId?: boolean
+    name?: boolean
+    description?: boolean
+    createdBy?: boolean
+    isPublic?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    widgets?: boolean | CustomDashboard$widgetsArgs<ExtArgs>
+    _count?: boolean | CustomDashboardCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["customDashboard"]>
+
+  export type CustomDashboardSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    orgId?: boolean
+    name?: boolean
+    description?: boolean
+    createdBy?: boolean
+    isPublic?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["customDashboard"]>
+
+  export type CustomDashboardSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    orgId?: boolean
+    name?: boolean
+    description?: boolean
+    createdBy?: boolean
+    isPublic?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["customDashboard"]>
+
+  export type CustomDashboardSelectScalar = {
+    id?: boolean
+    orgId?: boolean
+    name?: boolean
+    description?: boolean
+    createdBy?: boolean
+    isPublic?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type CustomDashboardOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "orgId" | "name" | "description" | "createdBy" | "isPublic" | "createdAt" | "updatedAt", ExtArgs["result"]["customDashboard"]>
+  export type CustomDashboardInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    widgets?: boolean | CustomDashboard$widgetsArgs<ExtArgs>
+    _count?: boolean | CustomDashboardCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type CustomDashboardIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
+  export type CustomDashboardIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
+
+  export type $CustomDashboardPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "CustomDashboard"
+    objects: {
+      widgets: Prisma.$DashboardWidgetPayload<ExtArgs>[]
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      orgId: string
+      name: string
+      description: string
+      createdBy: string
+      isPublic: boolean
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["customDashboard"]>
+    composites: {}
+  }
+
+  type CustomDashboardGetPayload<S extends boolean | null | undefined | CustomDashboardDefaultArgs> = $Result.GetResult<Prisma.$CustomDashboardPayload, S>
+
+  type CustomDashboardCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<CustomDashboardFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: CustomDashboardCountAggregateInputType | true
+    }
+
+  export interface CustomDashboardDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['CustomDashboard'], meta: { name: 'CustomDashboard' } }
+    /**
+     * Find zero or one CustomDashboard that matches the filter.
+     * @param {CustomDashboardFindUniqueArgs} args - Arguments to find a CustomDashboard
+     * @example
+     * // Get one CustomDashboard
+     * const customDashboard = await prisma.customDashboard.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends CustomDashboardFindUniqueArgs>(args: SelectSubset<T, CustomDashboardFindUniqueArgs<ExtArgs>>): Prisma__CustomDashboardClient<$Result.GetResult<Prisma.$CustomDashboardPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one CustomDashboard that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {CustomDashboardFindUniqueOrThrowArgs} args - Arguments to find a CustomDashboard
+     * @example
+     * // Get one CustomDashboard
+     * const customDashboard = await prisma.customDashboard.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends CustomDashboardFindUniqueOrThrowArgs>(args: SelectSubset<T, CustomDashboardFindUniqueOrThrowArgs<ExtArgs>>): Prisma__CustomDashboardClient<$Result.GetResult<Prisma.$CustomDashboardPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first CustomDashboard that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CustomDashboardFindFirstArgs} args - Arguments to find a CustomDashboard
+     * @example
+     * // Get one CustomDashboard
+     * const customDashboard = await prisma.customDashboard.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends CustomDashboardFindFirstArgs>(args?: SelectSubset<T, CustomDashboardFindFirstArgs<ExtArgs>>): Prisma__CustomDashboardClient<$Result.GetResult<Prisma.$CustomDashboardPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first CustomDashboard that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CustomDashboardFindFirstOrThrowArgs} args - Arguments to find a CustomDashboard
+     * @example
+     * // Get one CustomDashboard
+     * const customDashboard = await prisma.customDashboard.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends CustomDashboardFindFirstOrThrowArgs>(args?: SelectSubset<T, CustomDashboardFindFirstOrThrowArgs<ExtArgs>>): Prisma__CustomDashboardClient<$Result.GetResult<Prisma.$CustomDashboardPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more CustomDashboards that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CustomDashboardFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all CustomDashboards
+     * const customDashboards = await prisma.customDashboard.findMany()
+     * 
+     * // Get first 10 CustomDashboards
+     * const customDashboards = await prisma.customDashboard.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const customDashboardWithIdOnly = await prisma.customDashboard.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends CustomDashboardFindManyArgs>(args?: SelectSubset<T, CustomDashboardFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CustomDashboardPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a CustomDashboard.
+     * @param {CustomDashboardCreateArgs} args - Arguments to create a CustomDashboard.
+     * @example
+     * // Create one CustomDashboard
+     * const CustomDashboard = await prisma.customDashboard.create({
+     *   data: {
+     *     // ... data to create a CustomDashboard
+     *   }
+     * })
+     * 
+     */
+    create<T extends CustomDashboardCreateArgs>(args: SelectSubset<T, CustomDashboardCreateArgs<ExtArgs>>): Prisma__CustomDashboardClient<$Result.GetResult<Prisma.$CustomDashboardPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many CustomDashboards.
+     * @param {CustomDashboardCreateManyArgs} args - Arguments to create many CustomDashboards.
+     * @example
+     * // Create many CustomDashboards
+     * const customDashboard = await prisma.customDashboard.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends CustomDashboardCreateManyArgs>(args?: SelectSubset<T, CustomDashboardCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many CustomDashboards and returns the data saved in the database.
+     * @param {CustomDashboardCreateManyAndReturnArgs} args - Arguments to create many CustomDashboards.
+     * @example
+     * // Create many CustomDashboards
+     * const customDashboard = await prisma.customDashboard.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many CustomDashboards and only return the `id`
+     * const customDashboardWithIdOnly = await prisma.customDashboard.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends CustomDashboardCreateManyAndReturnArgs>(args?: SelectSubset<T, CustomDashboardCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CustomDashboardPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a CustomDashboard.
+     * @param {CustomDashboardDeleteArgs} args - Arguments to delete one CustomDashboard.
+     * @example
+     * // Delete one CustomDashboard
+     * const CustomDashboard = await prisma.customDashboard.delete({
+     *   where: {
+     *     // ... filter to delete one CustomDashboard
+     *   }
+     * })
+     * 
+     */
+    delete<T extends CustomDashboardDeleteArgs>(args: SelectSubset<T, CustomDashboardDeleteArgs<ExtArgs>>): Prisma__CustomDashboardClient<$Result.GetResult<Prisma.$CustomDashboardPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one CustomDashboard.
+     * @param {CustomDashboardUpdateArgs} args - Arguments to update one CustomDashboard.
+     * @example
+     * // Update one CustomDashboard
+     * const customDashboard = await prisma.customDashboard.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends CustomDashboardUpdateArgs>(args: SelectSubset<T, CustomDashboardUpdateArgs<ExtArgs>>): Prisma__CustomDashboardClient<$Result.GetResult<Prisma.$CustomDashboardPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more CustomDashboards.
+     * @param {CustomDashboardDeleteManyArgs} args - Arguments to filter CustomDashboards to delete.
+     * @example
+     * // Delete a few CustomDashboards
+     * const { count } = await prisma.customDashboard.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends CustomDashboardDeleteManyArgs>(args?: SelectSubset<T, CustomDashboardDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more CustomDashboards.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CustomDashboardUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many CustomDashboards
+     * const customDashboard = await prisma.customDashboard.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends CustomDashboardUpdateManyArgs>(args: SelectSubset<T, CustomDashboardUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more CustomDashboards and returns the data updated in the database.
+     * @param {CustomDashboardUpdateManyAndReturnArgs} args - Arguments to update many CustomDashboards.
+     * @example
+     * // Update many CustomDashboards
+     * const customDashboard = await prisma.customDashboard.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more CustomDashboards and only return the `id`
+     * const customDashboardWithIdOnly = await prisma.customDashboard.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends CustomDashboardUpdateManyAndReturnArgs>(args: SelectSubset<T, CustomDashboardUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CustomDashboardPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one CustomDashboard.
+     * @param {CustomDashboardUpsertArgs} args - Arguments to update or create a CustomDashboard.
+     * @example
+     * // Update or create a CustomDashboard
+     * const customDashboard = await prisma.customDashboard.upsert({
+     *   create: {
+     *     // ... data to create a CustomDashboard
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the CustomDashboard we want to update
+     *   }
+     * })
+     */
+    upsert<T extends CustomDashboardUpsertArgs>(args: SelectSubset<T, CustomDashboardUpsertArgs<ExtArgs>>): Prisma__CustomDashboardClient<$Result.GetResult<Prisma.$CustomDashboardPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of CustomDashboards.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CustomDashboardCountArgs} args - Arguments to filter CustomDashboards to count.
+     * @example
+     * // Count the number of CustomDashboards
+     * const count = await prisma.customDashboard.count({
+     *   where: {
+     *     // ... the filter for the CustomDashboards we want to count
+     *   }
+     * })
+    **/
+    count<T extends CustomDashboardCountArgs>(
+      args?: Subset<T, CustomDashboardCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], CustomDashboardCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a CustomDashboard.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CustomDashboardAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends CustomDashboardAggregateArgs>(args: Subset<T, CustomDashboardAggregateArgs>): Prisma.PrismaPromise<GetCustomDashboardAggregateType<T>>
+
+    /**
+     * Group by CustomDashboard.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CustomDashboardGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends CustomDashboardGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: CustomDashboardGroupByArgs['orderBy'] }
+        : { orderBy?: CustomDashboardGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, CustomDashboardGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetCustomDashboardGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the CustomDashboard model
+   */
+  readonly fields: CustomDashboardFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for CustomDashboard.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__CustomDashboardClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    widgets<T extends CustomDashboard$widgetsArgs<ExtArgs> = {}>(args?: Subset<T, CustomDashboard$widgetsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DashboardWidgetPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the CustomDashboard model
+   */
+  interface CustomDashboardFieldRefs {
+    readonly id: FieldRef<"CustomDashboard", 'String'>
+    readonly orgId: FieldRef<"CustomDashboard", 'String'>
+    readonly name: FieldRef<"CustomDashboard", 'String'>
+    readonly description: FieldRef<"CustomDashboard", 'String'>
+    readonly createdBy: FieldRef<"CustomDashboard", 'String'>
+    readonly isPublic: FieldRef<"CustomDashboard", 'Boolean'>
+    readonly createdAt: FieldRef<"CustomDashboard", 'DateTime'>
+    readonly updatedAt: FieldRef<"CustomDashboard", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * CustomDashboard findUnique
+   */
+  export type CustomDashboardFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomDashboard
+     */
+    select?: CustomDashboardSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CustomDashboard
+     */
+    omit?: CustomDashboardOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomDashboardInclude<ExtArgs> | null
+    /**
+     * Filter, which CustomDashboard to fetch.
+     */
+    where: CustomDashboardWhereUniqueInput
+  }
+
+  /**
+   * CustomDashboard findUniqueOrThrow
+   */
+  export type CustomDashboardFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomDashboard
+     */
+    select?: CustomDashboardSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CustomDashboard
+     */
+    omit?: CustomDashboardOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomDashboardInclude<ExtArgs> | null
+    /**
+     * Filter, which CustomDashboard to fetch.
+     */
+    where: CustomDashboardWhereUniqueInput
+  }
+
+  /**
+   * CustomDashboard findFirst
+   */
+  export type CustomDashboardFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomDashboard
+     */
+    select?: CustomDashboardSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CustomDashboard
+     */
+    omit?: CustomDashboardOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomDashboardInclude<ExtArgs> | null
+    /**
+     * Filter, which CustomDashboard to fetch.
+     */
+    where?: CustomDashboardWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CustomDashboards to fetch.
+     */
+    orderBy?: CustomDashboardOrderByWithRelationInput | CustomDashboardOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for CustomDashboards.
+     */
+    cursor?: CustomDashboardWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CustomDashboards from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CustomDashboards.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of CustomDashboards.
+     */
+    distinct?: CustomDashboardScalarFieldEnum | CustomDashboardScalarFieldEnum[]
+  }
+
+  /**
+   * CustomDashboard findFirstOrThrow
+   */
+  export type CustomDashboardFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomDashboard
+     */
+    select?: CustomDashboardSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CustomDashboard
+     */
+    omit?: CustomDashboardOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomDashboardInclude<ExtArgs> | null
+    /**
+     * Filter, which CustomDashboard to fetch.
+     */
+    where?: CustomDashboardWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CustomDashboards to fetch.
+     */
+    orderBy?: CustomDashboardOrderByWithRelationInput | CustomDashboardOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for CustomDashboards.
+     */
+    cursor?: CustomDashboardWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CustomDashboards from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CustomDashboards.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of CustomDashboards.
+     */
+    distinct?: CustomDashboardScalarFieldEnum | CustomDashboardScalarFieldEnum[]
+  }
+
+  /**
+   * CustomDashboard findMany
+   */
+  export type CustomDashboardFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomDashboard
+     */
+    select?: CustomDashboardSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CustomDashboard
+     */
+    omit?: CustomDashboardOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomDashboardInclude<ExtArgs> | null
+    /**
+     * Filter, which CustomDashboards to fetch.
+     */
+    where?: CustomDashboardWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CustomDashboards to fetch.
+     */
+    orderBy?: CustomDashboardOrderByWithRelationInput | CustomDashboardOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing CustomDashboards.
+     */
+    cursor?: CustomDashboardWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CustomDashboards from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CustomDashboards.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of CustomDashboards.
+     */
+    distinct?: CustomDashboardScalarFieldEnum | CustomDashboardScalarFieldEnum[]
+  }
+
+  /**
+   * CustomDashboard create
+   */
+  export type CustomDashboardCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomDashboard
+     */
+    select?: CustomDashboardSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CustomDashboard
+     */
+    omit?: CustomDashboardOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomDashboardInclude<ExtArgs> | null
+    /**
+     * The data needed to create a CustomDashboard.
+     */
+    data: XOR<CustomDashboardCreateInput, CustomDashboardUncheckedCreateInput>
+  }
+
+  /**
+   * CustomDashboard createMany
+   */
+  export type CustomDashboardCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many CustomDashboards.
+     */
+    data: CustomDashboardCreateManyInput | CustomDashboardCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * CustomDashboard createManyAndReturn
+   */
+  export type CustomDashboardCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomDashboard
+     */
+    select?: CustomDashboardSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the CustomDashboard
+     */
+    omit?: CustomDashboardOmit<ExtArgs> | null
+    /**
+     * The data used to create many CustomDashboards.
+     */
+    data: CustomDashboardCreateManyInput | CustomDashboardCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * CustomDashboard update
+   */
+  export type CustomDashboardUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomDashboard
+     */
+    select?: CustomDashboardSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CustomDashboard
+     */
+    omit?: CustomDashboardOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomDashboardInclude<ExtArgs> | null
+    /**
+     * The data needed to update a CustomDashboard.
+     */
+    data: XOR<CustomDashboardUpdateInput, CustomDashboardUncheckedUpdateInput>
+    /**
+     * Choose, which CustomDashboard to update.
+     */
+    where: CustomDashboardWhereUniqueInput
+  }
+
+  /**
+   * CustomDashboard updateMany
+   */
+  export type CustomDashboardUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update CustomDashboards.
+     */
+    data: XOR<CustomDashboardUpdateManyMutationInput, CustomDashboardUncheckedUpdateManyInput>
+    /**
+     * Filter which CustomDashboards to update
+     */
+    where?: CustomDashboardWhereInput
+    /**
+     * Limit how many CustomDashboards to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * CustomDashboard updateManyAndReturn
+   */
+  export type CustomDashboardUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomDashboard
+     */
+    select?: CustomDashboardSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the CustomDashboard
+     */
+    omit?: CustomDashboardOmit<ExtArgs> | null
+    /**
+     * The data used to update CustomDashboards.
+     */
+    data: XOR<CustomDashboardUpdateManyMutationInput, CustomDashboardUncheckedUpdateManyInput>
+    /**
+     * Filter which CustomDashboards to update
+     */
+    where?: CustomDashboardWhereInput
+    /**
+     * Limit how many CustomDashboards to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * CustomDashboard upsert
+   */
+  export type CustomDashboardUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomDashboard
+     */
+    select?: CustomDashboardSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CustomDashboard
+     */
+    omit?: CustomDashboardOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomDashboardInclude<ExtArgs> | null
+    /**
+     * The filter to search for the CustomDashboard to update in case it exists.
+     */
+    where: CustomDashboardWhereUniqueInput
+    /**
+     * In case the CustomDashboard found by the `where` argument doesn't exist, create a new CustomDashboard with this data.
+     */
+    create: XOR<CustomDashboardCreateInput, CustomDashboardUncheckedCreateInput>
+    /**
+     * In case the CustomDashboard was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<CustomDashboardUpdateInput, CustomDashboardUncheckedUpdateInput>
+  }
+
+  /**
+   * CustomDashboard delete
+   */
+  export type CustomDashboardDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomDashboard
+     */
+    select?: CustomDashboardSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CustomDashboard
+     */
+    omit?: CustomDashboardOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomDashboardInclude<ExtArgs> | null
+    /**
+     * Filter which CustomDashboard to delete.
+     */
+    where: CustomDashboardWhereUniqueInput
+  }
+
+  /**
+   * CustomDashboard deleteMany
+   */
+  export type CustomDashboardDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which CustomDashboards to delete
+     */
+    where?: CustomDashboardWhereInput
+    /**
+     * Limit how many CustomDashboards to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * CustomDashboard.widgets
+   */
+  export type CustomDashboard$widgetsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DashboardWidget
+     */
+    select?: DashboardWidgetSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DashboardWidget
+     */
+    omit?: DashboardWidgetOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DashboardWidgetInclude<ExtArgs> | null
+    where?: DashboardWidgetWhereInput
+    orderBy?: DashboardWidgetOrderByWithRelationInput | DashboardWidgetOrderByWithRelationInput[]
+    cursor?: DashboardWidgetWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: DashboardWidgetScalarFieldEnum | DashboardWidgetScalarFieldEnum[]
+  }
+
+  /**
+   * CustomDashboard without action
+   */
+  export type CustomDashboardDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomDashboard
+     */
+    select?: CustomDashboardSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CustomDashboard
+     */
+    omit?: CustomDashboardOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomDashboardInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model DashboardWidget
+   */
+
+  export type AggregateDashboardWidget = {
+    _count: DashboardWidgetCountAggregateOutputType | null
+    _avg: DashboardWidgetAvgAggregateOutputType | null
+    _sum: DashboardWidgetSumAggregateOutputType | null
+    _min: DashboardWidgetMinAggregateOutputType | null
+    _max: DashboardWidgetMaxAggregateOutputType | null
+  }
+
+  export type DashboardWidgetAvgAggregateOutputType = {
+    position: number | null
+  }
+
+  export type DashboardWidgetSumAggregateOutputType = {
+    position: number | null
+  }
+
+  export type DashboardWidgetMinAggregateOutputType = {
+    id: string | null
+    dashboardId: string | null
+    type: string | null
+    title: string | null
+    dataSource: string | null
+    metric: string | null
+    groupBy: string | null
+    position: number | null
+    size: string | null
+    createdAt: Date | null
+  }
+
+  export type DashboardWidgetMaxAggregateOutputType = {
+    id: string | null
+    dashboardId: string | null
+    type: string | null
+    title: string | null
+    dataSource: string | null
+    metric: string | null
+    groupBy: string | null
+    position: number | null
+    size: string | null
+    createdAt: Date | null
+  }
+
+  export type DashboardWidgetCountAggregateOutputType = {
+    id: number
+    dashboardId: number
+    type: number
+    title: number
+    dataSource: number
+    metric: number
+    groupBy: number
+    filters: number
+    position: number
+    size: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type DashboardWidgetAvgAggregateInputType = {
+    position?: true
+  }
+
+  export type DashboardWidgetSumAggregateInputType = {
+    position?: true
+  }
+
+  export type DashboardWidgetMinAggregateInputType = {
+    id?: true
+    dashboardId?: true
+    type?: true
+    title?: true
+    dataSource?: true
+    metric?: true
+    groupBy?: true
+    position?: true
+    size?: true
+    createdAt?: true
+  }
+
+  export type DashboardWidgetMaxAggregateInputType = {
+    id?: true
+    dashboardId?: true
+    type?: true
+    title?: true
+    dataSource?: true
+    metric?: true
+    groupBy?: true
+    position?: true
+    size?: true
+    createdAt?: true
+  }
+
+  export type DashboardWidgetCountAggregateInputType = {
+    id?: true
+    dashboardId?: true
+    type?: true
+    title?: true
+    dataSource?: true
+    metric?: true
+    groupBy?: true
+    filters?: true
+    position?: true
+    size?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type DashboardWidgetAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which DashboardWidget to aggregate.
+     */
+    where?: DashboardWidgetWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of DashboardWidgets to fetch.
+     */
+    orderBy?: DashboardWidgetOrderByWithRelationInput | DashboardWidgetOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: DashboardWidgetWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` DashboardWidgets from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` DashboardWidgets.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned DashboardWidgets
+    **/
+    _count?: true | DashboardWidgetCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: DashboardWidgetAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: DashboardWidgetSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: DashboardWidgetMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: DashboardWidgetMaxAggregateInputType
+  }
+
+  export type GetDashboardWidgetAggregateType<T extends DashboardWidgetAggregateArgs> = {
+        [P in keyof T & keyof AggregateDashboardWidget]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateDashboardWidget[P]>
+      : GetScalarType<T[P], AggregateDashboardWidget[P]>
+  }
+
+
+
+
+  export type DashboardWidgetGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: DashboardWidgetWhereInput
+    orderBy?: DashboardWidgetOrderByWithAggregationInput | DashboardWidgetOrderByWithAggregationInput[]
+    by: DashboardWidgetScalarFieldEnum[] | DashboardWidgetScalarFieldEnum
+    having?: DashboardWidgetScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: DashboardWidgetCountAggregateInputType | true
+    _avg?: DashboardWidgetAvgAggregateInputType
+    _sum?: DashboardWidgetSumAggregateInputType
+    _min?: DashboardWidgetMinAggregateInputType
+    _max?: DashboardWidgetMaxAggregateInputType
+  }
+
+  export type DashboardWidgetGroupByOutputType = {
+    id: string
+    dashboardId: string
+    type: string
+    title: string
+    dataSource: string
+    metric: string
+    groupBy: string | null
+    filters: JsonValue | null
+    position: number
+    size: string
+    createdAt: Date
+    _count: DashboardWidgetCountAggregateOutputType | null
+    _avg: DashboardWidgetAvgAggregateOutputType | null
+    _sum: DashboardWidgetSumAggregateOutputType | null
+    _min: DashboardWidgetMinAggregateOutputType | null
+    _max: DashboardWidgetMaxAggregateOutputType | null
+  }
+
+  type GetDashboardWidgetGroupByPayload<T extends DashboardWidgetGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<DashboardWidgetGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof DashboardWidgetGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], DashboardWidgetGroupByOutputType[P]>
+            : GetScalarType<T[P], DashboardWidgetGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type DashboardWidgetSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    dashboardId?: boolean
+    type?: boolean
+    title?: boolean
+    dataSource?: boolean
+    metric?: boolean
+    groupBy?: boolean
+    filters?: boolean
+    position?: boolean
+    size?: boolean
+    createdAt?: boolean
+    dashboard?: boolean | CustomDashboardDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["dashboardWidget"]>
+
+  export type DashboardWidgetSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    dashboardId?: boolean
+    type?: boolean
+    title?: boolean
+    dataSource?: boolean
+    metric?: boolean
+    groupBy?: boolean
+    filters?: boolean
+    position?: boolean
+    size?: boolean
+    createdAt?: boolean
+    dashboard?: boolean | CustomDashboardDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["dashboardWidget"]>
+
+  export type DashboardWidgetSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    dashboardId?: boolean
+    type?: boolean
+    title?: boolean
+    dataSource?: boolean
+    metric?: boolean
+    groupBy?: boolean
+    filters?: boolean
+    position?: boolean
+    size?: boolean
+    createdAt?: boolean
+    dashboard?: boolean | CustomDashboardDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["dashboardWidget"]>
+
+  export type DashboardWidgetSelectScalar = {
+    id?: boolean
+    dashboardId?: boolean
+    type?: boolean
+    title?: boolean
+    dataSource?: boolean
+    metric?: boolean
+    groupBy?: boolean
+    filters?: boolean
+    position?: boolean
+    size?: boolean
+    createdAt?: boolean
+  }
+
+  export type DashboardWidgetOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "dashboardId" | "type" | "title" | "dataSource" | "metric" | "groupBy" | "filters" | "position" | "size" | "createdAt", ExtArgs["result"]["dashboardWidget"]>
+  export type DashboardWidgetInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    dashboard?: boolean | CustomDashboardDefaultArgs<ExtArgs>
+  }
+  export type DashboardWidgetIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    dashboard?: boolean | CustomDashboardDefaultArgs<ExtArgs>
+  }
+  export type DashboardWidgetIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    dashboard?: boolean | CustomDashboardDefaultArgs<ExtArgs>
+  }
+
+  export type $DashboardWidgetPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "DashboardWidget"
+    objects: {
+      dashboard: Prisma.$CustomDashboardPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      dashboardId: string
+      type: string
+      title: string
+      dataSource: string
+      metric: string
+      groupBy: string | null
+      filters: Prisma.JsonValue | null
+      position: number
+      size: string
+      createdAt: Date
+    }, ExtArgs["result"]["dashboardWidget"]>
+    composites: {}
+  }
+
+  type DashboardWidgetGetPayload<S extends boolean | null | undefined | DashboardWidgetDefaultArgs> = $Result.GetResult<Prisma.$DashboardWidgetPayload, S>
+
+  type DashboardWidgetCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<DashboardWidgetFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: DashboardWidgetCountAggregateInputType | true
+    }
+
+  export interface DashboardWidgetDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['DashboardWidget'], meta: { name: 'DashboardWidget' } }
+    /**
+     * Find zero or one DashboardWidget that matches the filter.
+     * @param {DashboardWidgetFindUniqueArgs} args - Arguments to find a DashboardWidget
+     * @example
+     * // Get one DashboardWidget
+     * const dashboardWidget = await prisma.dashboardWidget.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends DashboardWidgetFindUniqueArgs>(args: SelectSubset<T, DashboardWidgetFindUniqueArgs<ExtArgs>>): Prisma__DashboardWidgetClient<$Result.GetResult<Prisma.$DashboardWidgetPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one DashboardWidget that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {DashboardWidgetFindUniqueOrThrowArgs} args - Arguments to find a DashboardWidget
+     * @example
+     * // Get one DashboardWidget
+     * const dashboardWidget = await prisma.dashboardWidget.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends DashboardWidgetFindUniqueOrThrowArgs>(args: SelectSubset<T, DashboardWidgetFindUniqueOrThrowArgs<ExtArgs>>): Prisma__DashboardWidgetClient<$Result.GetResult<Prisma.$DashboardWidgetPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first DashboardWidget that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DashboardWidgetFindFirstArgs} args - Arguments to find a DashboardWidget
+     * @example
+     * // Get one DashboardWidget
+     * const dashboardWidget = await prisma.dashboardWidget.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends DashboardWidgetFindFirstArgs>(args?: SelectSubset<T, DashboardWidgetFindFirstArgs<ExtArgs>>): Prisma__DashboardWidgetClient<$Result.GetResult<Prisma.$DashboardWidgetPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first DashboardWidget that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DashboardWidgetFindFirstOrThrowArgs} args - Arguments to find a DashboardWidget
+     * @example
+     * // Get one DashboardWidget
+     * const dashboardWidget = await prisma.dashboardWidget.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends DashboardWidgetFindFirstOrThrowArgs>(args?: SelectSubset<T, DashboardWidgetFindFirstOrThrowArgs<ExtArgs>>): Prisma__DashboardWidgetClient<$Result.GetResult<Prisma.$DashboardWidgetPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more DashboardWidgets that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DashboardWidgetFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all DashboardWidgets
+     * const dashboardWidgets = await prisma.dashboardWidget.findMany()
+     * 
+     * // Get first 10 DashboardWidgets
+     * const dashboardWidgets = await prisma.dashboardWidget.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const dashboardWidgetWithIdOnly = await prisma.dashboardWidget.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends DashboardWidgetFindManyArgs>(args?: SelectSubset<T, DashboardWidgetFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DashboardWidgetPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a DashboardWidget.
+     * @param {DashboardWidgetCreateArgs} args - Arguments to create a DashboardWidget.
+     * @example
+     * // Create one DashboardWidget
+     * const DashboardWidget = await prisma.dashboardWidget.create({
+     *   data: {
+     *     // ... data to create a DashboardWidget
+     *   }
+     * })
+     * 
+     */
+    create<T extends DashboardWidgetCreateArgs>(args: SelectSubset<T, DashboardWidgetCreateArgs<ExtArgs>>): Prisma__DashboardWidgetClient<$Result.GetResult<Prisma.$DashboardWidgetPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many DashboardWidgets.
+     * @param {DashboardWidgetCreateManyArgs} args - Arguments to create many DashboardWidgets.
+     * @example
+     * // Create many DashboardWidgets
+     * const dashboardWidget = await prisma.dashboardWidget.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends DashboardWidgetCreateManyArgs>(args?: SelectSubset<T, DashboardWidgetCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many DashboardWidgets and returns the data saved in the database.
+     * @param {DashboardWidgetCreateManyAndReturnArgs} args - Arguments to create many DashboardWidgets.
+     * @example
+     * // Create many DashboardWidgets
+     * const dashboardWidget = await prisma.dashboardWidget.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many DashboardWidgets and only return the `id`
+     * const dashboardWidgetWithIdOnly = await prisma.dashboardWidget.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends DashboardWidgetCreateManyAndReturnArgs>(args?: SelectSubset<T, DashboardWidgetCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DashboardWidgetPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a DashboardWidget.
+     * @param {DashboardWidgetDeleteArgs} args - Arguments to delete one DashboardWidget.
+     * @example
+     * // Delete one DashboardWidget
+     * const DashboardWidget = await prisma.dashboardWidget.delete({
+     *   where: {
+     *     // ... filter to delete one DashboardWidget
+     *   }
+     * })
+     * 
+     */
+    delete<T extends DashboardWidgetDeleteArgs>(args: SelectSubset<T, DashboardWidgetDeleteArgs<ExtArgs>>): Prisma__DashboardWidgetClient<$Result.GetResult<Prisma.$DashboardWidgetPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one DashboardWidget.
+     * @param {DashboardWidgetUpdateArgs} args - Arguments to update one DashboardWidget.
+     * @example
+     * // Update one DashboardWidget
+     * const dashboardWidget = await prisma.dashboardWidget.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends DashboardWidgetUpdateArgs>(args: SelectSubset<T, DashboardWidgetUpdateArgs<ExtArgs>>): Prisma__DashboardWidgetClient<$Result.GetResult<Prisma.$DashboardWidgetPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more DashboardWidgets.
+     * @param {DashboardWidgetDeleteManyArgs} args - Arguments to filter DashboardWidgets to delete.
+     * @example
+     * // Delete a few DashboardWidgets
+     * const { count } = await prisma.dashboardWidget.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends DashboardWidgetDeleteManyArgs>(args?: SelectSubset<T, DashboardWidgetDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more DashboardWidgets.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DashboardWidgetUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many DashboardWidgets
+     * const dashboardWidget = await prisma.dashboardWidget.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends DashboardWidgetUpdateManyArgs>(args: SelectSubset<T, DashboardWidgetUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more DashboardWidgets and returns the data updated in the database.
+     * @param {DashboardWidgetUpdateManyAndReturnArgs} args - Arguments to update many DashboardWidgets.
+     * @example
+     * // Update many DashboardWidgets
+     * const dashboardWidget = await prisma.dashboardWidget.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more DashboardWidgets and only return the `id`
+     * const dashboardWidgetWithIdOnly = await prisma.dashboardWidget.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends DashboardWidgetUpdateManyAndReturnArgs>(args: SelectSubset<T, DashboardWidgetUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DashboardWidgetPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one DashboardWidget.
+     * @param {DashboardWidgetUpsertArgs} args - Arguments to update or create a DashboardWidget.
+     * @example
+     * // Update or create a DashboardWidget
+     * const dashboardWidget = await prisma.dashboardWidget.upsert({
+     *   create: {
+     *     // ... data to create a DashboardWidget
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the DashboardWidget we want to update
+     *   }
+     * })
+     */
+    upsert<T extends DashboardWidgetUpsertArgs>(args: SelectSubset<T, DashboardWidgetUpsertArgs<ExtArgs>>): Prisma__DashboardWidgetClient<$Result.GetResult<Prisma.$DashboardWidgetPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of DashboardWidgets.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DashboardWidgetCountArgs} args - Arguments to filter DashboardWidgets to count.
+     * @example
+     * // Count the number of DashboardWidgets
+     * const count = await prisma.dashboardWidget.count({
+     *   where: {
+     *     // ... the filter for the DashboardWidgets we want to count
+     *   }
+     * })
+    **/
+    count<T extends DashboardWidgetCountArgs>(
+      args?: Subset<T, DashboardWidgetCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], DashboardWidgetCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a DashboardWidget.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DashboardWidgetAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends DashboardWidgetAggregateArgs>(args: Subset<T, DashboardWidgetAggregateArgs>): Prisma.PrismaPromise<GetDashboardWidgetAggregateType<T>>
+
+    /**
+     * Group by DashboardWidget.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DashboardWidgetGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends DashboardWidgetGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: DashboardWidgetGroupByArgs['orderBy'] }
+        : { orderBy?: DashboardWidgetGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, DashboardWidgetGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetDashboardWidgetGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the DashboardWidget model
+   */
+  readonly fields: DashboardWidgetFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for DashboardWidget.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__DashboardWidgetClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    dashboard<T extends CustomDashboardDefaultArgs<ExtArgs> = {}>(args?: Subset<T, CustomDashboardDefaultArgs<ExtArgs>>): Prisma__CustomDashboardClient<$Result.GetResult<Prisma.$CustomDashboardPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the DashboardWidget model
+   */
+  interface DashboardWidgetFieldRefs {
+    readonly id: FieldRef<"DashboardWidget", 'String'>
+    readonly dashboardId: FieldRef<"DashboardWidget", 'String'>
+    readonly type: FieldRef<"DashboardWidget", 'String'>
+    readonly title: FieldRef<"DashboardWidget", 'String'>
+    readonly dataSource: FieldRef<"DashboardWidget", 'String'>
+    readonly metric: FieldRef<"DashboardWidget", 'String'>
+    readonly groupBy: FieldRef<"DashboardWidget", 'String'>
+    readonly filters: FieldRef<"DashboardWidget", 'Json'>
+    readonly position: FieldRef<"DashboardWidget", 'Int'>
+    readonly size: FieldRef<"DashboardWidget", 'String'>
+    readonly createdAt: FieldRef<"DashboardWidget", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * DashboardWidget findUnique
+   */
+  export type DashboardWidgetFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DashboardWidget
+     */
+    select?: DashboardWidgetSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DashboardWidget
+     */
+    omit?: DashboardWidgetOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DashboardWidgetInclude<ExtArgs> | null
+    /**
+     * Filter, which DashboardWidget to fetch.
+     */
+    where: DashboardWidgetWhereUniqueInput
+  }
+
+  /**
+   * DashboardWidget findUniqueOrThrow
+   */
+  export type DashboardWidgetFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DashboardWidget
+     */
+    select?: DashboardWidgetSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DashboardWidget
+     */
+    omit?: DashboardWidgetOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DashboardWidgetInclude<ExtArgs> | null
+    /**
+     * Filter, which DashboardWidget to fetch.
+     */
+    where: DashboardWidgetWhereUniqueInput
+  }
+
+  /**
+   * DashboardWidget findFirst
+   */
+  export type DashboardWidgetFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DashboardWidget
+     */
+    select?: DashboardWidgetSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DashboardWidget
+     */
+    omit?: DashboardWidgetOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DashboardWidgetInclude<ExtArgs> | null
+    /**
+     * Filter, which DashboardWidget to fetch.
+     */
+    where?: DashboardWidgetWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of DashboardWidgets to fetch.
+     */
+    orderBy?: DashboardWidgetOrderByWithRelationInput | DashboardWidgetOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for DashboardWidgets.
+     */
+    cursor?: DashboardWidgetWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` DashboardWidgets from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` DashboardWidgets.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of DashboardWidgets.
+     */
+    distinct?: DashboardWidgetScalarFieldEnum | DashboardWidgetScalarFieldEnum[]
+  }
+
+  /**
+   * DashboardWidget findFirstOrThrow
+   */
+  export type DashboardWidgetFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DashboardWidget
+     */
+    select?: DashboardWidgetSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DashboardWidget
+     */
+    omit?: DashboardWidgetOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DashboardWidgetInclude<ExtArgs> | null
+    /**
+     * Filter, which DashboardWidget to fetch.
+     */
+    where?: DashboardWidgetWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of DashboardWidgets to fetch.
+     */
+    orderBy?: DashboardWidgetOrderByWithRelationInput | DashboardWidgetOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for DashboardWidgets.
+     */
+    cursor?: DashboardWidgetWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` DashboardWidgets from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` DashboardWidgets.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of DashboardWidgets.
+     */
+    distinct?: DashboardWidgetScalarFieldEnum | DashboardWidgetScalarFieldEnum[]
+  }
+
+  /**
+   * DashboardWidget findMany
+   */
+  export type DashboardWidgetFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DashboardWidget
+     */
+    select?: DashboardWidgetSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DashboardWidget
+     */
+    omit?: DashboardWidgetOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DashboardWidgetInclude<ExtArgs> | null
+    /**
+     * Filter, which DashboardWidgets to fetch.
+     */
+    where?: DashboardWidgetWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of DashboardWidgets to fetch.
+     */
+    orderBy?: DashboardWidgetOrderByWithRelationInput | DashboardWidgetOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing DashboardWidgets.
+     */
+    cursor?: DashboardWidgetWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` DashboardWidgets from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` DashboardWidgets.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of DashboardWidgets.
+     */
+    distinct?: DashboardWidgetScalarFieldEnum | DashboardWidgetScalarFieldEnum[]
+  }
+
+  /**
+   * DashboardWidget create
+   */
+  export type DashboardWidgetCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DashboardWidget
+     */
+    select?: DashboardWidgetSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DashboardWidget
+     */
+    omit?: DashboardWidgetOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DashboardWidgetInclude<ExtArgs> | null
+    /**
+     * The data needed to create a DashboardWidget.
+     */
+    data: XOR<DashboardWidgetCreateInput, DashboardWidgetUncheckedCreateInput>
+  }
+
+  /**
+   * DashboardWidget createMany
+   */
+  export type DashboardWidgetCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many DashboardWidgets.
+     */
+    data: DashboardWidgetCreateManyInput | DashboardWidgetCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * DashboardWidget createManyAndReturn
+   */
+  export type DashboardWidgetCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DashboardWidget
+     */
+    select?: DashboardWidgetSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the DashboardWidget
+     */
+    omit?: DashboardWidgetOmit<ExtArgs> | null
+    /**
+     * The data used to create many DashboardWidgets.
+     */
+    data: DashboardWidgetCreateManyInput | DashboardWidgetCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DashboardWidgetIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * DashboardWidget update
+   */
+  export type DashboardWidgetUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DashboardWidget
+     */
+    select?: DashboardWidgetSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DashboardWidget
+     */
+    omit?: DashboardWidgetOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DashboardWidgetInclude<ExtArgs> | null
+    /**
+     * The data needed to update a DashboardWidget.
+     */
+    data: XOR<DashboardWidgetUpdateInput, DashboardWidgetUncheckedUpdateInput>
+    /**
+     * Choose, which DashboardWidget to update.
+     */
+    where: DashboardWidgetWhereUniqueInput
+  }
+
+  /**
+   * DashboardWidget updateMany
+   */
+  export type DashboardWidgetUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update DashboardWidgets.
+     */
+    data: XOR<DashboardWidgetUpdateManyMutationInput, DashboardWidgetUncheckedUpdateManyInput>
+    /**
+     * Filter which DashboardWidgets to update
+     */
+    where?: DashboardWidgetWhereInput
+    /**
+     * Limit how many DashboardWidgets to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * DashboardWidget updateManyAndReturn
+   */
+  export type DashboardWidgetUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DashboardWidget
+     */
+    select?: DashboardWidgetSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the DashboardWidget
+     */
+    omit?: DashboardWidgetOmit<ExtArgs> | null
+    /**
+     * The data used to update DashboardWidgets.
+     */
+    data: XOR<DashboardWidgetUpdateManyMutationInput, DashboardWidgetUncheckedUpdateManyInput>
+    /**
+     * Filter which DashboardWidgets to update
+     */
+    where?: DashboardWidgetWhereInput
+    /**
+     * Limit how many DashboardWidgets to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DashboardWidgetIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * DashboardWidget upsert
+   */
+  export type DashboardWidgetUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DashboardWidget
+     */
+    select?: DashboardWidgetSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DashboardWidget
+     */
+    omit?: DashboardWidgetOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DashboardWidgetInclude<ExtArgs> | null
+    /**
+     * The filter to search for the DashboardWidget to update in case it exists.
+     */
+    where: DashboardWidgetWhereUniqueInput
+    /**
+     * In case the DashboardWidget found by the `where` argument doesn't exist, create a new DashboardWidget with this data.
+     */
+    create: XOR<DashboardWidgetCreateInput, DashboardWidgetUncheckedCreateInput>
+    /**
+     * In case the DashboardWidget was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<DashboardWidgetUpdateInput, DashboardWidgetUncheckedUpdateInput>
+  }
+
+  /**
+   * DashboardWidget delete
+   */
+  export type DashboardWidgetDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DashboardWidget
+     */
+    select?: DashboardWidgetSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DashboardWidget
+     */
+    omit?: DashboardWidgetOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DashboardWidgetInclude<ExtArgs> | null
+    /**
+     * Filter which DashboardWidget to delete.
+     */
+    where: DashboardWidgetWhereUniqueInput
+  }
+
+  /**
+   * DashboardWidget deleteMany
+   */
+  export type DashboardWidgetDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which DashboardWidgets to delete
+     */
+    where?: DashboardWidgetWhereInput
+    /**
+     * Limit how many DashboardWidgets to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * DashboardWidget without action
+   */
+  export type DashboardWidgetDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DashboardWidget
+     */
+    select?: DashboardWidgetSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DashboardWidget
+     */
+    omit?: DashboardWidgetOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DashboardWidgetInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -57033,6 +60804,18 @@ export namespace Prisma {
   export type SupplierScalarFieldEnum = (typeof SupplierScalarFieldEnum)[keyof typeof SupplierScalarFieldEnum]
 
 
+  export const SupplierPortalLinkScalarFieldEnum: {
+    id: 'id',
+    supplierId: 'supplierId',
+    token: 'token',
+    expiresAt: 'expiresAt',
+    createdBy: 'createdBy',
+    createdAt: 'createdAt'
+  };
+
+  export type SupplierPortalLinkScalarFieldEnum = (typeof SupplierPortalLinkScalarFieldEnum)[keyof typeof SupplierPortalLinkScalarFieldEnum]
+
+
   export const SupplierAuditScalarFieldEnum: {
     id: 'id',
     supplierId: 'supplierId',
@@ -57300,6 +61083,10 @@ export namespace Prisma {
     slaHours: 'slaHours',
     escalateTo: 'escalateTo',
     conditions: 'conditions',
+    logic: 'logic',
+    skipCondition: 'skipCondition',
+    rejectAction: 'rejectAction',
+    rejectTarget: 'rejectTarget',
     createdAt: 'createdAt'
   };
 
@@ -57314,6 +61101,7 @@ export namespace Prisma {
     projectId: 'projectId',
     currentStep: 'currentStep',
     status: 'status',
+    restartCount: 'restartCount',
     startedAt: 'startedAt',
     completedAt: 'completedAt'
   };
@@ -57514,6 +61302,37 @@ export namespace Prisma {
   };
 
   export type QTaskScalarFieldEnum = (typeof QTaskScalarFieldEnum)[keyof typeof QTaskScalarFieldEnum]
+
+
+  export const CustomDashboardScalarFieldEnum: {
+    id: 'id',
+    orgId: 'orgId',
+    name: 'name',
+    description: 'description',
+    createdBy: 'createdBy',
+    isPublic: 'isPublic',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type CustomDashboardScalarFieldEnum = (typeof CustomDashboardScalarFieldEnum)[keyof typeof CustomDashboardScalarFieldEnum]
+
+
+  export const DashboardWidgetScalarFieldEnum: {
+    id: 'id',
+    dashboardId: 'dashboardId',
+    type: 'type',
+    title: 'title',
+    dataSource: 'dataSource',
+    metric: 'metric',
+    groupBy: 'groupBy',
+    filters: 'filters',
+    position: 'position',
+    size: 'size',
+    createdAt: 'createdAt'
+  };
+
+  export type DashboardWidgetScalarFieldEnum = (typeof DashboardWidgetScalarFieldEnum)[keyof typeof DashboardWidgetScalarFieldEnum]
 
 
   export const SortOrder: {
@@ -58946,6 +62765,7 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"Supplier"> | Date | string
     updatedAt?: DateTimeFilter<"Supplier"> | Date | string
     audits?: SupplierAuditListRelationFilter
+    portalLinks?: SupplierPortalLinkListRelationFilter
   }
 
   export type SupplierOrderByWithRelationInput = {
@@ -58963,6 +62783,7 @@ export namespace Prisma {
     createdAt?: SortOrder
     updatedAt?: SortOrder
     audits?: SupplierAuditOrderByRelationAggregateInput
+    portalLinks?: SupplierPortalLinkOrderByRelationAggregateInput
   }
 
   export type SupplierWhereUniqueInput = Prisma.AtLeast<{
@@ -58983,6 +62804,7 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"Supplier"> | Date | string
     updatedAt?: DateTimeFilter<"Supplier"> | Date | string
     audits?: SupplierAuditListRelationFilter
+    portalLinks?: SupplierPortalLinkListRelationFilter
   }, "id">
 
   export type SupplierOrderByWithAggregationInput = {
@@ -59023,6 +62845,66 @@ export namespace Prisma {
     nextAuditDate?: DateTimeNullableWithAggregatesFilter<"Supplier"> | Date | string | null
     createdAt?: DateTimeWithAggregatesFilter<"Supplier"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Supplier"> | Date | string
+  }
+
+  export type SupplierPortalLinkWhereInput = {
+    AND?: SupplierPortalLinkWhereInput | SupplierPortalLinkWhereInput[]
+    OR?: SupplierPortalLinkWhereInput[]
+    NOT?: SupplierPortalLinkWhereInput | SupplierPortalLinkWhereInput[]
+    id?: StringFilter<"SupplierPortalLink"> | string
+    supplierId?: StringFilter<"SupplierPortalLink"> | string
+    token?: StringFilter<"SupplierPortalLink"> | string
+    expiresAt?: DateTimeFilter<"SupplierPortalLink"> | Date | string
+    createdBy?: StringFilter<"SupplierPortalLink"> | string
+    createdAt?: DateTimeFilter<"SupplierPortalLink"> | Date | string
+    supplier?: XOR<SupplierScalarRelationFilter, SupplierWhereInput>
+  }
+
+  export type SupplierPortalLinkOrderByWithRelationInput = {
+    id?: SortOrder
+    supplierId?: SortOrder
+    token?: SortOrder
+    expiresAt?: SortOrder
+    createdBy?: SortOrder
+    createdAt?: SortOrder
+    supplier?: SupplierOrderByWithRelationInput
+  }
+
+  export type SupplierPortalLinkWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    token?: string
+    AND?: SupplierPortalLinkWhereInput | SupplierPortalLinkWhereInput[]
+    OR?: SupplierPortalLinkWhereInput[]
+    NOT?: SupplierPortalLinkWhereInput | SupplierPortalLinkWhereInput[]
+    supplierId?: StringFilter<"SupplierPortalLink"> | string
+    expiresAt?: DateTimeFilter<"SupplierPortalLink"> | Date | string
+    createdBy?: StringFilter<"SupplierPortalLink"> | string
+    createdAt?: DateTimeFilter<"SupplierPortalLink"> | Date | string
+    supplier?: XOR<SupplierScalarRelationFilter, SupplierWhereInput>
+  }, "id" | "token">
+
+  export type SupplierPortalLinkOrderByWithAggregationInput = {
+    id?: SortOrder
+    supplierId?: SortOrder
+    token?: SortOrder
+    expiresAt?: SortOrder
+    createdBy?: SortOrder
+    createdAt?: SortOrder
+    _count?: SupplierPortalLinkCountOrderByAggregateInput
+    _max?: SupplierPortalLinkMaxOrderByAggregateInput
+    _min?: SupplierPortalLinkMinOrderByAggregateInput
+  }
+
+  export type SupplierPortalLinkScalarWhereWithAggregatesInput = {
+    AND?: SupplierPortalLinkScalarWhereWithAggregatesInput | SupplierPortalLinkScalarWhereWithAggregatesInput[]
+    OR?: SupplierPortalLinkScalarWhereWithAggregatesInput[]
+    NOT?: SupplierPortalLinkScalarWhereWithAggregatesInput | SupplierPortalLinkScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"SupplierPortalLink"> | string
+    supplierId?: StringWithAggregatesFilter<"SupplierPortalLink"> | string
+    token?: StringWithAggregatesFilter<"SupplierPortalLink"> | string
+    expiresAt?: DateTimeWithAggregatesFilter<"SupplierPortalLink"> | Date | string
+    createdBy?: StringWithAggregatesFilter<"SupplierPortalLink"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"SupplierPortalLink"> | Date | string
   }
 
   export type SupplierAuditWhereInput = {
@@ -60344,6 +64226,10 @@ export namespace Prisma {
     slaHours?: IntNullableFilter<"WorkflowStep"> | number | null
     escalateTo?: StringNullableFilter<"WorkflowStep"> | string | null
     conditions?: JsonNullableFilter<"WorkflowStep">
+    logic?: StringFilter<"WorkflowStep"> | string
+    skipCondition?: JsonNullableFilter<"WorkflowStep">
+    rejectAction?: StringFilter<"WorkflowStep"> | string
+    rejectTarget?: IntNullableFilter<"WorkflowStep"> | number | null
     createdAt?: DateTimeFilter<"WorkflowStep"> | Date | string
     template?: XOR<WorkflowTemplateScalarRelationFilter, WorkflowTemplateWhereInput>
   }
@@ -60359,6 +64245,10 @@ export namespace Prisma {
     slaHours?: SortOrderInput | SortOrder
     escalateTo?: SortOrderInput | SortOrder
     conditions?: SortOrderInput | SortOrder
+    logic?: SortOrder
+    skipCondition?: SortOrderInput | SortOrder
+    rejectAction?: SortOrder
+    rejectTarget?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     template?: WorkflowTemplateOrderByWithRelationInput
   }
@@ -60377,6 +64267,10 @@ export namespace Prisma {
     slaHours?: IntNullableFilter<"WorkflowStep"> | number | null
     escalateTo?: StringNullableFilter<"WorkflowStep"> | string | null
     conditions?: JsonNullableFilter<"WorkflowStep">
+    logic?: StringFilter<"WorkflowStep"> | string
+    skipCondition?: JsonNullableFilter<"WorkflowStep">
+    rejectAction?: StringFilter<"WorkflowStep"> | string
+    rejectTarget?: IntNullableFilter<"WorkflowStep"> | number | null
     createdAt?: DateTimeFilter<"WorkflowStep"> | Date | string
     template?: XOR<WorkflowTemplateScalarRelationFilter, WorkflowTemplateWhereInput>
   }, "id">
@@ -60392,6 +64286,10 @@ export namespace Prisma {
     slaHours?: SortOrderInput | SortOrder
     escalateTo?: SortOrderInput | SortOrder
     conditions?: SortOrderInput | SortOrder
+    logic?: SortOrder
+    skipCondition?: SortOrderInput | SortOrder
+    rejectAction?: SortOrder
+    rejectTarget?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     _count?: WorkflowStepCountOrderByAggregateInput
     _avg?: WorkflowStepAvgOrderByAggregateInput
@@ -60414,6 +64312,10 @@ export namespace Prisma {
     slaHours?: IntNullableWithAggregatesFilter<"WorkflowStep"> | number | null
     escalateTo?: StringNullableWithAggregatesFilter<"WorkflowStep"> | string | null
     conditions?: JsonNullableWithAggregatesFilter<"WorkflowStep">
+    logic?: StringWithAggregatesFilter<"WorkflowStep"> | string
+    skipCondition?: JsonNullableWithAggregatesFilter<"WorkflowStep">
+    rejectAction?: StringWithAggregatesFilter<"WorkflowStep"> | string
+    rejectTarget?: IntNullableWithAggregatesFilter<"WorkflowStep"> | number | null
     createdAt?: DateTimeWithAggregatesFilter<"WorkflowStep"> | Date | string
   }
 
@@ -60428,6 +64330,7 @@ export namespace Prisma {
     projectId?: StringFilter<"WorkflowExecution"> | string
     currentStep?: IntFilter<"WorkflowExecution"> | number
     status?: StringFilter<"WorkflowExecution"> | string
+    restartCount?: IntFilter<"WorkflowExecution"> | number
     startedAt?: DateTimeFilter<"WorkflowExecution"> | Date | string
     completedAt?: DateTimeNullableFilter<"WorkflowExecution"> | Date | string | null
     template?: XOR<WorkflowTemplateScalarRelationFilter, WorkflowTemplateWhereInput>
@@ -60442,6 +64345,7 @@ export namespace Prisma {
     projectId?: SortOrder
     currentStep?: SortOrder
     status?: SortOrder
+    restartCount?: SortOrder
     startedAt?: SortOrder
     completedAt?: SortOrderInput | SortOrder
     template?: WorkflowTemplateOrderByWithRelationInput
@@ -60459,6 +64363,7 @@ export namespace Prisma {
     projectId?: StringFilter<"WorkflowExecution"> | string
     currentStep?: IntFilter<"WorkflowExecution"> | number
     status?: StringFilter<"WorkflowExecution"> | string
+    restartCount?: IntFilter<"WorkflowExecution"> | number
     startedAt?: DateTimeFilter<"WorkflowExecution"> | Date | string
     completedAt?: DateTimeNullableFilter<"WorkflowExecution"> | Date | string | null
     template?: XOR<WorkflowTemplateScalarRelationFilter, WorkflowTemplateWhereInput>
@@ -60473,6 +64378,7 @@ export namespace Prisma {
     projectId?: SortOrder
     currentStep?: SortOrder
     status?: SortOrder
+    restartCount?: SortOrder
     startedAt?: SortOrder
     completedAt?: SortOrderInput | SortOrder
     _count?: WorkflowExecutionCountOrderByAggregateInput
@@ -60493,6 +64399,7 @@ export namespace Prisma {
     projectId?: StringWithAggregatesFilter<"WorkflowExecution"> | string
     currentStep?: IntWithAggregatesFilter<"WorkflowExecution"> | number
     status?: StringWithAggregatesFilter<"WorkflowExecution"> | string
+    restartCount?: IntWithAggregatesFilter<"WorkflowExecution"> | number
     startedAt?: DateTimeWithAggregatesFilter<"WorkflowExecution"> | Date | string
     completedAt?: DateTimeNullableWithAggregatesFilter<"WorkflowExecution"> | Date | string | null
   }
@@ -61479,6 +65386,163 @@ export namespace Prisma {
     createdBy?: StringWithAggregatesFilter<"QTask"> | string
     createdAt?: DateTimeWithAggregatesFilter<"QTask"> | Date | string
     completedAt?: DateTimeNullableWithAggregatesFilter<"QTask"> | Date | string | null
+  }
+
+  export type CustomDashboardWhereInput = {
+    AND?: CustomDashboardWhereInput | CustomDashboardWhereInput[]
+    OR?: CustomDashboardWhereInput[]
+    NOT?: CustomDashboardWhereInput | CustomDashboardWhereInput[]
+    id?: StringFilter<"CustomDashboard"> | string
+    orgId?: StringFilter<"CustomDashboard"> | string
+    name?: StringFilter<"CustomDashboard"> | string
+    description?: StringFilter<"CustomDashboard"> | string
+    createdBy?: StringFilter<"CustomDashboard"> | string
+    isPublic?: BoolFilter<"CustomDashboard"> | boolean
+    createdAt?: DateTimeFilter<"CustomDashboard"> | Date | string
+    updatedAt?: DateTimeFilter<"CustomDashboard"> | Date | string
+    widgets?: DashboardWidgetListRelationFilter
+  }
+
+  export type CustomDashboardOrderByWithRelationInput = {
+    id?: SortOrder
+    orgId?: SortOrder
+    name?: SortOrder
+    description?: SortOrder
+    createdBy?: SortOrder
+    isPublic?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    widgets?: DashboardWidgetOrderByRelationAggregateInput
+  }
+
+  export type CustomDashboardWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: CustomDashboardWhereInput | CustomDashboardWhereInput[]
+    OR?: CustomDashboardWhereInput[]
+    NOT?: CustomDashboardWhereInput | CustomDashboardWhereInput[]
+    orgId?: StringFilter<"CustomDashboard"> | string
+    name?: StringFilter<"CustomDashboard"> | string
+    description?: StringFilter<"CustomDashboard"> | string
+    createdBy?: StringFilter<"CustomDashboard"> | string
+    isPublic?: BoolFilter<"CustomDashboard"> | boolean
+    createdAt?: DateTimeFilter<"CustomDashboard"> | Date | string
+    updatedAt?: DateTimeFilter<"CustomDashboard"> | Date | string
+    widgets?: DashboardWidgetListRelationFilter
+  }, "id">
+
+  export type CustomDashboardOrderByWithAggregationInput = {
+    id?: SortOrder
+    orgId?: SortOrder
+    name?: SortOrder
+    description?: SortOrder
+    createdBy?: SortOrder
+    isPublic?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: CustomDashboardCountOrderByAggregateInput
+    _max?: CustomDashboardMaxOrderByAggregateInput
+    _min?: CustomDashboardMinOrderByAggregateInput
+  }
+
+  export type CustomDashboardScalarWhereWithAggregatesInput = {
+    AND?: CustomDashboardScalarWhereWithAggregatesInput | CustomDashboardScalarWhereWithAggregatesInput[]
+    OR?: CustomDashboardScalarWhereWithAggregatesInput[]
+    NOT?: CustomDashboardScalarWhereWithAggregatesInput | CustomDashboardScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"CustomDashboard"> | string
+    orgId?: StringWithAggregatesFilter<"CustomDashboard"> | string
+    name?: StringWithAggregatesFilter<"CustomDashboard"> | string
+    description?: StringWithAggregatesFilter<"CustomDashboard"> | string
+    createdBy?: StringWithAggregatesFilter<"CustomDashboard"> | string
+    isPublic?: BoolWithAggregatesFilter<"CustomDashboard"> | boolean
+    createdAt?: DateTimeWithAggregatesFilter<"CustomDashboard"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"CustomDashboard"> | Date | string
+  }
+
+  export type DashboardWidgetWhereInput = {
+    AND?: DashboardWidgetWhereInput | DashboardWidgetWhereInput[]
+    OR?: DashboardWidgetWhereInput[]
+    NOT?: DashboardWidgetWhereInput | DashboardWidgetWhereInput[]
+    id?: StringFilter<"DashboardWidget"> | string
+    dashboardId?: StringFilter<"DashboardWidget"> | string
+    type?: StringFilter<"DashboardWidget"> | string
+    title?: StringFilter<"DashboardWidget"> | string
+    dataSource?: StringFilter<"DashboardWidget"> | string
+    metric?: StringFilter<"DashboardWidget"> | string
+    groupBy?: StringNullableFilter<"DashboardWidget"> | string | null
+    filters?: JsonNullableFilter<"DashboardWidget">
+    position?: IntFilter<"DashboardWidget"> | number
+    size?: StringFilter<"DashboardWidget"> | string
+    createdAt?: DateTimeFilter<"DashboardWidget"> | Date | string
+    dashboard?: XOR<CustomDashboardScalarRelationFilter, CustomDashboardWhereInput>
+  }
+
+  export type DashboardWidgetOrderByWithRelationInput = {
+    id?: SortOrder
+    dashboardId?: SortOrder
+    type?: SortOrder
+    title?: SortOrder
+    dataSource?: SortOrder
+    metric?: SortOrder
+    groupBy?: SortOrderInput | SortOrder
+    filters?: SortOrderInput | SortOrder
+    position?: SortOrder
+    size?: SortOrder
+    createdAt?: SortOrder
+    dashboard?: CustomDashboardOrderByWithRelationInput
+  }
+
+  export type DashboardWidgetWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: DashboardWidgetWhereInput | DashboardWidgetWhereInput[]
+    OR?: DashboardWidgetWhereInput[]
+    NOT?: DashboardWidgetWhereInput | DashboardWidgetWhereInput[]
+    dashboardId?: StringFilter<"DashboardWidget"> | string
+    type?: StringFilter<"DashboardWidget"> | string
+    title?: StringFilter<"DashboardWidget"> | string
+    dataSource?: StringFilter<"DashboardWidget"> | string
+    metric?: StringFilter<"DashboardWidget"> | string
+    groupBy?: StringNullableFilter<"DashboardWidget"> | string | null
+    filters?: JsonNullableFilter<"DashboardWidget">
+    position?: IntFilter<"DashboardWidget"> | number
+    size?: StringFilter<"DashboardWidget"> | string
+    createdAt?: DateTimeFilter<"DashboardWidget"> | Date | string
+    dashboard?: XOR<CustomDashboardScalarRelationFilter, CustomDashboardWhereInput>
+  }, "id">
+
+  export type DashboardWidgetOrderByWithAggregationInput = {
+    id?: SortOrder
+    dashboardId?: SortOrder
+    type?: SortOrder
+    title?: SortOrder
+    dataSource?: SortOrder
+    metric?: SortOrder
+    groupBy?: SortOrderInput | SortOrder
+    filters?: SortOrderInput | SortOrder
+    position?: SortOrder
+    size?: SortOrder
+    createdAt?: SortOrder
+    _count?: DashboardWidgetCountOrderByAggregateInput
+    _avg?: DashboardWidgetAvgOrderByAggregateInput
+    _max?: DashboardWidgetMaxOrderByAggregateInput
+    _min?: DashboardWidgetMinOrderByAggregateInput
+    _sum?: DashboardWidgetSumOrderByAggregateInput
+  }
+
+  export type DashboardWidgetScalarWhereWithAggregatesInput = {
+    AND?: DashboardWidgetScalarWhereWithAggregatesInput | DashboardWidgetScalarWhereWithAggregatesInput[]
+    OR?: DashboardWidgetScalarWhereWithAggregatesInput[]
+    NOT?: DashboardWidgetScalarWhereWithAggregatesInput | DashboardWidgetScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"DashboardWidget"> | string
+    dashboardId?: StringWithAggregatesFilter<"DashboardWidget"> | string
+    type?: StringWithAggregatesFilter<"DashboardWidget"> | string
+    title?: StringWithAggregatesFilter<"DashboardWidget"> | string
+    dataSource?: StringWithAggregatesFilter<"DashboardWidget"> | string
+    metric?: StringWithAggregatesFilter<"DashboardWidget"> | string
+    groupBy?: StringNullableWithAggregatesFilter<"DashboardWidget"> | string | null
+    filters?: JsonNullableWithAggregatesFilter<"DashboardWidget">
+    position?: IntWithAggregatesFilter<"DashboardWidget"> | number
+    size?: StringWithAggregatesFilter<"DashboardWidget"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"DashboardWidget"> | Date | string
   }
 
   export type UserCreateInput = {
@@ -62954,6 +67018,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     audits?: SupplierAuditCreateNestedManyWithoutSupplierInput
+    portalLinks?: SupplierPortalLinkCreateNestedManyWithoutSupplierInput
   }
 
   export type SupplierUncheckedCreateInput = {
@@ -62971,6 +67036,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     audits?: SupplierAuditUncheckedCreateNestedManyWithoutSupplierInput
+    portalLinks?: SupplierPortalLinkUncheckedCreateNestedManyWithoutSupplierInput
   }
 
   export type SupplierUpdateInput = {
@@ -62988,6 +67054,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     audits?: SupplierAuditUpdateManyWithoutSupplierNestedInput
+    portalLinks?: SupplierPortalLinkUpdateManyWithoutSupplierNestedInput
   }
 
   export type SupplierUncheckedUpdateInput = {
@@ -63005,6 +67072,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     audits?: SupplierAuditUncheckedUpdateManyWithoutSupplierNestedInput
+    portalLinks?: SupplierPortalLinkUncheckedUpdateManyWithoutSupplierNestedInput
   }
 
   export type SupplierCreateManyInput = {
@@ -63053,6 +67121,68 @@ export namespace Prisma {
     nextAuditDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SupplierPortalLinkCreateInput = {
+    id?: string
+    token?: string
+    expiresAt: Date | string
+    createdBy: string
+    createdAt?: Date | string
+    supplier: SupplierCreateNestedOneWithoutPortalLinksInput
+  }
+
+  export type SupplierPortalLinkUncheckedCreateInput = {
+    id?: string
+    supplierId: string
+    token?: string
+    expiresAt: Date | string
+    createdBy: string
+    createdAt?: Date | string
+  }
+
+  export type SupplierPortalLinkUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    token?: StringFieldUpdateOperationsInput | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    supplier?: SupplierUpdateOneRequiredWithoutPortalLinksNestedInput
+  }
+
+  export type SupplierPortalLinkUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    supplierId?: StringFieldUpdateOperationsInput | string
+    token?: StringFieldUpdateOperationsInput | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SupplierPortalLinkCreateManyInput = {
+    id?: string
+    supplierId: string
+    token?: string
+    expiresAt: Date | string
+    createdBy: string
+    createdAt?: Date | string
+  }
+
+  export type SupplierPortalLinkUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    token?: StringFieldUpdateOperationsInput | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SupplierPortalLinkUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    supplierId?: StringFieldUpdateOperationsInput | string
+    token?: StringFieldUpdateOperationsInput | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type SupplierAuditCreateInput = {
@@ -64559,6 +68689,10 @@ export namespace Prisma {
     slaHours?: number | null
     escalateTo?: string | null
     conditions?: NullableJsonNullValueInput | InputJsonValue
+    logic?: string
+    skipCondition?: NullableJsonNullValueInput | InputJsonValue
+    rejectAction?: string
+    rejectTarget?: number | null
     createdAt?: Date | string
     template: WorkflowTemplateCreateNestedOneWithoutStepsInput
   }
@@ -64574,6 +68708,10 @@ export namespace Prisma {
     slaHours?: number | null
     escalateTo?: string | null
     conditions?: NullableJsonNullValueInput | InputJsonValue
+    logic?: string
+    skipCondition?: NullableJsonNullValueInput | InputJsonValue
+    rejectAction?: string
+    rejectTarget?: number | null
     createdAt?: Date | string
   }
 
@@ -64587,6 +68725,10 @@ export namespace Prisma {
     slaHours?: NullableIntFieldUpdateOperationsInput | number | null
     escalateTo?: NullableStringFieldUpdateOperationsInput | string | null
     conditions?: NullableJsonNullValueInput | InputJsonValue
+    logic?: StringFieldUpdateOperationsInput | string
+    skipCondition?: NullableJsonNullValueInput | InputJsonValue
+    rejectAction?: StringFieldUpdateOperationsInput | string
+    rejectTarget?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     template?: WorkflowTemplateUpdateOneRequiredWithoutStepsNestedInput
   }
@@ -64602,6 +68744,10 @@ export namespace Prisma {
     slaHours?: NullableIntFieldUpdateOperationsInput | number | null
     escalateTo?: NullableStringFieldUpdateOperationsInput | string | null
     conditions?: NullableJsonNullValueInput | InputJsonValue
+    logic?: StringFieldUpdateOperationsInput | string
+    skipCondition?: NullableJsonNullValueInput | InputJsonValue
+    rejectAction?: StringFieldUpdateOperationsInput | string
+    rejectTarget?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -64616,6 +68762,10 @@ export namespace Prisma {
     slaHours?: number | null
     escalateTo?: string | null
     conditions?: NullableJsonNullValueInput | InputJsonValue
+    logic?: string
+    skipCondition?: NullableJsonNullValueInput | InputJsonValue
+    rejectAction?: string
+    rejectTarget?: number | null
     createdAt?: Date | string
   }
 
@@ -64629,6 +68779,10 @@ export namespace Prisma {
     slaHours?: NullableIntFieldUpdateOperationsInput | number | null
     escalateTo?: NullableStringFieldUpdateOperationsInput | string | null
     conditions?: NullableJsonNullValueInput | InputJsonValue
+    logic?: StringFieldUpdateOperationsInput | string
+    skipCondition?: NullableJsonNullValueInput | InputJsonValue
+    rejectAction?: StringFieldUpdateOperationsInput | string
+    rejectTarget?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -64643,6 +68797,10 @@ export namespace Prisma {
     slaHours?: NullableIntFieldUpdateOperationsInput | number | null
     escalateTo?: NullableStringFieldUpdateOperationsInput | string | null
     conditions?: NullableJsonNullValueInput | InputJsonValue
+    logic?: StringFieldUpdateOperationsInput | string
+    skipCondition?: NullableJsonNullValueInput | InputJsonValue
+    rejectAction?: StringFieldUpdateOperationsInput | string
+    rejectTarget?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -64653,6 +68811,7 @@ export namespace Prisma {
     projectId: string
     currentStep?: number
     status?: string
+    restartCount?: number
     startedAt?: Date | string
     completedAt?: Date | string | null
     template: WorkflowTemplateCreateNestedOneWithoutExecutionsInput
@@ -64667,6 +68826,7 @@ export namespace Prisma {
     projectId: string
     currentStep?: number
     status?: string
+    restartCount?: number
     startedAt?: Date | string
     completedAt?: Date | string | null
     actions?: WorkflowActionUncheckedCreateNestedManyWithoutExecutionInput
@@ -64679,6 +68839,7 @@ export namespace Prisma {
     projectId?: StringFieldUpdateOperationsInput | string
     currentStep?: IntFieldUpdateOperationsInput | number
     status?: StringFieldUpdateOperationsInput | string
+    restartCount?: IntFieldUpdateOperationsInput | number
     startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     template?: WorkflowTemplateUpdateOneRequiredWithoutExecutionsNestedInput
@@ -64693,6 +68854,7 @@ export namespace Prisma {
     projectId?: StringFieldUpdateOperationsInput | string
     currentStep?: IntFieldUpdateOperationsInput | number
     status?: StringFieldUpdateOperationsInput | string
+    restartCount?: IntFieldUpdateOperationsInput | number
     startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     actions?: WorkflowActionUncheckedUpdateManyWithoutExecutionNestedInput
@@ -64706,6 +68868,7 @@ export namespace Prisma {
     projectId: string
     currentStep?: number
     status?: string
+    restartCount?: number
     startedAt?: Date | string
     completedAt?: Date | string | null
   }
@@ -64717,6 +68880,7 @@ export namespace Prisma {
     projectId?: StringFieldUpdateOperationsInput | string
     currentStep?: IntFieldUpdateOperationsInput | number
     status?: StringFieldUpdateOperationsInput | string
+    restartCount?: IntFieldUpdateOperationsInput | number
     startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
@@ -64729,6 +68893,7 @@ export namespace Prisma {
     projectId?: StringFieldUpdateOperationsInput | string
     currentStep?: IntFieldUpdateOperationsInput | number
     status?: StringFieldUpdateOperationsInput | string
+    restartCount?: IntFieldUpdateOperationsInput | number
     startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
@@ -65868,6 +70033,184 @@ export namespace Prisma {
     createdBy?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type CustomDashboardCreateInput = {
+    id?: string
+    orgId: string
+    name: string
+    description?: string
+    createdBy: string
+    isPublic?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    widgets?: DashboardWidgetCreateNestedManyWithoutDashboardInput
+  }
+
+  export type CustomDashboardUncheckedCreateInput = {
+    id?: string
+    orgId: string
+    name: string
+    description?: string
+    createdBy: string
+    isPublic?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    widgets?: DashboardWidgetUncheckedCreateNestedManyWithoutDashboardInput
+  }
+
+  export type CustomDashboardUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    orgId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: StringFieldUpdateOperationsInput | string
+    createdBy?: StringFieldUpdateOperationsInput | string
+    isPublic?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    widgets?: DashboardWidgetUpdateManyWithoutDashboardNestedInput
+  }
+
+  export type CustomDashboardUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    orgId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: StringFieldUpdateOperationsInput | string
+    createdBy?: StringFieldUpdateOperationsInput | string
+    isPublic?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    widgets?: DashboardWidgetUncheckedUpdateManyWithoutDashboardNestedInput
+  }
+
+  export type CustomDashboardCreateManyInput = {
+    id?: string
+    orgId: string
+    name: string
+    description?: string
+    createdBy: string
+    isPublic?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type CustomDashboardUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    orgId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: StringFieldUpdateOperationsInput | string
+    createdBy?: StringFieldUpdateOperationsInput | string
+    isPublic?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CustomDashboardUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    orgId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: StringFieldUpdateOperationsInput | string
+    createdBy?: StringFieldUpdateOperationsInput | string
+    isPublic?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type DashboardWidgetCreateInput = {
+    id?: string
+    type: string
+    title: string
+    dataSource: string
+    metric: string
+    groupBy?: string | null
+    filters?: NullableJsonNullValueInput | InputJsonValue
+    position?: number
+    size?: string
+    createdAt?: Date | string
+    dashboard: CustomDashboardCreateNestedOneWithoutWidgetsInput
+  }
+
+  export type DashboardWidgetUncheckedCreateInput = {
+    id?: string
+    dashboardId: string
+    type: string
+    title: string
+    dataSource: string
+    metric: string
+    groupBy?: string | null
+    filters?: NullableJsonNullValueInput | InputJsonValue
+    position?: number
+    size?: string
+    createdAt?: Date | string
+  }
+
+  export type DashboardWidgetUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    dataSource?: StringFieldUpdateOperationsInput | string
+    metric?: StringFieldUpdateOperationsInput | string
+    groupBy?: NullableStringFieldUpdateOperationsInput | string | null
+    filters?: NullableJsonNullValueInput | InputJsonValue
+    position?: IntFieldUpdateOperationsInput | number
+    size?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    dashboard?: CustomDashboardUpdateOneRequiredWithoutWidgetsNestedInput
+  }
+
+  export type DashboardWidgetUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    dashboardId?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    dataSource?: StringFieldUpdateOperationsInput | string
+    metric?: StringFieldUpdateOperationsInput | string
+    groupBy?: NullableStringFieldUpdateOperationsInput | string | null
+    filters?: NullableJsonNullValueInput | InputJsonValue
+    position?: IntFieldUpdateOperationsInput | number
+    size?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type DashboardWidgetCreateManyInput = {
+    id?: string
+    dashboardId: string
+    type: string
+    title: string
+    dataSource: string
+    metric: string
+    groupBy?: string | null
+    filters?: NullableJsonNullValueInput | InputJsonValue
+    position?: number
+    size?: string
+    createdAt?: Date | string
+  }
+
+  export type DashboardWidgetUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    dataSource?: StringFieldUpdateOperationsInput | string
+    metric?: StringFieldUpdateOperationsInput | string
+    groupBy?: NullableStringFieldUpdateOperationsInput | string | null
+    filters?: NullableJsonNullValueInput | InputJsonValue
+    position?: IntFieldUpdateOperationsInput | number
+    size?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type DashboardWidgetUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    dashboardId?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    dataSource?: StringFieldUpdateOperationsInput | string
+    metric?: StringFieldUpdateOperationsInput | string
+    groupBy?: NullableStringFieldUpdateOperationsInput | string | null
+    filters?: NullableJsonNullValueInput | InputJsonValue
+    position?: IntFieldUpdateOperationsInput | number
+    size?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type StringFilter<$PrismaModel = never> = {
@@ -67040,7 +71383,17 @@ export namespace Prisma {
     none?: SupplierAuditWhereInput
   }
 
+  export type SupplierPortalLinkListRelationFilter = {
+    every?: SupplierPortalLinkWhereInput
+    some?: SupplierPortalLinkWhereInput
+    none?: SupplierPortalLinkWhereInput
+  }
+
   export type SupplierAuditOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type SupplierPortalLinkOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -67123,6 +71476,33 @@ export namespace Prisma {
   export type SupplierScalarRelationFilter = {
     is?: SupplierWhereInput
     isNot?: SupplierWhereInput
+  }
+
+  export type SupplierPortalLinkCountOrderByAggregateInput = {
+    id?: SortOrder
+    supplierId?: SortOrder
+    token?: SortOrder
+    expiresAt?: SortOrder
+    createdBy?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type SupplierPortalLinkMaxOrderByAggregateInput = {
+    id?: SortOrder
+    supplierId?: SortOrder
+    token?: SortOrder
+    expiresAt?: SortOrder
+    createdBy?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type SupplierPortalLinkMinOrderByAggregateInput = {
+    id?: SortOrder
+    supplierId?: SortOrder
+    token?: SortOrder
+    expiresAt?: SortOrder
+    createdBy?: SortOrder
+    createdAt?: SortOrder
   }
 
   export type SupplierAuditCountOrderByAggregateInput = {
@@ -67946,6 +72326,10 @@ export namespace Prisma {
     slaHours?: SortOrder
     escalateTo?: SortOrder
     conditions?: SortOrder
+    logic?: SortOrder
+    skipCondition?: SortOrder
+    rejectAction?: SortOrder
+    rejectTarget?: SortOrder
     createdAt?: SortOrder
   }
 
@@ -67953,6 +72337,7 @@ export namespace Prisma {
     order?: SortOrder
     requiredApprovers?: SortOrder
     slaHours?: SortOrder
+    rejectTarget?: SortOrder
   }
 
   export type WorkflowStepMaxOrderByAggregateInput = {
@@ -67965,6 +72350,9 @@ export namespace Prisma {
     requiredApprovers?: SortOrder
     slaHours?: SortOrder
     escalateTo?: SortOrder
+    logic?: SortOrder
+    rejectAction?: SortOrder
+    rejectTarget?: SortOrder
     createdAt?: SortOrder
   }
 
@@ -67978,6 +72366,9 @@ export namespace Prisma {
     requiredApprovers?: SortOrder
     slaHours?: SortOrder
     escalateTo?: SortOrder
+    logic?: SortOrder
+    rejectAction?: SortOrder
+    rejectTarget?: SortOrder
     createdAt?: SortOrder
   }
 
@@ -67985,6 +72376,7 @@ export namespace Prisma {
     order?: SortOrder
     requiredApprovers?: SortOrder
     slaHours?: SortOrder
+    rejectTarget?: SortOrder
   }
 
   export type WorkflowActionListRelationFilter = {
@@ -68005,12 +72397,14 @@ export namespace Prisma {
     projectId?: SortOrder
     currentStep?: SortOrder
     status?: SortOrder
+    restartCount?: SortOrder
     startedAt?: SortOrder
     completedAt?: SortOrder
   }
 
   export type WorkflowExecutionAvgOrderByAggregateInput = {
     currentStep?: SortOrder
+    restartCount?: SortOrder
   }
 
   export type WorkflowExecutionMaxOrderByAggregateInput = {
@@ -68021,6 +72415,7 @@ export namespace Prisma {
     projectId?: SortOrder
     currentStep?: SortOrder
     status?: SortOrder
+    restartCount?: SortOrder
     startedAt?: SortOrder
     completedAt?: SortOrder
   }
@@ -68033,12 +72428,14 @@ export namespace Prisma {
     projectId?: SortOrder
     currentStep?: SortOrder
     status?: SortOrder
+    restartCount?: SortOrder
     startedAt?: SortOrder
     completedAt?: SortOrder
   }
 
   export type WorkflowExecutionSumOrderByAggregateInput = {
     currentStep?: SortOrder
+    restartCount?: SortOrder
   }
 
   export type WorkflowExecutionScalarRelationFilter = {
@@ -68622,6 +73019,102 @@ export namespace Prisma {
     createdBy?: SortOrder
     createdAt?: SortOrder
     completedAt?: SortOrder
+  }
+
+  export type DashboardWidgetListRelationFilter = {
+    every?: DashboardWidgetWhereInput
+    some?: DashboardWidgetWhereInput
+    none?: DashboardWidgetWhereInput
+  }
+
+  export type DashboardWidgetOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type CustomDashboardCountOrderByAggregateInput = {
+    id?: SortOrder
+    orgId?: SortOrder
+    name?: SortOrder
+    description?: SortOrder
+    createdBy?: SortOrder
+    isPublic?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type CustomDashboardMaxOrderByAggregateInput = {
+    id?: SortOrder
+    orgId?: SortOrder
+    name?: SortOrder
+    description?: SortOrder
+    createdBy?: SortOrder
+    isPublic?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type CustomDashboardMinOrderByAggregateInput = {
+    id?: SortOrder
+    orgId?: SortOrder
+    name?: SortOrder
+    description?: SortOrder
+    createdBy?: SortOrder
+    isPublic?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type CustomDashboardScalarRelationFilter = {
+    is?: CustomDashboardWhereInput
+    isNot?: CustomDashboardWhereInput
+  }
+
+  export type DashboardWidgetCountOrderByAggregateInput = {
+    id?: SortOrder
+    dashboardId?: SortOrder
+    type?: SortOrder
+    title?: SortOrder
+    dataSource?: SortOrder
+    metric?: SortOrder
+    groupBy?: SortOrder
+    filters?: SortOrder
+    position?: SortOrder
+    size?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type DashboardWidgetAvgOrderByAggregateInput = {
+    position?: SortOrder
+  }
+
+  export type DashboardWidgetMaxOrderByAggregateInput = {
+    id?: SortOrder
+    dashboardId?: SortOrder
+    type?: SortOrder
+    title?: SortOrder
+    dataSource?: SortOrder
+    metric?: SortOrder
+    groupBy?: SortOrder
+    position?: SortOrder
+    size?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type DashboardWidgetMinOrderByAggregateInput = {
+    id?: SortOrder
+    dashboardId?: SortOrder
+    type?: SortOrder
+    title?: SortOrder
+    dataSource?: SortOrder
+    metric?: SortOrder
+    groupBy?: SortOrder
+    position?: SortOrder
+    size?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type DashboardWidgetSumOrderByAggregateInput = {
+    position?: SortOrder
   }
 
   export type OrganizationCreateNestedOneWithoutUsersInput = {
@@ -69854,11 +74347,25 @@ export namespace Prisma {
     connect?: SupplierAuditWhereUniqueInput | SupplierAuditWhereUniqueInput[]
   }
 
+  export type SupplierPortalLinkCreateNestedManyWithoutSupplierInput = {
+    create?: XOR<SupplierPortalLinkCreateWithoutSupplierInput, SupplierPortalLinkUncheckedCreateWithoutSupplierInput> | SupplierPortalLinkCreateWithoutSupplierInput[] | SupplierPortalLinkUncheckedCreateWithoutSupplierInput[]
+    connectOrCreate?: SupplierPortalLinkCreateOrConnectWithoutSupplierInput | SupplierPortalLinkCreateOrConnectWithoutSupplierInput[]
+    createMany?: SupplierPortalLinkCreateManySupplierInputEnvelope
+    connect?: SupplierPortalLinkWhereUniqueInput | SupplierPortalLinkWhereUniqueInput[]
+  }
+
   export type SupplierAuditUncheckedCreateNestedManyWithoutSupplierInput = {
     create?: XOR<SupplierAuditCreateWithoutSupplierInput, SupplierAuditUncheckedCreateWithoutSupplierInput> | SupplierAuditCreateWithoutSupplierInput[] | SupplierAuditUncheckedCreateWithoutSupplierInput[]
     connectOrCreate?: SupplierAuditCreateOrConnectWithoutSupplierInput | SupplierAuditCreateOrConnectWithoutSupplierInput[]
     createMany?: SupplierAuditCreateManySupplierInputEnvelope
     connect?: SupplierAuditWhereUniqueInput | SupplierAuditWhereUniqueInput[]
+  }
+
+  export type SupplierPortalLinkUncheckedCreateNestedManyWithoutSupplierInput = {
+    create?: XOR<SupplierPortalLinkCreateWithoutSupplierInput, SupplierPortalLinkUncheckedCreateWithoutSupplierInput> | SupplierPortalLinkCreateWithoutSupplierInput[] | SupplierPortalLinkUncheckedCreateWithoutSupplierInput[]
+    connectOrCreate?: SupplierPortalLinkCreateOrConnectWithoutSupplierInput | SupplierPortalLinkCreateOrConnectWithoutSupplierInput[]
+    createMany?: SupplierPortalLinkCreateManySupplierInputEnvelope
+    connect?: SupplierPortalLinkWhereUniqueInput | SupplierPortalLinkWhereUniqueInput[]
   }
 
   export type NullableFloatFieldUpdateOperationsInput = {
@@ -69883,6 +74390,20 @@ export namespace Prisma {
     deleteMany?: SupplierAuditScalarWhereInput | SupplierAuditScalarWhereInput[]
   }
 
+  export type SupplierPortalLinkUpdateManyWithoutSupplierNestedInput = {
+    create?: XOR<SupplierPortalLinkCreateWithoutSupplierInput, SupplierPortalLinkUncheckedCreateWithoutSupplierInput> | SupplierPortalLinkCreateWithoutSupplierInput[] | SupplierPortalLinkUncheckedCreateWithoutSupplierInput[]
+    connectOrCreate?: SupplierPortalLinkCreateOrConnectWithoutSupplierInput | SupplierPortalLinkCreateOrConnectWithoutSupplierInput[]
+    upsert?: SupplierPortalLinkUpsertWithWhereUniqueWithoutSupplierInput | SupplierPortalLinkUpsertWithWhereUniqueWithoutSupplierInput[]
+    createMany?: SupplierPortalLinkCreateManySupplierInputEnvelope
+    set?: SupplierPortalLinkWhereUniqueInput | SupplierPortalLinkWhereUniqueInput[]
+    disconnect?: SupplierPortalLinkWhereUniqueInput | SupplierPortalLinkWhereUniqueInput[]
+    delete?: SupplierPortalLinkWhereUniqueInput | SupplierPortalLinkWhereUniqueInput[]
+    connect?: SupplierPortalLinkWhereUniqueInput | SupplierPortalLinkWhereUniqueInput[]
+    update?: SupplierPortalLinkUpdateWithWhereUniqueWithoutSupplierInput | SupplierPortalLinkUpdateWithWhereUniqueWithoutSupplierInput[]
+    updateMany?: SupplierPortalLinkUpdateManyWithWhereWithoutSupplierInput | SupplierPortalLinkUpdateManyWithWhereWithoutSupplierInput[]
+    deleteMany?: SupplierPortalLinkScalarWhereInput | SupplierPortalLinkScalarWhereInput[]
+  }
+
   export type SupplierAuditUncheckedUpdateManyWithoutSupplierNestedInput = {
     create?: XOR<SupplierAuditCreateWithoutSupplierInput, SupplierAuditUncheckedCreateWithoutSupplierInput> | SupplierAuditCreateWithoutSupplierInput[] | SupplierAuditUncheckedCreateWithoutSupplierInput[]
     connectOrCreate?: SupplierAuditCreateOrConnectWithoutSupplierInput | SupplierAuditCreateOrConnectWithoutSupplierInput[]
@@ -69895,6 +74416,34 @@ export namespace Prisma {
     update?: SupplierAuditUpdateWithWhereUniqueWithoutSupplierInput | SupplierAuditUpdateWithWhereUniqueWithoutSupplierInput[]
     updateMany?: SupplierAuditUpdateManyWithWhereWithoutSupplierInput | SupplierAuditUpdateManyWithWhereWithoutSupplierInput[]
     deleteMany?: SupplierAuditScalarWhereInput | SupplierAuditScalarWhereInput[]
+  }
+
+  export type SupplierPortalLinkUncheckedUpdateManyWithoutSupplierNestedInput = {
+    create?: XOR<SupplierPortalLinkCreateWithoutSupplierInput, SupplierPortalLinkUncheckedCreateWithoutSupplierInput> | SupplierPortalLinkCreateWithoutSupplierInput[] | SupplierPortalLinkUncheckedCreateWithoutSupplierInput[]
+    connectOrCreate?: SupplierPortalLinkCreateOrConnectWithoutSupplierInput | SupplierPortalLinkCreateOrConnectWithoutSupplierInput[]
+    upsert?: SupplierPortalLinkUpsertWithWhereUniqueWithoutSupplierInput | SupplierPortalLinkUpsertWithWhereUniqueWithoutSupplierInput[]
+    createMany?: SupplierPortalLinkCreateManySupplierInputEnvelope
+    set?: SupplierPortalLinkWhereUniqueInput | SupplierPortalLinkWhereUniqueInput[]
+    disconnect?: SupplierPortalLinkWhereUniqueInput | SupplierPortalLinkWhereUniqueInput[]
+    delete?: SupplierPortalLinkWhereUniqueInput | SupplierPortalLinkWhereUniqueInput[]
+    connect?: SupplierPortalLinkWhereUniqueInput | SupplierPortalLinkWhereUniqueInput[]
+    update?: SupplierPortalLinkUpdateWithWhereUniqueWithoutSupplierInput | SupplierPortalLinkUpdateWithWhereUniqueWithoutSupplierInput[]
+    updateMany?: SupplierPortalLinkUpdateManyWithWhereWithoutSupplierInput | SupplierPortalLinkUpdateManyWithWhereWithoutSupplierInput[]
+    deleteMany?: SupplierPortalLinkScalarWhereInput | SupplierPortalLinkScalarWhereInput[]
+  }
+
+  export type SupplierCreateNestedOneWithoutPortalLinksInput = {
+    create?: XOR<SupplierCreateWithoutPortalLinksInput, SupplierUncheckedCreateWithoutPortalLinksInput>
+    connectOrCreate?: SupplierCreateOrConnectWithoutPortalLinksInput
+    connect?: SupplierWhereUniqueInput
+  }
+
+  export type SupplierUpdateOneRequiredWithoutPortalLinksNestedInput = {
+    create?: XOR<SupplierCreateWithoutPortalLinksInput, SupplierUncheckedCreateWithoutPortalLinksInput>
+    connectOrCreate?: SupplierCreateOrConnectWithoutPortalLinksInput
+    upsert?: SupplierUpsertWithoutPortalLinksInput
+    connect?: SupplierWhereUniqueInput
+    update?: XOR<XOR<SupplierUpdateToOneWithWhereWithoutPortalLinksInput, SupplierUpdateWithoutPortalLinksInput>, SupplierUncheckedUpdateWithoutPortalLinksInput>
   }
 
   export type SupplierCreateNestedOneWithoutAuditsInput = {
@@ -70713,6 +75262,62 @@ export namespace Prisma {
     upsert?: ProjectUpsertWithoutTasksInput
     connect?: ProjectWhereUniqueInput
     update?: XOR<XOR<ProjectUpdateToOneWithWhereWithoutTasksInput, ProjectUpdateWithoutTasksInput>, ProjectUncheckedUpdateWithoutTasksInput>
+  }
+
+  export type DashboardWidgetCreateNestedManyWithoutDashboardInput = {
+    create?: XOR<DashboardWidgetCreateWithoutDashboardInput, DashboardWidgetUncheckedCreateWithoutDashboardInput> | DashboardWidgetCreateWithoutDashboardInput[] | DashboardWidgetUncheckedCreateWithoutDashboardInput[]
+    connectOrCreate?: DashboardWidgetCreateOrConnectWithoutDashboardInput | DashboardWidgetCreateOrConnectWithoutDashboardInput[]
+    createMany?: DashboardWidgetCreateManyDashboardInputEnvelope
+    connect?: DashboardWidgetWhereUniqueInput | DashboardWidgetWhereUniqueInput[]
+  }
+
+  export type DashboardWidgetUncheckedCreateNestedManyWithoutDashboardInput = {
+    create?: XOR<DashboardWidgetCreateWithoutDashboardInput, DashboardWidgetUncheckedCreateWithoutDashboardInput> | DashboardWidgetCreateWithoutDashboardInput[] | DashboardWidgetUncheckedCreateWithoutDashboardInput[]
+    connectOrCreate?: DashboardWidgetCreateOrConnectWithoutDashboardInput | DashboardWidgetCreateOrConnectWithoutDashboardInput[]
+    createMany?: DashboardWidgetCreateManyDashboardInputEnvelope
+    connect?: DashboardWidgetWhereUniqueInput | DashboardWidgetWhereUniqueInput[]
+  }
+
+  export type DashboardWidgetUpdateManyWithoutDashboardNestedInput = {
+    create?: XOR<DashboardWidgetCreateWithoutDashboardInput, DashboardWidgetUncheckedCreateWithoutDashboardInput> | DashboardWidgetCreateWithoutDashboardInput[] | DashboardWidgetUncheckedCreateWithoutDashboardInput[]
+    connectOrCreate?: DashboardWidgetCreateOrConnectWithoutDashboardInput | DashboardWidgetCreateOrConnectWithoutDashboardInput[]
+    upsert?: DashboardWidgetUpsertWithWhereUniqueWithoutDashboardInput | DashboardWidgetUpsertWithWhereUniqueWithoutDashboardInput[]
+    createMany?: DashboardWidgetCreateManyDashboardInputEnvelope
+    set?: DashboardWidgetWhereUniqueInput | DashboardWidgetWhereUniqueInput[]
+    disconnect?: DashboardWidgetWhereUniqueInput | DashboardWidgetWhereUniqueInput[]
+    delete?: DashboardWidgetWhereUniqueInput | DashboardWidgetWhereUniqueInput[]
+    connect?: DashboardWidgetWhereUniqueInput | DashboardWidgetWhereUniqueInput[]
+    update?: DashboardWidgetUpdateWithWhereUniqueWithoutDashboardInput | DashboardWidgetUpdateWithWhereUniqueWithoutDashboardInput[]
+    updateMany?: DashboardWidgetUpdateManyWithWhereWithoutDashboardInput | DashboardWidgetUpdateManyWithWhereWithoutDashboardInput[]
+    deleteMany?: DashboardWidgetScalarWhereInput | DashboardWidgetScalarWhereInput[]
+  }
+
+  export type DashboardWidgetUncheckedUpdateManyWithoutDashboardNestedInput = {
+    create?: XOR<DashboardWidgetCreateWithoutDashboardInput, DashboardWidgetUncheckedCreateWithoutDashboardInput> | DashboardWidgetCreateWithoutDashboardInput[] | DashboardWidgetUncheckedCreateWithoutDashboardInput[]
+    connectOrCreate?: DashboardWidgetCreateOrConnectWithoutDashboardInput | DashboardWidgetCreateOrConnectWithoutDashboardInput[]
+    upsert?: DashboardWidgetUpsertWithWhereUniqueWithoutDashboardInput | DashboardWidgetUpsertWithWhereUniqueWithoutDashboardInput[]
+    createMany?: DashboardWidgetCreateManyDashboardInputEnvelope
+    set?: DashboardWidgetWhereUniqueInput | DashboardWidgetWhereUniqueInput[]
+    disconnect?: DashboardWidgetWhereUniqueInput | DashboardWidgetWhereUniqueInput[]
+    delete?: DashboardWidgetWhereUniqueInput | DashboardWidgetWhereUniqueInput[]
+    connect?: DashboardWidgetWhereUniqueInput | DashboardWidgetWhereUniqueInput[]
+    update?: DashboardWidgetUpdateWithWhereUniqueWithoutDashboardInput | DashboardWidgetUpdateWithWhereUniqueWithoutDashboardInput[]
+    updateMany?: DashboardWidgetUpdateManyWithWhereWithoutDashboardInput | DashboardWidgetUpdateManyWithWhereWithoutDashboardInput[]
+    deleteMany?: DashboardWidgetScalarWhereInput | DashboardWidgetScalarWhereInput[]
+  }
+
+  export type CustomDashboardCreateNestedOneWithoutWidgetsInput = {
+    create?: XOR<CustomDashboardCreateWithoutWidgetsInput, CustomDashboardUncheckedCreateWithoutWidgetsInput>
+    connectOrCreate?: CustomDashboardCreateOrConnectWithoutWidgetsInput
+    connect?: CustomDashboardWhereUniqueInput
+  }
+
+  export type CustomDashboardUpdateOneRequiredWithoutWidgetsNestedInput = {
+    create?: XOR<CustomDashboardCreateWithoutWidgetsInput, CustomDashboardUncheckedCreateWithoutWidgetsInput>
+    connectOrCreate?: CustomDashboardCreateOrConnectWithoutWidgetsInput
+    upsert?: CustomDashboardUpsertWithoutWidgetsInput
+    connect?: CustomDashboardWhereUniqueInput
+    update?: XOR<XOR<CustomDashboardUpdateToOneWithWhereWithoutWidgetsInput, CustomDashboardUpdateWithoutWidgetsInput>, CustomDashboardUncheckedUpdateWithoutWidgetsInput>
   }
 
   export type NestedStringFilter<$PrismaModel = never> = {
@@ -74280,6 +78885,32 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type SupplierPortalLinkCreateWithoutSupplierInput = {
+    id?: string
+    token?: string
+    expiresAt: Date | string
+    createdBy: string
+    createdAt?: Date | string
+  }
+
+  export type SupplierPortalLinkUncheckedCreateWithoutSupplierInput = {
+    id?: string
+    token?: string
+    expiresAt: Date | string
+    createdBy: string
+    createdAt?: Date | string
+  }
+
+  export type SupplierPortalLinkCreateOrConnectWithoutSupplierInput = {
+    where: SupplierPortalLinkWhereUniqueInput
+    create: XOR<SupplierPortalLinkCreateWithoutSupplierInput, SupplierPortalLinkUncheckedCreateWithoutSupplierInput>
+  }
+
+  export type SupplierPortalLinkCreateManySupplierInputEnvelope = {
+    data: SupplierPortalLinkCreateManySupplierInput | SupplierPortalLinkCreateManySupplierInput[]
+    skipDuplicates?: boolean
+  }
+
   export type SupplierAuditUpsertWithWhereUniqueWithoutSupplierInput = {
     where: SupplierAuditWhereUniqueInput
     update: XOR<SupplierAuditUpdateWithoutSupplierInput, SupplierAuditUncheckedUpdateWithoutSupplierInput>
@@ -74312,6 +78943,118 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"SupplierAudit"> | Date | string
   }
 
+  export type SupplierPortalLinkUpsertWithWhereUniqueWithoutSupplierInput = {
+    where: SupplierPortalLinkWhereUniqueInput
+    update: XOR<SupplierPortalLinkUpdateWithoutSupplierInput, SupplierPortalLinkUncheckedUpdateWithoutSupplierInput>
+    create: XOR<SupplierPortalLinkCreateWithoutSupplierInput, SupplierPortalLinkUncheckedCreateWithoutSupplierInput>
+  }
+
+  export type SupplierPortalLinkUpdateWithWhereUniqueWithoutSupplierInput = {
+    where: SupplierPortalLinkWhereUniqueInput
+    data: XOR<SupplierPortalLinkUpdateWithoutSupplierInput, SupplierPortalLinkUncheckedUpdateWithoutSupplierInput>
+  }
+
+  export type SupplierPortalLinkUpdateManyWithWhereWithoutSupplierInput = {
+    where: SupplierPortalLinkScalarWhereInput
+    data: XOR<SupplierPortalLinkUpdateManyMutationInput, SupplierPortalLinkUncheckedUpdateManyWithoutSupplierInput>
+  }
+
+  export type SupplierPortalLinkScalarWhereInput = {
+    AND?: SupplierPortalLinkScalarWhereInput | SupplierPortalLinkScalarWhereInput[]
+    OR?: SupplierPortalLinkScalarWhereInput[]
+    NOT?: SupplierPortalLinkScalarWhereInput | SupplierPortalLinkScalarWhereInput[]
+    id?: StringFilter<"SupplierPortalLink"> | string
+    supplierId?: StringFilter<"SupplierPortalLink"> | string
+    token?: StringFilter<"SupplierPortalLink"> | string
+    expiresAt?: DateTimeFilter<"SupplierPortalLink"> | Date | string
+    createdBy?: StringFilter<"SupplierPortalLink"> | string
+    createdAt?: DateTimeFilter<"SupplierPortalLink"> | Date | string
+  }
+
+  export type SupplierCreateWithoutPortalLinksInput = {
+    id?: string
+    orgId: string
+    name: string
+    category?: string
+    riskLevel?: string
+    qualificationStatus?: string
+    overallScore?: number | null
+    defectRate?: number | null
+    onTimeDelivery?: number | null
+    lastAuditDate?: Date | string | null
+    nextAuditDate?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    audits?: SupplierAuditCreateNestedManyWithoutSupplierInput
+  }
+
+  export type SupplierUncheckedCreateWithoutPortalLinksInput = {
+    id?: string
+    orgId: string
+    name: string
+    category?: string
+    riskLevel?: string
+    qualificationStatus?: string
+    overallScore?: number | null
+    defectRate?: number | null
+    onTimeDelivery?: number | null
+    lastAuditDate?: Date | string | null
+    nextAuditDate?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    audits?: SupplierAuditUncheckedCreateNestedManyWithoutSupplierInput
+  }
+
+  export type SupplierCreateOrConnectWithoutPortalLinksInput = {
+    where: SupplierWhereUniqueInput
+    create: XOR<SupplierCreateWithoutPortalLinksInput, SupplierUncheckedCreateWithoutPortalLinksInput>
+  }
+
+  export type SupplierUpsertWithoutPortalLinksInput = {
+    update: XOR<SupplierUpdateWithoutPortalLinksInput, SupplierUncheckedUpdateWithoutPortalLinksInput>
+    create: XOR<SupplierCreateWithoutPortalLinksInput, SupplierUncheckedCreateWithoutPortalLinksInput>
+    where?: SupplierWhereInput
+  }
+
+  export type SupplierUpdateToOneWithWhereWithoutPortalLinksInput = {
+    where?: SupplierWhereInput
+    data: XOR<SupplierUpdateWithoutPortalLinksInput, SupplierUncheckedUpdateWithoutPortalLinksInput>
+  }
+
+  export type SupplierUpdateWithoutPortalLinksInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    orgId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    category?: StringFieldUpdateOperationsInput | string
+    riskLevel?: StringFieldUpdateOperationsInput | string
+    qualificationStatus?: StringFieldUpdateOperationsInput | string
+    overallScore?: NullableIntFieldUpdateOperationsInput | number | null
+    defectRate?: NullableFloatFieldUpdateOperationsInput | number | null
+    onTimeDelivery?: NullableFloatFieldUpdateOperationsInput | number | null
+    lastAuditDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    nextAuditDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    audits?: SupplierAuditUpdateManyWithoutSupplierNestedInput
+  }
+
+  export type SupplierUncheckedUpdateWithoutPortalLinksInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    orgId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    category?: StringFieldUpdateOperationsInput | string
+    riskLevel?: StringFieldUpdateOperationsInput | string
+    qualificationStatus?: StringFieldUpdateOperationsInput | string
+    overallScore?: NullableIntFieldUpdateOperationsInput | number | null
+    defectRate?: NullableFloatFieldUpdateOperationsInput | number | null
+    onTimeDelivery?: NullableFloatFieldUpdateOperationsInput | number | null
+    lastAuditDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    nextAuditDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    audits?: SupplierAuditUncheckedUpdateManyWithoutSupplierNestedInput
+  }
+
   export type SupplierCreateWithoutAuditsInput = {
     id?: string
     orgId: string
@@ -74326,6 +79069,7 @@ export namespace Prisma {
     nextAuditDate?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    portalLinks?: SupplierPortalLinkCreateNestedManyWithoutSupplierInput
   }
 
   export type SupplierUncheckedCreateWithoutAuditsInput = {
@@ -74342,6 +79086,7 @@ export namespace Prisma {
     nextAuditDate?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    portalLinks?: SupplierPortalLinkUncheckedCreateNestedManyWithoutSupplierInput
   }
 
   export type SupplierCreateOrConnectWithoutAuditsInput = {
@@ -74374,6 +79119,7 @@ export namespace Prisma {
     nextAuditDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    portalLinks?: SupplierPortalLinkUpdateManyWithoutSupplierNestedInput
   }
 
   export type SupplierUncheckedUpdateWithoutAuditsInput = {
@@ -74390,6 +79136,7 @@ export namespace Prisma {
     nextAuditDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    portalLinks?: SupplierPortalLinkUncheckedUpdateManyWithoutSupplierNestedInput
   }
 
   export type ProjectCreateWithoutBatchesInput = {
@@ -75861,6 +80608,10 @@ export namespace Prisma {
     slaHours?: number | null
     escalateTo?: string | null
     conditions?: NullableJsonNullValueInput | InputJsonValue
+    logic?: string
+    skipCondition?: NullableJsonNullValueInput | InputJsonValue
+    rejectAction?: string
+    rejectTarget?: number | null
     createdAt?: Date | string
   }
 
@@ -75874,6 +80625,10 @@ export namespace Prisma {
     slaHours?: number | null
     escalateTo?: string | null
     conditions?: NullableJsonNullValueInput | InputJsonValue
+    logic?: string
+    skipCondition?: NullableJsonNullValueInput | InputJsonValue
+    rejectAction?: string
+    rejectTarget?: number | null
     createdAt?: Date | string
   }
 
@@ -75894,6 +80649,7 @@ export namespace Prisma {
     projectId: string
     currentStep?: number
     status?: string
+    restartCount?: number
     startedAt?: Date | string
     completedAt?: Date | string | null
     actions?: WorkflowActionCreateNestedManyWithoutExecutionInput
@@ -75906,6 +80662,7 @@ export namespace Prisma {
     projectId: string
     currentStep?: number
     status?: string
+    restartCount?: number
     startedAt?: Date | string
     completedAt?: Date | string | null
     actions?: WorkflowActionUncheckedCreateNestedManyWithoutExecutionInput
@@ -75951,6 +80708,10 @@ export namespace Prisma {
     slaHours?: IntNullableFilter<"WorkflowStep"> | number | null
     escalateTo?: StringNullableFilter<"WorkflowStep"> | string | null
     conditions?: JsonNullableFilter<"WorkflowStep">
+    logic?: StringFilter<"WorkflowStep"> | string
+    skipCondition?: JsonNullableFilter<"WorkflowStep">
+    rejectAction?: StringFilter<"WorkflowStep"> | string
+    rejectTarget?: IntNullableFilter<"WorkflowStep"> | number | null
     createdAt?: DateTimeFilter<"WorkflowStep"> | Date | string
   }
 
@@ -75981,6 +80742,7 @@ export namespace Prisma {
     projectId?: StringFilter<"WorkflowExecution"> | string
     currentStep?: IntFilter<"WorkflowExecution"> | number
     status?: StringFilter<"WorkflowExecution"> | string
+    restartCount?: IntFilter<"WorkflowExecution"> | number
     startedAt?: DateTimeFilter<"WorkflowExecution"> | Date | string
     completedAt?: DateTimeNullableFilter<"WorkflowExecution"> | Date | string | null
   }
@@ -76183,6 +80945,7 @@ export namespace Prisma {
     projectId: string
     currentStep?: number
     status?: string
+    restartCount?: number
     startedAt?: Date | string
     completedAt?: Date | string | null
     template: WorkflowTemplateCreateNestedOneWithoutExecutionsInput
@@ -76196,6 +80959,7 @@ export namespace Prisma {
     projectId: string
     currentStep?: number
     status?: string
+    restartCount?: number
     startedAt?: Date | string
     completedAt?: Date | string | null
   }
@@ -76223,6 +80987,7 @@ export namespace Prisma {
     projectId?: StringFieldUpdateOperationsInput | string
     currentStep?: IntFieldUpdateOperationsInput | number
     status?: StringFieldUpdateOperationsInput | string
+    restartCount?: IntFieldUpdateOperationsInput | number
     startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     template?: WorkflowTemplateUpdateOneRequiredWithoutExecutionsNestedInput
@@ -76236,6 +81001,7 @@ export namespace Prisma {
     projectId?: StringFieldUpdateOperationsInput | string
     currentStep?: IntFieldUpdateOperationsInput | number
     status?: StringFieldUpdateOperationsInput | string
+    restartCount?: IntFieldUpdateOperationsInput | number
     startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
@@ -77414,6 +82180,135 @@ export namespace Prisma {
     auditRecords?: AuditRecordUncheckedUpdateManyWithoutProjectNestedInput
     changeControls?: ChangeControlUncheckedUpdateManyWithoutProjectNestedInput
     deviations?: DeviationUncheckedUpdateManyWithoutProjectNestedInput
+  }
+
+  export type DashboardWidgetCreateWithoutDashboardInput = {
+    id?: string
+    type: string
+    title: string
+    dataSource: string
+    metric: string
+    groupBy?: string | null
+    filters?: NullableJsonNullValueInput | InputJsonValue
+    position?: number
+    size?: string
+    createdAt?: Date | string
+  }
+
+  export type DashboardWidgetUncheckedCreateWithoutDashboardInput = {
+    id?: string
+    type: string
+    title: string
+    dataSource: string
+    metric: string
+    groupBy?: string | null
+    filters?: NullableJsonNullValueInput | InputJsonValue
+    position?: number
+    size?: string
+    createdAt?: Date | string
+  }
+
+  export type DashboardWidgetCreateOrConnectWithoutDashboardInput = {
+    where: DashboardWidgetWhereUniqueInput
+    create: XOR<DashboardWidgetCreateWithoutDashboardInput, DashboardWidgetUncheckedCreateWithoutDashboardInput>
+  }
+
+  export type DashboardWidgetCreateManyDashboardInputEnvelope = {
+    data: DashboardWidgetCreateManyDashboardInput | DashboardWidgetCreateManyDashboardInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type DashboardWidgetUpsertWithWhereUniqueWithoutDashboardInput = {
+    where: DashboardWidgetWhereUniqueInput
+    update: XOR<DashboardWidgetUpdateWithoutDashboardInput, DashboardWidgetUncheckedUpdateWithoutDashboardInput>
+    create: XOR<DashboardWidgetCreateWithoutDashboardInput, DashboardWidgetUncheckedCreateWithoutDashboardInput>
+  }
+
+  export type DashboardWidgetUpdateWithWhereUniqueWithoutDashboardInput = {
+    where: DashboardWidgetWhereUniqueInput
+    data: XOR<DashboardWidgetUpdateWithoutDashboardInput, DashboardWidgetUncheckedUpdateWithoutDashboardInput>
+  }
+
+  export type DashboardWidgetUpdateManyWithWhereWithoutDashboardInput = {
+    where: DashboardWidgetScalarWhereInput
+    data: XOR<DashboardWidgetUpdateManyMutationInput, DashboardWidgetUncheckedUpdateManyWithoutDashboardInput>
+  }
+
+  export type DashboardWidgetScalarWhereInput = {
+    AND?: DashboardWidgetScalarWhereInput | DashboardWidgetScalarWhereInput[]
+    OR?: DashboardWidgetScalarWhereInput[]
+    NOT?: DashboardWidgetScalarWhereInput | DashboardWidgetScalarWhereInput[]
+    id?: StringFilter<"DashboardWidget"> | string
+    dashboardId?: StringFilter<"DashboardWidget"> | string
+    type?: StringFilter<"DashboardWidget"> | string
+    title?: StringFilter<"DashboardWidget"> | string
+    dataSource?: StringFilter<"DashboardWidget"> | string
+    metric?: StringFilter<"DashboardWidget"> | string
+    groupBy?: StringNullableFilter<"DashboardWidget"> | string | null
+    filters?: JsonNullableFilter<"DashboardWidget">
+    position?: IntFilter<"DashboardWidget"> | number
+    size?: StringFilter<"DashboardWidget"> | string
+    createdAt?: DateTimeFilter<"DashboardWidget"> | Date | string
+  }
+
+  export type CustomDashboardCreateWithoutWidgetsInput = {
+    id?: string
+    orgId: string
+    name: string
+    description?: string
+    createdBy: string
+    isPublic?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type CustomDashboardUncheckedCreateWithoutWidgetsInput = {
+    id?: string
+    orgId: string
+    name: string
+    description?: string
+    createdBy: string
+    isPublic?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type CustomDashboardCreateOrConnectWithoutWidgetsInput = {
+    where: CustomDashboardWhereUniqueInput
+    create: XOR<CustomDashboardCreateWithoutWidgetsInput, CustomDashboardUncheckedCreateWithoutWidgetsInput>
+  }
+
+  export type CustomDashboardUpsertWithoutWidgetsInput = {
+    update: XOR<CustomDashboardUpdateWithoutWidgetsInput, CustomDashboardUncheckedUpdateWithoutWidgetsInput>
+    create: XOR<CustomDashboardCreateWithoutWidgetsInput, CustomDashboardUncheckedCreateWithoutWidgetsInput>
+    where?: CustomDashboardWhereInput
+  }
+
+  export type CustomDashboardUpdateToOneWithWhereWithoutWidgetsInput = {
+    where?: CustomDashboardWhereInput
+    data: XOR<CustomDashboardUpdateWithoutWidgetsInput, CustomDashboardUncheckedUpdateWithoutWidgetsInput>
+  }
+
+  export type CustomDashboardUpdateWithoutWidgetsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    orgId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: StringFieldUpdateOperationsInput | string
+    createdBy?: StringFieldUpdateOperationsInput | string
+    isPublic?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CustomDashboardUncheckedUpdateWithoutWidgetsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    orgId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: StringFieldUpdateOperationsInput | string
+    createdBy?: StringFieldUpdateOperationsInput | string
+    isPublic?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type UserCreateManyOrgInput = {
@@ -78710,6 +83605,14 @@ export namespace Prisma {
     createdAt?: Date | string
   }
 
+  export type SupplierPortalLinkCreateManySupplierInput = {
+    id?: string
+    token?: string
+    expiresAt: Date | string
+    createdBy: string
+    createdAt?: Date | string
+  }
+
   export type SupplierAuditUpdateWithoutSupplierInput = {
     id?: StringFieldUpdateOperationsInput | string
     auditDate?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -78743,6 +83646,30 @@ export namespace Prisma {
     auditor?: StringFieldUpdateOperationsInput | string
     status?: StringFieldUpdateOperationsInput | string
     nextAuditDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SupplierPortalLinkUpdateWithoutSupplierInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    token?: StringFieldUpdateOperationsInput | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SupplierPortalLinkUncheckedUpdateWithoutSupplierInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    token?: StringFieldUpdateOperationsInput | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SupplierPortalLinkUncheckedUpdateManyWithoutSupplierInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    token?: StringFieldUpdateOperationsInput | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -79024,6 +83951,10 @@ export namespace Prisma {
     slaHours?: number | null
     escalateTo?: string | null
     conditions?: NullableJsonNullValueInput | InputJsonValue
+    logic?: string
+    skipCondition?: NullableJsonNullValueInput | InputJsonValue
+    rejectAction?: string
+    rejectTarget?: number | null
     createdAt?: Date | string
   }
 
@@ -79034,6 +83965,7 @@ export namespace Prisma {
     projectId: string
     currentStep?: number
     status?: string
+    restartCount?: number
     startedAt?: Date | string
     completedAt?: Date | string | null
   }
@@ -79048,6 +83980,10 @@ export namespace Prisma {
     slaHours?: NullableIntFieldUpdateOperationsInput | number | null
     escalateTo?: NullableStringFieldUpdateOperationsInput | string | null
     conditions?: NullableJsonNullValueInput | InputJsonValue
+    logic?: StringFieldUpdateOperationsInput | string
+    skipCondition?: NullableJsonNullValueInput | InputJsonValue
+    rejectAction?: StringFieldUpdateOperationsInput | string
+    rejectTarget?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -79061,6 +83997,10 @@ export namespace Prisma {
     slaHours?: NullableIntFieldUpdateOperationsInput | number | null
     escalateTo?: NullableStringFieldUpdateOperationsInput | string | null
     conditions?: NullableJsonNullValueInput | InputJsonValue
+    logic?: StringFieldUpdateOperationsInput | string
+    skipCondition?: NullableJsonNullValueInput | InputJsonValue
+    rejectAction?: StringFieldUpdateOperationsInput | string
+    rejectTarget?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -79074,6 +84014,10 @@ export namespace Prisma {
     slaHours?: NullableIntFieldUpdateOperationsInput | number | null
     escalateTo?: NullableStringFieldUpdateOperationsInput | string | null
     conditions?: NullableJsonNullValueInput | InputJsonValue
+    logic?: StringFieldUpdateOperationsInput | string
+    skipCondition?: NullableJsonNullValueInput | InputJsonValue
+    rejectAction?: StringFieldUpdateOperationsInput | string
+    rejectTarget?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -79084,6 +84028,7 @@ export namespace Prisma {
     projectId?: StringFieldUpdateOperationsInput | string
     currentStep?: IntFieldUpdateOperationsInput | number
     status?: StringFieldUpdateOperationsInput | string
+    restartCount?: IntFieldUpdateOperationsInput | number
     startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     actions?: WorkflowActionUpdateManyWithoutExecutionNestedInput
@@ -79096,6 +84041,7 @@ export namespace Prisma {
     projectId?: StringFieldUpdateOperationsInput | string
     currentStep?: IntFieldUpdateOperationsInput | number
     status?: StringFieldUpdateOperationsInput | string
+    restartCount?: IntFieldUpdateOperationsInput | number
     startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     actions?: WorkflowActionUncheckedUpdateManyWithoutExecutionNestedInput
@@ -79108,6 +84054,7 @@ export namespace Prisma {
     projectId?: StringFieldUpdateOperationsInput | string
     currentStep?: IntFieldUpdateOperationsInput | number
     status?: StringFieldUpdateOperationsInput | string
+    restartCount?: IntFieldUpdateOperationsInput | number
     startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
@@ -79290,6 +84237,58 @@ export namespace Prisma {
     response?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type DashboardWidgetCreateManyDashboardInput = {
+    id?: string
+    type: string
+    title: string
+    dataSource: string
+    metric: string
+    groupBy?: string | null
+    filters?: NullableJsonNullValueInput | InputJsonValue
+    position?: number
+    size?: string
+    createdAt?: Date | string
+  }
+
+  export type DashboardWidgetUpdateWithoutDashboardInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    dataSource?: StringFieldUpdateOperationsInput | string
+    metric?: StringFieldUpdateOperationsInput | string
+    groupBy?: NullableStringFieldUpdateOperationsInput | string | null
+    filters?: NullableJsonNullValueInput | InputJsonValue
+    position?: IntFieldUpdateOperationsInput | number
+    size?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type DashboardWidgetUncheckedUpdateWithoutDashboardInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    dataSource?: StringFieldUpdateOperationsInput | string
+    metric?: StringFieldUpdateOperationsInput | string
+    groupBy?: NullableStringFieldUpdateOperationsInput | string | null
+    filters?: NullableJsonNullValueInput | InputJsonValue
+    position?: IntFieldUpdateOperationsInput | number
+    size?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type DashboardWidgetUncheckedUpdateManyWithoutDashboardInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    dataSource?: StringFieldUpdateOperationsInput | string
+    metric?: StringFieldUpdateOperationsInput | string
+    groupBy?: NullableStringFieldUpdateOperationsInput | string | null
+    filters?: NullableJsonNullValueInput | InputJsonValue
+    position?: IntFieldUpdateOperationsInput | number
+    size?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
 

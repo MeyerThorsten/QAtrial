@@ -333,6 +333,15 @@ exports.Prisma.SupplierScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.SupplierPortalLinkScalarFieldEnum = {
+  id: 'id',
+  supplierId: 'supplierId',
+  token: 'token',
+  expiresAt: 'expiresAt',
+  createdBy: 'createdBy',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.SupplierAuditScalarFieldEnum = {
   id: 'id',
   supplierId: 'supplierId',
@@ -555,6 +564,10 @@ exports.Prisma.WorkflowStepScalarFieldEnum = {
   slaHours: 'slaHours',
   escalateTo: 'escalateTo',
   conditions: 'conditions',
+  logic: 'logic',
+  skipCondition: 'skipCondition',
+  rejectAction: 'rejectAction',
+  rejectTarget: 'rejectTarget',
   createdAt: 'createdAt'
 };
 
@@ -566,6 +579,7 @@ exports.Prisma.WorkflowExecutionScalarFieldEnum = {
   projectId: 'projectId',
   currentStep: 'currentStep',
   status: 'status',
+  restartCount: 'restartCount',
   startedAt: 'startedAt',
   completedAt: 'completedAt'
 };
@@ -732,6 +746,31 @@ exports.Prisma.QTaskScalarFieldEnum = {
   completedAt: 'completedAt'
 };
 
+exports.Prisma.CustomDashboardScalarFieldEnum = {
+  id: 'id',
+  orgId: 'orgId',
+  name: 'name',
+  description: 'description',
+  createdBy: 'createdBy',
+  isPublic: 'isPublic',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.DashboardWidgetScalarFieldEnum = {
+  id: 'id',
+  dashboardId: 'dashboardId',
+  type: 'type',
+  title: 'title',
+  dataSource: 'dataSource',
+  metric: 'metric',
+  groupBy: 'groupBy',
+  filters: 'filters',
+  position: 'position',
+  size: 'size',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -780,6 +819,7 @@ exports.Prisma.ModelName = {
   Integration: 'Integration',
   Complaint: 'Complaint',
   Supplier: 'Supplier',
+  SupplierPortalLink: 'SupplierPortalLink',
   SupplierAudit: 'SupplierAudit',
   BatchRecord: 'BatchRecord',
   BatchStep: 'BatchStep',
@@ -807,7 +847,9 @@ exports.Prisma.ModelName = {
   AuditFinding: 'AuditFinding',
   Notification: 'Notification',
   Comment: 'Comment',
-  QTask: 'QTask'
+  QTask: 'QTask',
+  CustomDashboard: 'CustomDashboard',
+  DashboardWidget: 'DashboardWidget'
 };
 
 /**

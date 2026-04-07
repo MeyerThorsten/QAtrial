@@ -42,6 +42,9 @@ import deviationRoutes from './routes/deviations.js';
 import notificationRoutes from './routes/notifications.js';
 import commentRoutes from './routes/comments.js';
 import taskRoutes from './routes/tasks.js';
+import kpiRoutes from './routes/kpi.js';
+import supplierPortalRoutes from './routes/supplierportal.js';
+import analyticsRoutes from './routes/analytics.js';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -94,6 +97,9 @@ app.route('/api/deviations', deviationRoutes);
 app.route('/api/notifications', notificationRoutes);
 app.route('/api/comments', commentRoutes);
 app.route('/api/tasks', taskRoutes);
+app.route('/api/kpi', kpiRoutes);
+app.route('/api/supplier-portal', supplierPortalRoutes);
+app.route('/api/analytics', analyticsRoutes);
 
 app.get('/api/health', (c) => c.json({ status: 'ok', version: '5.0.0' }));
 

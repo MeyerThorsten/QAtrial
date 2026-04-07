@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, lazy, Suspense } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useEvaluationData } from '../../hooks/useEvaluationData';
 import { useRequirementsStore } from '../../store/useRequirementsStore';
@@ -20,7 +20,9 @@ import { PortfolioDashboard } from './PortfolioDashboard';
 import { ISO13485Assessment } from './ISO13485Assessment';
 import type { DashboardFilters } from '../../types';
 
-type DashboardTab = 'overview' | 'compliance' | 'iso13485' | 'risk' | 'evidence' | 'capa' | 'trends' | 'portfolio';
+const AnomalyDashboard = lazy(() => import('../analytics/AnomalyDashboard').then((m) => ({ default: m.AnomalyDashboard })));
+
+type DashboardTab = 'overview' | 'compliance' | 'iso13485' | 'risk' | 'evidence' | 'capa' | 'trends' | 'portfolio' | 'anomalies';
 
 export function EvaluationDashboard() {
   const { t } = useTranslation();
@@ -63,6 +65,7 @@ export function EvaluationDashboard() {
     { id: 'capa', labelKey: 'dashboard.tabCAPA' },
     { id: 'trends', labelKey: 'dashboard.tabTrends' },
     { id: 'portfolio', labelKey: 'dashboard.tabPortfolio' },
+    { id: 'anomalies', labelKey: 'analytics.tabAnomalies' },
   ];
 
   return (
@@ -135,6 +138,17 @@ export function EvaluationDashboard() {
 
       {/* Portfolio tab */}
       {activeTab === 'portfolio' && <PortfolioDashboard />}
+
+      {/* Anomalies tab */}
+      {activeTab === 'anomalies' && (
+        <Suspense fallback={
+          <div className="flex items-center justify-center h-64">
+            <div className="h-6 w-6 rounded-full border-2 border-accent border-t-transparent animate-spin" />
+          </div>
+        }>
+          <AnomalyDashboard />
+        </Suspense>
+      )}
     </div>
   );
 }

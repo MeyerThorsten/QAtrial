@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { CheckCircle2, Circle, Clock, XCircle, AlertTriangle } from 'lucide-react';
+import { CheckCircle2, Circle, Clock, XCircle, AlertTriangle, SkipForward, RotateCcw } from 'lucide-react';
 
 interface StepDef {
   id?: string;
@@ -9,6 +9,10 @@ interface StepDef {
   assigneeRole: string;
   requiredApprovers: number;
   slaHours?: number | null;
+  logic?: string;
+  skipCondition?: any;
+  rejectAction?: string;
+  rejectTarget?: number | null;
 }
 
 interface ActionRecord {
@@ -26,12 +30,19 @@ interface Props {
   currentStep: number;
   status: string; // active, completed, cancelled, escalated, on_hold
   actions: ActionRecord[];
+  restartCount?: number;
+  skippedSteps?: number[]; // step indices that were skipped
 }
 
-export function WorkflowStatus({ steps, currentStep, status, actions }: Props) {
+export function WorkflowStatus({ steps, currentStep, status, actions, restartCount, skippedSteps = [] }: Props) {
   const { t } = useTranslation();
 
+  const isSkipped = (index: number) => {
+    return skippedSteps.includes(index);
+  };
+
   const getStepStatus = (index: number) => {
+    if (isSkipped(index)) return 'skipped';
     if (status === 'cancelled') {
       const rejectedAction = actions.find((a) => a.stepOrder === index && a.action === 'rejected');
       if (rejectedAction) return 'rejected';
@@ -48,6 +59,17 @@ export function WorkflowStatus({ steps, currentStep, status, actions }: Props) {
 
   const getStepActions = (index: number) => {
     return actions.filter((a) => a.stepOrder === index);
+  };
+
+  const getLogicLabel = (step: StepDef) => {
+    const logic = step.logic || 'and';
+    if (logic === 'or') {
+      return `(${t('workflows.logicOrShort')}: ${t('workflows.anyOne')})`;
+    }
+    if (step.requiredApprovers > 1) {
+      return `(${t('workflows.logicAndShort')}: ${t('workflows.allN', { n: step.requiredApprovers })})`;
+    }
+    return null;
   };
 
   const statusBadge = () => {
@@ -70,6 +92,12 @@ export function WorkflowStatus({ steps, currentStep, status, actions }: Props) {
       <div className="flex items-center gap-2">
         <span className="text-sm font-medium text-text-primary">{t('workflows.progress')}</span>
         {statusBadge()}
+        {restartCount != null && restartCount > 0 && (
+          <span className="inline-flex items-center gap-1 text-xs bg-amber-500/10 text-amber-600 px-2 py-0.5 rounded-full">
+            <RotateCcw className="w-3 h-3" />
+            {t('workflows.restartCount', { count: restartCount })}
+          </span>
+        )}
       </div>
 
       {/* Horizontal step indicator */}
@@ -77,6 +105,7 @@ export function WorkflowStatus({ steps, currentStep, status, actions }: Props) {
         {steps.map((step, i) => {
           const stepStatus = getStepStatus(i);
           const stepActions = getStepActions(i);
+          const logicLabel = getLogicLabel(step);
           return (
             <div key={i} className="flex items-center">
               <div className="flex flex-col items-center min-w-[80px]">
@@ -84,22 +113,33 @@ export function WorkflowStatus({ steps, currentStep, status, actions }: Props) {
                   stepStatus === 'completed' ? 'bg-green-500 text-white' :
                   stepStatus === 'active' ? 'bg-accent text-white' :
                   stepStatus === 'rejected' ? 'bg-red-500 text-white' :
+                  stepStatus === 'skipped' ? 'bg-gray-300 text-gray-500 border-2 border-dashed border-gray-400' :
                   'bg-surface-secondary border-2 border-border text-text-tertiary'
                 }`}>
                   {stepStatus === 'completed' ? <CheckCircle2 className="w-4 h-4" /> :
                    stepStatus === 'rejected' ? <XCircle className="w-4 h-4" /> :
                    stepStatus === 'active' ? <Clock className="w-4 h-4" /> :
+                   stepStatus === 'skipped' ? <SkipForward className="w-4 h-4" /> :
                    <Circle className="w-4 h-4" />}
                 </div>
                 <span className={`text-xs mt-1 text-center leading-tight ${
                   stepStatus === 'active' ? 'text-accent font-medium' :
                   stepStatus === 'completed' ? 'text-green-600' :
                   stepStatus === 'rejected' ? 'text-red-600' :
+                  stepStatus === 'skipped' ? 'text-gray-400 line-through' :
                   'text-text-tertiary'
                 }`}>
                   {step.name || `Step ${i + 1}`}
                 </span>
                 <span className="text-[10px] text-text-tertiary">{step.assigneeRole.replace(/_/g, ' ')}</span>
+                {/* Show logic label */}
+                {logicLabel && (
+                  <span className="text-[9px] text-accent font-medium">{logicLabel}</span>
+                )}
+                {/* Show skipped label */}
+                {stepStatus === 'skipped' && (
+                  <span className="text-[9px] text-gray-400 italic">{t('workflows.skipped')}</span>
+                )}
                 {/* Show who acted */}
                 {stepActions.length > 0 && (
                   <div className="mt-1 space-y-0.5">
@@ -118,6 +158,7 @@ export function WorkflowStatus({ steps, currentStep, status, actions }: Props) {
                 <div className={`w-8 h-0.5 mx-1 ${
                   getStepStatus(i) === 'completed' ? 'bg-green-500' :
                   getStepStatus(i) === 'rejected' ? 'bg-red-500' :
+                  getStepStatus(i) === 'skipped' ? 'bg-gray-300 border-t border-dashed border-gray-400' :
                   'bg-border'
                 }`} />
               )}
