@@ -1008,3 +1008,139 @@ The Chemical / Environmental vertical (`chemical_env`) includes templates aligne
 - **GHS** -- Globally Harmonized System of Classification and Labelling of Chemicals
 
 Risk taxonomy: FMEA for process and environmental risk assessment.
+
+---
+
+## 7. Vertical-Depth Feature Regulatory Mapping
+
+This section maps the vertical-depth features (Sprints 1-4) to the regulatory standards they address.
+
+### Medical Device Track
+
+#### Complaint Management
+
+| Feature | Regulatory Basis |
+|---------|-----------------|
+| Intake form with severity classification | 21 CFR 820.198, ISO 13485 Section 8.2.2, EU MDR Article 87-92 |
+| Investigation workflow (received -> investigating -> resolved -> closed) | 21 CFR 820.198(a), ISO 13485 Section 8.2.2 |
+| Trending dashboard (by month/severity/product/MTTR) | 21 CFR 820.198(c) -- trending for signal detection, EU MDR Article 88 |
+| FSCA (Field Safety Corrective Action) tracking | EU MDR Articles 82-86, MEDDEV 2.12/1 rev 8, 21 CFR 806 (Corrections and Removals) |
+| CAPA linkage | 21 CFR 820.90 -- CAPA from complaint investigation, ISO 13485 Section 8.5.2 |
+| Regulatory reportable flag | 21 CFR 803 (MDR reporting), EU MDR Article 87 (Vigilance), MedWatch/MAUDE |
+
+#### Supplier Quality Scorecards
+
+| Feature | Regulatory Basis |
+|---------|-----------------|
+| Performance metrics (defect rate, on-time delivery) | ISO 13485 Section 7.4 (Purchasing), 21 CFR 820.50 |
+| Risk-based scoring | ISO 13485 Section 7.4.1, ICH Q10 Section 2.7 |
+| Auto-requalification (score < 50 -> conditional) | 21 CFR 820.50(a)(1) -- evaluation and re-evaluation criteria |
+| Audit scheduling/tracking | ISO 13485 Section 7.4.3, EU MDR Annex IX Section 3.4 |
+
+#### Post-Market Surveillance (PMS)
+
+| Feature | Regulatory Basis |
+|---------|-----------------|
+| Aggregated entries | EU MDR Article 83 -- PMS system, 21 CFR 822 (Postmarket Surveillance) |
+| PSUR data assembly | EU MDR Article 86 -- Periodic Safety Update Report |
+| Summary dashboard | EU MDR Article 85 -- PMS report, MEDDEV 2.7/1 rev 4 |
+
+#### UDI Management
+
+| Feature | Regulatory Basis |
+|---------|-----------------|
+| Device identifier tracking | EU MDR Article 27-29, 21 CFR 830 (UDI system) |
+| GUDID export | FDA Global Unique Device Identification Database |
+| EUDAMED export | EU MDR Article 33 -- European Database on Medical Devices |
+
+### Pharma Track
+
+#### Electronic Batch Records
+
+| Feature | Regulatory Basis |
+|---------|-----------------|
+| Template-driven records | 21 CFR 211.186-188 (Master and batch production records), EU GMP Annex 11 |
+| Step execution with deviations | 21 CFR 211.192 (Production record review), EU GMP Chapter 6 |
+| Review-by-exception | FDA Guidance on Data Integrity (2018), EU GMP Annex 11 Section 10 |
+| E-signature release | 21 CFR Part 11.50/11.70, EU Annex 11 Section 14 |
+| Yield calculation | 21 CFR 211.103 (Calculation of yield), EU GMP Chapter 6.18 |
+
+#### Stability Study Manager
+
+| Feature | Regulatory Basis |
+|---------|-----------------|
+| ICH Q1A design | ICH Q1A(R2) -- Stability Testing of New Drug Substances and Products |
+| Storage conditions (long-term, intermediate, accelerated) | ICH Q1A Section 2.2.1-2.2.3 |
+| Pull schedules | ICH Q1A Section 2.2.7 -- Testing frequency |
+| OOS/OOT auto-detection | ICH Q1E -- Evaluation of Stability Data, 21 CFR 211.166 |
+| Trending charts | ICH Q1E -- Statistical analysis of stability data |
+
+#### Environmental Monitoring
+
+| Feature | Regulatory Basis |
+|---------|-----------------|
+| Monitoring points with thresholds | EU GMP Annex 1 (2022) -- Manufacture of Sterile Medicinal Products |
+| Readings with auto-excursion detection | EU GMP Annex 1 Section 9, USP <1116> |
+| Trending | FDA Guidance on Sterile Drug Products (2004), PDA TR 13 |
+
+#### Training Management (LMS-lite)
+
+| Feature | Regulatory Basis |
+|---------|-----------------|
+| Training plans | 21 CFR 211.25 (Personnel qualifications), EU GMP Chapter 2 |
+| Courses and records | ISO 13485 Section 6.2, 21 CFR 820.25 |
+| Training matrix | ICH Q10 Section 2.2 -- Pharmaceutical Quality System personnel |
+| Compliance dashboard | 21 CFR 211.25(a) -- training documentation availability |
+| Auto-retraining triggers | ISO 13485 Section 6.2 -- competence review after changes, 21 CFR 820.25(b) |
+
+### Software/GAMP Track
+
+#### Live Impact Analysis
+
+| Feature | Regulatory Basis |
+|---------|-----------------|
+| Requirement/test graph chains | IEC 62304 Section 5.7 -- Software verification traceability |
+| What-if analysis | GAMP 5 2nd Edition -- Change and configuration management, ICH Q10 Section 3.2.4 |
+
+#### Computerized System Inventory
+
+| Feature | Regulatory Basis |
+|---------|-----------------|
+| GAMP 5 categories | GAMP 5 2nd Edition -- System categorization (Cat 1/3/4/5) |
+| Validation status tracking | EU Annex 11 Section 4 -- Validation, 21 CFR Part 11 preamble |
+| Risk levels | GAMP 5 -- Risk-based approach to validation |
+| Overdue detection | EU Annex 11 Section 11 -- Periodic evaluation, PIC/S PI 011 |
+
+#### Periodic Review Automation
+
+| Feature | Regulatory Basis |
+|---------|-----------------|
+| 7-step wizard | EU Annex 11 Section 11 -- Periodic evaluation of computerised systems |
+| Auto-pull data | GAMP 5 -- Periodic review supporting data collection |
+| Schedule next review | EU Annex 11 Section 11, PIC/S PI 011 -- Review frequency |
+
+### Cross-Vertical Features
+
+#### Document Lifecycle Management
+
+| Feature | Regulatory Basis |
+|---------|-----------------|
+| SOP versioning (draft -> review -> approved -> effective -> superseded -> retired) | 21 CFR 820.40 (Document controls), ISO 13485 Section 4.2.4/4.2.5, EU GMP Chapter 4 |
+| Version history | 21 CFR 820.40(b) -- Changes to documents, ISO 13485 Section 4.2.4 |
+| Distribution tracking | 21 CFR 820.40(b) -- Distribution of approved documents, EU GMP Chapter 4.3 |
+
+#### Closed-Loop CAPA Enhancement
+
+| Feature | Regulatory Basis |
+|---------|-----------------|
+| Cascade triggers (SOP update) | ISO 13485 Section 8.5.2 -- Integration of CAPA with document control |
+| Cascade triggers (retraining) | 21 CFR 211.25 -- Retraining after procedural changes, EU GMP Chapter 2.12 |
+
+#### Audit Management
+
+| Feature | Regulatory Basis |
+|---------|-----------------|
+| Schedule | ISO 13485 Section 8.2.4 -- Internal audit planning, 21 CFR 820.22 |
+| Findings tracker | ISO 19011:2018 -- Guidelines for auditing management systems |
+| CAPA linkage | ISO 13485 Section 8.2.4 -- Audit follow-up actions, 21 CFR 820.22 |
+| Classification (observation/minor/major/critical) | ISO 19011 -- Audit finding classification, EU GMP Chapter 9 |

@@ -55,8 +55,19 @@ model Project {
   evidences    Evidence[]
   approvals    Approval[]
   signatures   Signature[]
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+  complaints       Complaint[]
+  batches          BatchRecord[]
+  documents        Document[]
+  pmsEntries       PMSEntry[]
+  udis             UDI[]
+  stabilityStudies StabilityStudy[]
+  monitoringPoints MonitoringPoint[]
+  auditRecords     AuditRecord[]
+  changeControls   ChangeControl[]
+  deviations       Deviation[]
+  tasks            QTask[]
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
 }
 
 model Requirement {
@@ -207,4 +218,473 @@ model Integration {
   lastSyncAt DateTime?
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
+}
+
+model Complaint {
+  id                    String   @id @default(uuid())
+  projectId             String
+  project               Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  productName           String
+  reportDate            DateTime
+  severity              String   // minor, major, critical
+  patientImpact         Boolean  @default(false)
+  description           String
+  reporterType          String   @default("customer") // customer, internal, regulatory, field
+  investigationStatus   String   @default("received") // received, investigating, resolved, closed
+  rootCause             String?
+  capaId                String?
+  regulatoryReportable  Boolean  @default(false)
+  fscaRequired          Boolean  @default(false)
+  createdBy             String?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}
+
+model Supplier {
+  id                    String          @id @default(uuid())
+  orgId                 String
+  name                  String
+  category              String          @default("component") // component, service, raw_material, contract_manufacturer
+  riskLevel             String          @default("medium") // low, medium, high, critical
+  qualificationStatus   String          @default("pending") // pending, qualified, conditional, disqualified
+  overallScore          Int?            // 0-100
+  defectRate            Float?
+  onTimeDelivery        Float?
+  lastAuditDate         DateTime?
+  nextAuditDate         DateTime?
+  audits                SupplierAudit[]
+  createdAt             DateTime        @default(now())
+  updatedAt             DateTime        @updatedAt
+}
+
+model SupplierAudit {
+  id            String   @id @default(uuid())
+  supplierId    String
+  supplier      Supplier @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+  auditDate     DateTime
+  auditType     String   @default("routine") // routine, for_cause, re_qualification
+  findings      String?
+  score         Int?     // 0-100
+  auditor       String
+  status        String   @default("scheduled") // scheduled, in_progress, completed, cancelled
+  nextAuditDate DateTime?
+  createdAt     DateTime @default(now())
+}
+
+model BatchRecord {
+  id            String      @id @default(uuid())
+  projectId     String
+  project       Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  productName   String
+  batchNumber   String
+  status        String      @default("draft") // draft, in_progress, review, released, rejected
+  startDate     DateTime?
+  endDate       DateTime?
+  yieldActual   Float?
+  yieldExpected Float?
+  releasedBy    String?
+  releasedAt    DateTime?
+  steps         BatchStep[]
+  createdBy     String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+model BatchStep {
+  id            String      @id @default(uuid())
+  batchId       String
+  batch         BatchRecord @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  stepNumber    Int
+  instruction   String
+  expectedValue String?
+  actualValue   String?
+  unit          String?
+  inSpec        Boolean?
+  deviation     Boolean     @default(false)
+  deviationNote String?
+  performedBy   String?
+  performedAt   DateTime?
+  verifiedBy    String?
+  createdAt     DateTime    @default(now())
+}
+
+model TrainingPlan {
+  id          String   @id @default(uuid())
+  orgId       String
+  name        String
+  role        String
+  description String   @default("")
+  courses     String[] @default([]) // course IDs
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Course {
+  id              String           @id @default(uuid())
+  orgId           String
+  title           String
+  description     String           @default("")
+  linkedDocumentId String?
+  version         String           @default("1.0")
+  durationMinutes Int?
+  records         TrainingRecord[]
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+}
+
+model TrainingRecord {
+  id          String    @id @default(uuid())
+  userId      String
+  courseId     String
+  course      Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  completedAt DateTime?
+  score       Int?      // 0-100 percentage
+  status      String    @default("assigned") // assigned, in_progress, completed, expired
+  validUntil  DateTime?
+  assignedAt  DateTime  @default(now())
+}
+
+model Document {
+  id               String            @id @default(uuid())
+  projectId        String
+  project          Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  title            String
+  type             String            @default("sop") // sop, work_instruction, policy, form, specification
+  currentVersion   String            @default("1.0")
+  status           String            @default("draft") // draft, in_review, approved, effective, superseded, retired
+  versions         DocumentVersion[]
+  createdBy        String?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+}
+
+model DocumentVersion {
+  id           String   @id @default(uuid())
+  documentId   String
+  document     Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  version      String
+  content      String   @default("")
+  changeReason String?
+  author       String
+  reviewedBy   String?
+  approvedBy   String?
+  effectiveDate DateTime?
+  createdAt    DateTime @default(now())
+}
+
+model ComputerizedSystem {
+  id                String          @id @default(uuid())
+  orgId             String
+  name              String
+  vendor            String          @default("")
+  version           String          @default("")
+  gampCategory      Int             @default(4)
+  validationStatus  String          @default("planned")
+  riskLevel         String          @default("medium")
+  description       String          @default("")
+  lastReviewDate    DateTime?
+  nextReviewDate    DateTime?
+  retiredDate       DateTime?
+  reviews           PeriodicReview[]
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+}
+
+model PeriodicReview {
+  id              String            @id @default(uuid())
+  systemId        String
+  system          ComputerizedSystem @relation(fields: [systemId], references: [id], onDelete: Cascade)
+  reviewDate      DateTime
+  reviewer        String
+  status          String            @default("scheduled")
+  stillInUse      Boolean           @default(true)
+  changesNoted    String?
+  incidentsNoted  String?
+  regulatoryChanges String?
+  accessReviewed  Boolean           @default(false)
+  findings        String?
+  nextReviewDate  DateTime?
+  createdAt       DateTime          @default(now())
+}
+
+model PMSEntry {
+  id              String   @id @default(uuid())
+  projectId       String
+  project         Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  entryType       String
+  title           String
+  description     String   @default("")
+  source          String   @default("")
+  date            DateTime @default(now())
+  severity        String?
+  actionTaken     String?
+  linkedEntityId  String?
+  createdBy       String?
+  createdAt       DateTime @default(now())
+}
+
+model UDI {
+  id              String   @id @default(uuid())
+  projectId       String
+  project         Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  deviceIdentifier String
+  productionId    String?
+  productName     String
+  deviceDescription String @default("")
+  brandName       String   @default("")
+  versionModelNo  String   @default("")
+  companyName     String   @default("")
+  gudidSubmitted  Boolean  @default(false)
+  eudamedRegistered Boolean @default(false)
+  labelContent    String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model StabilityStudy {
+  id              String            @id @default(uuid())
+  projectId       String
+  project         Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  productName     String
+  studyType       String            @default("long_term")
+  conditions      String
+  startDate       DateTime
+  durationMonths  Int
+  pullSchedule    String            @default("")
+  status          String            @default("active")
+  samples         StabilitySample[]
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+}
+
+model StabilitySample {
+  id              String         @id @default(uuid())
+  studyId         String
+  study           StabilityStudy @relation(fields: [studyId], references: [id], onDelete: Cascade)
+  timePointMonths Int
+  testDate        DateTime?
+  parameter       String
+  result          String?
+  specification   String?
+  inSpec          Boolean?
+  oosFlag         Boolean        @default(false)
+  ootFlag         Boolean        @default(false)
+  investigationId String?
+  createdAt       DateTime       @default(now())
+}
+
+model WorkflowTemplate {
+  id          String   @id @default(uuid())
+  orgId       String
+  name        String
+  description String   @default("")
+  entityType  String
+  enabled     Boolean  @default(true)
+  steps       WorkflowStep[]
+  executions  WorkflowExecution[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model WorkflowStep {
+  id                String           @id @default(uuid())
+  templateId        String
+  template          WorkflowTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  order             Int
+  name              String
+  type              String           @default("approval")
+  assigneeRole      String           @default("qa_manager")
+  requiredApprovers Int              @default(1)
+  slaHours          Int?
+  escalateTo        String?
+  conditions        Json?
+  createdAt         DateTime         @default(now())
+}
+
+model WorkflowExecution {
+  id            String           @id @default(uuid())
+  templateId    String
+  template      WorkflowTemplate @relation(fields: [templateId], references: [id])
+  entityType    String
+  entityId      String
+  projectId     String
+  currentStep   Int              @default(0)
+  status        String           @default("active")
+  startedAt     DateTime         @default(now())
+  completedAt   DateTime?
+  actions       WorkflowAction[]
+}
+
+model WorkflowAction {
+  id            String            @id @default(uuid())
+  executionId   String
+  execution     WorkflowExecution @relation(fields: [executionId], references: [id], onDelete: Cascade)
+  stepOrder     Int
+  userId        String
+  userName      String
+  action        String
+  reason        String?
+  delegatedTo   String?
+  timestamp     DateTime          @default(now())
+}
+
+model ChangeControl {
+  id                    String       @id @default(uuid())
+  projectId             String
+  project               Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  title                 String
+  changeNumber          String
+  type                  String       @default("document")
+  description           String       @default("")
+  justification         String       @default("")
+  status                String       @default("initiated")
+  riskLevel             String       @default("medium")
+  initiatedBy           String
+  impactAssessment      String?
+  affectedDocuments     String[]     @default([])
+  affectedTraining      String[]     @default([])
+  affectedValidation    String[]     @default([])
+  workflowExecutionId   String?
+  effectivenessCheckDate DateTime?
+  effectivenessVerified Boolean      @default(false)
+  tasks                 ChangeTask[]
+  createdAt             DateTime     @default(now())
+  updatedAt             DateTime     @updatedAt
+}
+
+model ChangeTask {
+  id              String        @id @default(uuid())
+  changeControlId String
+  changeControl   ChangeControl @relation(fields: [changeControlId], references: [id], onDelete: Cascade)
+  title           String
+  assignee        String
+  dueDate         DateTime?
+  status          String        @default("open")
+  completedAt     DateTime?
+  createdAt       DateTime      @default(now())
+}
+
+model Deviation {
+  id                  String   @id @default(uuid())
+  projectId           String
+  project             Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  deviationNumber     String
+  title               String
+  classification      String   @default("minor")
+  area                String   @default("")
+  description         String   @default("")
+  detectedBy          String
+  detectedAt          DateTime @default(now())
+  status              String   @default("detected")
+  investigationMethod String?
+  investigationNotes  String?
+  rootCause           String?
+  capaId              String?
+  closedBy            String?
+  closedAt            DateTime?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
+
+model MonitoringPoint {
+  id              String              @id @default(uuid())
+  projectId       String
+  project         Project             @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  name            String
+  zone            String
+  type            String              @default("temperature")
+  unit            String              @default("°C")
+  alertThreshold  Float?
+  actionThreshold Float?
+  readings        MonitoringReading[]
+  createdAt       DateTime            @default(now())
+}
+
+model MonitoringReading {
+  id              String          @id @default(uuid())
+  pointId         String
+  point           MonitoringPoint @relation(fields: [pointId], references: [id], onDelete: Cascade)
+  value           Float
+  timestamp       DateTime        @default(now())
+  excursion       Boolean         @default(false)
+  excursionType   String?
+  actionTaken     String?
+  acknowledgedBy  String?
+}
+
+model AuditRecord {
+  id              String          @id @default(uuid())
+  projectId       String
+  project         Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  type            String          @default("internal")
+  title           String
+  scheduledDate   DateTime
+  actualDate      DateTime?
+  status          String          @default("scheduled")
+  scope           String          @default("")
+  leadAuditor     String
+  findings        AuditFinding[]
+  reportSummary   String?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+}
+
+model AuditFinding {
+  id              String      @id @default(uuid())
+  auditId         String
+  audit           AuditRecord @relation(fields: [auditId], references: [id], onDelete: Cascade)
+  classification  String
+  area            String
+  description     String
+  responsibleParty String?
+  dueDate         DateTime?
+  capaId          String?
+  status          String      @default("open")
+  response        String?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+}
+
+model Notification {
+  id          String   @id @default(uuid())
+  userId      String
+  type        String   // approval_needed, task_overdue, capa_deadline, deviation_opened, workflow_escalation, comment_mention, document_review, training_due
+  title       String
+  message     String   @default("")
+  entityType  String?
+  entityId    String?
+  projectId   String?
+  read        Boolean  @default(false)
+  createdAt   DateTime @default(now())
+}
+
+model Comment {
+  id          String   @id @default(uuid())
+  entityType  String
+  entityId    String
+  projectId   String
+  userId      String
+  userName    String
+  content     String
+  parentId    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model QTask {
+  id          String    @id @default(uuid())
+  projectId   String
+  project     Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  title       String
+  description String    @default("")
+  assigneeId  String
+  assigneeName String   @default("")
+  dueDate     DateTime?
+  priority    String    @default("medium")
+  status      String    @default("open")
+  entityType  String?
+  entityId    String?
+  createdBy   String
+  createdAt   DateTime  @default(now())
+  completedAt DateTime?
 }

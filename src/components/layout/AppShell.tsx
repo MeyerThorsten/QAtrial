@@ -1,13 +1,13 @@
 import { useState, lazy, Suspense } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ClipboardList, FlaskConical, BarChart3, FolderPlus, ScrollText, X, FileText, Settings, Layers, LogOut, Users, FileSpreadsheet, Download } from 'lucide-react';
+import { ClipboardList, FlaskConical, BarChart3, FolderPlus, ScrollText, X, FileText, Settings, Layers, LogOut, Users, FileSpreadsheet, Download, AlertTriangle, Building2, Beaker, GraduationCap, FileCheck, Server, GitBranch, Activity, Barcode, TestTube2, Thermometer, ClipboardCheck, Workflow, RefreshCw, TriangleAlert, CheckSquare } from 'lucide-react';
 import { ImportExportBar } from '../shared/ImportExportBar';
 import { ImportWizard } from '../import/ImportWizard';
 import { ExportPanel } from '../import/ExportPanel';
 import { ThemeToggle } from '../shared/ThemeToggle';
 import { LanguageSelector } from '../shared/LanguageSelector';
 import { ConfirmDialog } from '../shared/ConfirmDialog';
-import { NotificationBell } from '../shared/NotificationBell';
+import { NotificationInbox } from '../shared/NotificationInbox';
 import { useProjectStore } from '../../store/useProjectStore';
 import { useRequirementsStore } from '../../store/useRequirementsStore';
 import { useTestsStore } from '../../store/useTestsStore';
@@ -26,7 +26,23 @@ const AuditTrailViewer = lazy(() => import('../audit/AuditTrailViewer').then((m)
 const ReportGenerator = lazy(() => import('../reports/ReportGenerator').then((m) => ({ default: m.ReportGenerator })));
 const SettingsPage = lazy(() => import('../settings/SettingsPage').then((m) => ({ default: m.SettingsPage })));
 const DesignControlView = lazy(() => import('../design/DesignControlView'));
+const ComplaintTrending = lazy(() => import('../complaints/ComplaintTrending').then((m) => ({ default: m.ComplaintTrending })));
+const SupplierScorecard = lazy(() => import('../suppliers/SupplierScorecard').then((m) => ({ default: m.SupplierScorecard })));
+const BatchRecordForm = lazy(() => import('../pharma/BatchRecordForm').then((m) => ({ default: m.BatchRecordForm })));
+const TrainingDashboard = lazy(() => import('../training/TrainingDashboard').then((m) => ({ default: m.TrainingDashboard })));
+const DocumentManager = lazy(() => import('../documents/DocumentManager').then((m) => ({ default: m.DocumentManager })));
+const SystemInventory = lazy(() => import('../gamp/SystemInventory').then((m) => ({ default: m.SystemInventory })));
+const ImpactAnalysis = lazy(() => import('../traceability/ImpactAnalysis').then((m) => ({ default: m.ImpactAnalysis })));
+const PMSDashboard = lazy(() => import('../dashboard/PMSDashboard').then((m) => ({ default: m.PMSDashboard })));
+const UDIManager = lazy(() => import('../device/UDIManager').then((m) => ({ default: m.UDIManager })));
+const StabilityStudyView = lazy(() => import('../pharma/StabilityStudy').then((m) => ({ default: m.StabilityStudy })));
+const EnvironmentalMonitoring = lazy(() => import('../pharma/EnvironmentalMonitoring').then((m) => ({ default: m.EnvironmentalMonitoring })));
+const AuditSchedule = lazy(() => import('../audits/AuditSchedule').then((m) => ({ default: m.AuditSchedule })));
 const SetupWizard = lazy(() => import('../wizard/SetupWizard').then((m) => ({ default: m.SetupWizard })));
+const WorkflowInbox = lazy(() => import('../workflows/WorkflowInbox').then((m) => ({ default: m.WorkflowInbox })));
+const ChangeControlTracker = lazy(() => import('../change/ChangeControlTracker').then((m) => ({ default: m.ChangeControlTracker })));
+const DeviationInvestigationView = lazy(() => import('../deviations/DeviationInvestigation').then((m) => ({ default: m.DeviationInvestigation })));
+const TaskDashboard = lazy(() => import('../tasks/TaskDashboard').then((m) => ({ default: m.TaskDashboard })));
 
 function TabSpinner() {
   return (
@@ -64,6 +80,22 @@ export function AppShell() {
     { id: 'dashboard', label: t('nav.dashboard'), icon: <BarChart3 className="w-4 h-4" /> },
     { id: 'reports', label: t('nav.reports'), icon: <FileText className="w-4 h-4" /> },
     { id: 'design_control', label: t('nav.designControl'), icon: <Layers className="w-4 h-4" /> },
+    { id: 'complaints', label: t('nav.complaints'), icon: <AlertTriangle className="w-4 h-4" /> },
+    { id: 'suppliers', label: t('nav.suppliers'), icon: <Building2 className="w-4 h-4" /> },
+    { id: 'batches', label: t('nav.batches'), icon: <Beaker className="w-4 h-4" /> },
+    { id: 'training', label: t('nav.training'), icon: <GraduationCap className="w-4 h-4" /> },
+    { id: 'documents', label: t('nav.documents'), icon: <FileCheck className="w-4 h-4" /> },
+    { id: 'audit_records', label: t('nav.auditRecords'), icon: <ClipboardCheck className="w-4 h-4" /> },
+    { id: 'udi', label: t('nav.udi'), icon: <Barcode className="w-4 h-4" /> },
+    { id: 'pms', label: t('nav.pms'), icon: <Activity className="w-4 h-4" /> },
+    { id: 'stability', label: t('nav.stability'), icon: <TestTube2 className="w-4 h-4" /> },
+    { id: 'envmon', label: t('nav.envmon'), icon: <Thermometer className="w-4 h-4" /> },
+    { id: 'systems', label: t('nav.systems'), icon: <Server className="w-4 h-4" /> },
+    { id: 'impact', label: t('nav.impact'), icon: <GitBranch className="w-4 h-4" /> },
+    { id: 'workflows', label: t('nav.workflows'), icon: <Workflow className="w-4 h-4" /> },
+    { id: 'change_control', label: t('nav.changeControl'), icon: <RefreshCw className="w-4 h-4" /> },
+    { id: 'deviations', label: t('nav.deviations'), icon: <TriangleAlert className="w-4 h-4" /> },
+    { id: 'tasks', label: t('nav.tasks'), icon: <CheckSquare className="w-4 h-4" /> },
   ];
 
   if (wizardVisible) {
@@ -118,7 +150,7 @@ export function AppShell() {
               {/* Server mode: migrate data button */}
               {isServerMode && isAuthenticated && <MigrateDataButton />}
 
-              <NotificationBell />
+              <NotificationInbox />
               {/* Share Audit Link — admin only */}
               {isServerMode && isAuthenticated && <ShareAuditLink />}
 
@@ -199,7 +231,7 @@ export function AppShell() {
               )}
             </div>
           </div>
-          <nav className="-mb-px flex gap-1">
+          <nav className="-mb-px flex gap-1 overflow-x-auto scrollbar-thin">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
@@ -225,6 +257,22 @@ export function AppShell() {
           {activeTab === 'dashboard' && <EvaluationDashboard />}
           {activeTab === 'reports' && <ReportGenerator />}
           {activeTab === 'design_control' && <DesignControlView />}
+          {activeTab === 'complaints' && <ComplaintTrending />}
+          {activeTab === 'suppliers' && <SupplierScorecard />}
+          {activeTab === 'batches' && <BatchRecordForm />}
+          {activeTab === 'training' && <TrainingDashboard />}
+          {activeTab === 'documents' && <DocumentManager />}
+          {activeTab === 'systems' && <SystemInventory />}
+          {activeTab === 'impact' && <ImpactAnalysis />}
+          {activeTab === 'pms' && <PMSDashboard />}
+          {activeTab === 'udi' && <UDIManager />}
+          {activeTab === 'stability' && <StabilityStudyView />}
+          {activeTab === 'envmon' && <EnvironmentalMonitoring />}
+          {activeTab === 'audit_records' && <AuditSchedule />}
+          {activeTab === 'workflows' && <WorkflowInbox />}
+          {activeTab === 'change_control' && <ChangeControlTracker />}
+          {activeTab === 'deviations' && <DeviationInvestigationView />}
+          {activeTab === 'tasks' && <TaskDashboard />}
           {activeTab === 'settings' && <SettingsPage />}
         </Suspense>
       </main>

@@ -24,6 +24,10 @@ Complete end-user guide for QAtrial, the regulated quality workspace for GxP-com
 16. [Data Management](#16-data-management)
 17. [Docker Deployment (Admin)](#17-docker-deployment-admin)
 18. [Demo Projects](#18-demo-projects)
+19. [Medical Device Track](#19-medical-device-track)
+20. [Pharma Track](#20-pharma-track)
+21. [Software/GAMP Track](#21-softwaregamp-track)
+22. [Cross-Vertical Features](#22-cross-vertical-features)
 
 ---
 
@@ -1345,3 +1349,376 @@ QAtrial includes 16 realistic demo projects spanning different countries, vertic
 8. Click **Create Project** on the Preview step
 
 Demo projects include realistic company names, descriptions in the local language (with English translations), and appropriate module selections for the project's vertical and type.
+
+---
+
+## 19. Medical Device Track
+
+The Medical Device Track provides specialized modules for organizations working under ISO 13485, EU MDR, and 21 CFR 820 (QMSR). These features are available when the project vertical is set to **Medical Devices**.
+
+### Complaint Management
+
+Complaint Management handles the full lifecycle of product complaints from intake through resolution, with regulatory reporting support.
+
+**Complaint Intake:**
+1. Navigate to the **Complaints** section
+2. Click **New Complaint**
+3. Fill in the intake form:
+   - **Title** (required): Brief description of the complaint
+   - **Description** (required): Detailed account of the issue
+   - **Severity**: Minor, Major, or Critical
+   - **Product**: The device or product involved
+   - **Regulatory Reportable**: Flag if this complaint triggers a regulatory report (MDR, MedWatch)
+4. Click **Save** -- the complaint is created with status "received"
+
+**Investigation Workflow:**
+
+Complaints follow a four-stage lifecycle:
+
+```
+received --> investigating --> resolved --> closed
+```
+
+| Status | Description |
+|--------|-------------|
+| **received** | Complaint has been recorded and is awaiting investigation |
+| **investigating** | Root cause investigation is in progress |
+| **resolved** | Investigation complete, actions taken |
+| **closed** | Complaint formally closed with documented rationale |
+
+Advance the complaint through stages by clicking the **Advance Status** button on the complaint detail view. Each transition is logged in the audit trail.
+
+**FSCA Tracking:**
+If a complaint leads to a Field Safety Corrective Action, use the **FSCA Reference** field to link the corrective action. This supports EU MDR Articles 82-86 reporting requirements.
+
+**CAPA Linkage:**
+Link a complaint to a CAPA record using the **Link CAPA** button. This creates bidirectional traceability between the complaint investigation and corrective/preventive actions.
+
+**Trending Dashboard:**
+The complaint trending dashboard displays:
+- Complaints by month (bar chart)
+- Complaints by severity (pie chart)
+- Complaints by product (grouped bar chart)
+- Mean Time to Resolution (MTTR) trending (line chart)
+
+Use these trending views for signal detection as required by 21 CFR 820.198(c) and EU MDR Article 88.
+
+### Supplier Quality Scorecards
+
+Supplier Quality Scorecards track supplier performance and automate qualification decisions.
+
+**Creating a Supplier:**
+1. Navigate to the **Suppliers** section
+2. Click **New Supplier**
+3. Enter supplier details: Name, performance metrics (defect rate, on-time delivery)
+4. The system auto-calculates a risk-based score
+
+**Performance Metrics:**
+- **Defect Rate**: Percentage of defective deliveries (lower is better)
+- **On-Time Delivery**: Percentage of deliveries arriving on schedule (higher is better)
+- **Risk Score**: Composite score (0-100) calculated from all metrics
+
+**Auto-Requalification:**
+When a supplier's risk score drops below 50, their status is automatically set to **conditional**. This triggers a review workflow requiring re-evaluation before the supplier can be used for critical components.
+
+**Audit Scheduling:**
+Schedule and track supplier audits:
+1. Click **Schedule Audit** on a supplier record
+2. Set the audit date and scope
+3. Record audit findings after completion
+4. The next audit date is tracked with reminders for overdue audits
+
+### Post-Market Surveillance (PMS)
+
+PMS aggregates data from complaints, adverse events, and literature to support PSUR (Periodic Safety Update Report) generation.
+
+**PMS Entries:**
+1. Navigate to the **PMS** section
+2. Add entries from various sources (complaints, clinical data, literature)
+3. Mark entries for inclusion in the next PSUR
+
+**PSUR Data Assembly:**
+The PSUR assembly view collects all relevant PMS entries for a reporting period, allowing you to review and organize data before generating the report.
+
+**Summary Dashboard:**
+The PMS summary dashboard shows:
+- Total PMS entries by source
+- Trends over reporting periods
+- Entries flagged for regulatory action
+
+### UDI Management
+
+UDI (Unique Device Identification) Management tracks device identifiers and supports regulatory database exports.
+
+**Device Identifier Tracking:**
+1. Navigate to the **UDI** section
+2. Click **New UDI Entry**
+3. Enter the Device Identifier (DI), Production Identifier (PI), and device name
+4. Flag registration status for GUDID and EUDAMED
+
+**GUDID/EUDAMED Export:**
+Click **Export** and select the target format:
+- **GUDID**: Export in FDA Global Unique Device Identification Database format
+- **EUDAMED**: Export in EU Medical Device Database format
+
+---
+
+## 20. Pharma Track
+
+The Pharma Track provides specialized modules for pharmaceutical manufacturing under FDA cGMP (21 CFR 210/211), ICH guidelines, and EU GMP. These features are available when the project vertical is set to **Pharmaceuticals**.
+
+### Electronic Batch Records
+
+Electronic Batch Records replace paper-based manufacturing records with template-driven, digitally controlled execution.
+
+**Creating a Batch Record:**
+1. Navigate to the **Batch Records** section
+2. Click **New Batch Record**
+3. Select a **Template** (master batch record template)
+4. Enter the **Batch Number** and **Product**
+5. Click **Create** -- the batch record is initialized with all template steps
+
+**Step Execution:**
+Each batch step must be individually executed:
+1. Open the batch record
+2. For each step, click **Execute**
+3. Record the actual values, observations, and any deviations
+4. If a deviation occurs, click **Record Deviation** to document it inline
+5. Steps can be reviewed by exception -- only deviations and critical steps require reviewer attention
+
+**E-Signature Release:**
+After all steps are complete:
+1. The batch record enters "pending_review" status
+2. A reviewer checks the record (review-by-exception mode highlights deviations)
+3. Click **Release Batch** to apply an electronic signature (21 CFR Part 11 compliant)
+4. The batch status changes to "released"
+
+**Yield Calculation:**
+The system automatically calculates batch yield from input/output values recorded during step execution. Yield outside acceptable ranges is flagged.
+
+### Stability Study Manager
+
+The Stability Study Manager supports ICH Q1A-compliant stability testing programs.
+
+**Creating a Study:**
+1. Navigate to the **Stability** section
+2. Click **New Study**
+3. Configure the study design:
+   - **Product**: Name and batch reference
+   - **Storage Conditions**: Long-term (25C/60%RH), Intermediate (30C/65%RH), Accelerated (40C/75%RH) per ICH Q1A
+   - **Pull Schedule**: Define time points for sample testing (e.g., 0, 3, 6, 9, 12, 18, 24, 36 months)
+
+**Recording Results:**
+1. Open a study and navigate to the pull schedule
+2. At each time point, click **Add Reading** to enter test results
+3. The system automatically checks for:
+   - **OOS (Out of Specification)**: Results outside the specification limits
+   - **OOT (Out of Trend)**: Results showing unexpected trending patterns
+
+**Trending Charts:**
+The stability trending view displays parameter values over time with:
+- Specification limits shown as horizontal reference lines
+- OOS/OOT flags highlighted in red/amber
+- Regression lines for trend analysis
+
+### Environmental Monitoring
+
+Environmental Monitoring tracks cleanroom and facility conditions to ensure compliance with EU GMP Annex 1 and USP standards.
+
+**Setting Up Monitoring Points:**
+1. Navigate to the **Environmental Monitoring** section
+2. Click **New Monitoring Point**
+3. Configure:
+   - **Location**: Room, zone, or equipment identifier
+   - **Parameter**: Temperature, humidity, particulate count, viable count, etc.
+   - **Alert Threshold**: Value that triggers a warning
+   - **Action Threshold**: Value that triggers a formal excursion
+
+**Recording Readings:**
+1. Select a monitoring point
+2. Click **Add Reading** and enter the measured value
+3. The system automatically detects excursions:
+   - Values exceeding the **alert threshold** generate a warning notification
+   - Values exceeding the **action threshold** generate an excursion record requiring investigation
+
+**Trending:**
+The trending view shows readings over time with threshold lines, excursion markers, and moving averages for each monitoring point.
+
+### Training Management (LMS-lite)
+
+Training Management provides a lightweight Learning Management System for GMP training compliance.
+
+**Setting Up Training Plans:**
+1. Navigate to the **Training** section
+2. Click **New Training Plan**
+3. Define the plan: name, required courses, target roles/users, and due dates
+
+**Managing Courses:**
+1. Click **New Course** to define a training course
+2. Enter course details: title, description, content, and qualification criteria
+3. Assign courses to training plans
+
+**Recording Completions:**
+1. When a user completes training, click **Record Completion**
+2. Enter the completion date and any assessment scores
+3. The system tracks expiration dates for time-limited qualifications
+
+**Training Matrix:**
+The training matrix shows a grid of users vs. courses with completion status:
+- Green: Completed and current
+- Amber: Due soon or expiring
+- Red: Overdue or expired
+
+**Compliance Dashboard:**
+The training compliance dashboard shows:
+- Overall compliance percentage
+- Users with overdue training
+- Courses approaching recertification deadlines
+
+**Auto-Retraining Triggers:**
+When a document (SOP) is revised or a CAPA triggers a procedural change, the system automatically flags affected users for retraining based on their role assignments.
+
+---
+
+## 21. Software/GAMP Track
+
+The Software/GAMP Track provides specialized modules for computerized system validation under GAMP 5, EU Annex 11, and 21 CFR Part 11. These features are available when the project vertical is set to **Software and IT (GAMP/CSV)**.
+
+### Live Impact Analysis
+
+Live Impact Analysis visualizes the dependency chain between requirements, tests, CAPAs, and documents to understand the ripple effect of changes.
+
+**Viewing the Graph:**
+1. Navigate to the **Impact Analysis** section
+2. The system displays a graph showing requirement/test chains
+3. Click any node to see its upstream and downstream dependencies
+
+**What-If Analysis:**
+1. Click **What-If Analysis**
+2. Select a requirement and describe a proposed change
+3. The system traces all downstream impacts:
+   - Tests that would need re-execution
+   - CAPAs that reference the requirement
+   - Documents (SOPs) that would need revision
+4. Review the impact report before proceeding with the change
+
+### Computerized System Inventory
+
+The Computerized System Inventory maintains a catalog of all computerized systems with their GAMP 5 classification, validation status, and periodic review schedule.
+
+**Adding a System:**
+1. Navigate to the **System Inventory** section
+2. Click **New System**
+3. Enter system details:
+   - **Name**: System name and version
+   - **GAMP 5 Category**: 1 (Infrastructure), 3 (Non-configured), 4 (Configured), or 5 (Custom)
+   - **Validation Status**: Not Validated, In Progress, Validated, or Retired
+   - **Risk Level**: Low, Medium, High, or Critical
+   - **Next Review Date**: When the next periodic review is due
+
+**Overdue Detection:**
+The system automatically flags entries where the next review date has passed. Overdue systems appear with a red indicator in the inventory list and on the dashboard.
+
+### Periodic Review Automation
+
+Periodic Review Automation guides users through the EU Annex 11 Section 11 periodic evaluation process.
+
+**Running a Periodic Review:**
+1. Select a system from the inventory
+2. Click **Start Periodic Review**
+3. The 7-step wizard walks you through:
+   - Step 1: System identification and scope
+   - Step 2: Validation status review (auto-pulled from inventory)
+   - Step 3: Change history review (auto-pulled from audit trail)
+   - Step 4: Incident/deviation review
+   - Step 5: Configuration and access review
+   - Step 6: Risk assessment update
+   - Step 7: Conclusion and next review scheduling
+4. The system auto-pulls data where available, reducing manual effort
+5. On completion, the next review date is automatically scheduled
+
+---
+
+## 22. Cross-Vertical Features
+
+These features are available across all industry verticals and project types.
+
+### Document Lifecycle Management
+
+Document Lifecycle Management provides full SOP versioning with formal status workflow and distribution tracking.
+
+**Creating a Document:**
+1. Navigate to the **Documents** section
+2. Click **New Document**
+3. Enter the document details: title, type (SOP, work instruction, form, etc.), and content
+4. The document is created in "draft" status
+
+**SOP Versioning Workflow:**
+
+Documents follow a six-stage lifecycle:
+
+```
+draft --> review --> approved --> effective --> superseded --> retired
+```
+
+| Status | Description |
+|--------|-------------|
+| **draft** | Document is being written or revised |
+| **review** | Document is out for review and comment |
+| **approved** | Document has been formally approved |
+| **effective** | Document is the current active version |
+| **superseded** | A newer version has replaced this document |
+| **retired** | Document is no longer in use |
+
+Advance the document through stages using the **Advance Status** button. Each transition requires appropriate permissions and is logged in the audit trail.
+
+**Version History:**
+Click **History** on any document to see its complete version history, including who made changes, when, and what was modified.
+
+**Distribution Tracking:**
+The **Distribution** view shows which users/roles have been assigned to read and acknowledge a document, along with their acknowledgment status and dates.
+
+### Closed-Loop CAPA Enhancement
+
+The enhanced CAPA system supports cascade triggers that automatically create follow-up actions when a CAPA is resolved.
+
+**Cascade Triggers:**
+When a CAPA resolution involves procedural changes, the system can automatically:
+- **Create an SOP Update task**: If the CAPA identifies a document that needs revision, a document update request is generated in the Document Lifecycle Management module
+- **Create Retraining tasks**: If the CAPA affects trained procedures, retraining assignments are generated in the Training Management module for all affected personnel
+
+These cascade triggers ensure that CAPA actions are fully closed-loop, with no orphaned follow-up items.
+
+### Audit Management
+
+Audit Management provides scheduling, tracking, and follow-up for internal and external audits.
+
+**Creating an Audit:**
+1. Navigate to the **Audit Management** section
+2. Click **New Audit**
+3. Enter audit details:
+   - **Title**: Descriptive name (e.g., "Annual ISO 13485 Internal Audit")
+   - **Audit Type**: Internal, External, Supplier, or Regulatory
+   - **Scheduled Date**: When the audit is planned
+   - **Scope**: Areas and processes to be audited
+
+**Recording Findings:**
+During or after the audit:
+1. Open the audit record
+2. Click **Add Finding**
+3. Enter the finding details:
+   - **Description**: What was observed
+   - **Classification**: Observation, Minor, Major, or Critical
+4. Optionally link the finding to a CAPA for corrective action tracking
+
+**Finding Classifications:**
+
+| Classification | Definition | Required Action |
+|---------------|------------|-----------------|
+| **Observation** | Opportunity for improvement, not a non-conformity | No mandatory action, recommended improvement |
+| **Minor** | Non-conformity that does not affect product quality or safety | CAPA recommended, corrective action within 30 days |
+| **Major** | Non-conformity that could affect product quality or safety | CAPA required, corrective action within 15 days |
+| **Critical** | Non-conformity that directly impacts product quality or patient safety | Immediate containment required, CAPA mandatory |
+
+**CAPA Linkage:**
+Link any finding to a CAPA record for formal corrective action tracking. The audit record shows the status of linked CAPAs, providing visibility into audit follow-up completion.

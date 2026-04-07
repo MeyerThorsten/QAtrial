@@ -65,9 +65,12 @@ Technical architecture documentation for QAtrial, the regulated quality workspac
 |  External LLM APIs      |         v                         v          ||
 |  (Anthropic/OpenAI)     |  +----------------------------------------------+
 |                         |  |       PostgreSQL (Prisma ORM v7)            |
-|                         |  |  15 models: User, Org, Workspace, Project,  |
+|                         |  |  25+ models: User, Org, Workspace, Project,  |
 |                         |  |  Req, Test, Risk, CAPA, AuditLog, Evidence, |
-|                         |  |  Approval, Signature, Webhook, Integration  |
+|                         |  |  Approval, Signature, Webhook, Integration, |
+|                         |  |  Complaint, Supplier, BatchRecord, Training, |
+|                         |  |  Document, System, PMSEntry, UDIEntry,       |
+|                         |  |  StabilityStudy, MonitoringPoint, AuditRec   |
 |                         |  +----------------------------------------------+
 |                         +----------------------------------------------+|
 |  +------------------+   +------------------+                            |
@@ -133,7 +136,7 @@ The backend is a Hono HTTP server running on Node.js via `tsx` (TypeScript execu
 | Runtime | Node.js 20 + tsx | TypeScript execution without compilation step |
 | Framework | Hono | Lightweight, TypeScript-first HTTP framework |
 | Database | PostgreSQL 16 | Relational data storage |
-| ORM | Prisma v7 | Type-safe database client and schema management (15 models) |
+| ORM | Prisma v7 | Type-safe database client and schema management (25+ models) |
 | Auth | JWT (jsonwebtoken) | Stateless authentication with access/refresh tokens |
 | Passwords | bcryptjs | Password hashing with 12 salt rounds |
 | Webhooks | Custom service | Fire-and-forget dispatch with HMAC-SHA256 signing |
@@ -141,7 +144,7 @@ The backend is a Hono HTTP server running on Node.js via `tsx` (TypeScript execu
 
 ### Server Entry Point
 
-`server/index.ts` creates a Hono app, registers CORS middleware, mounts 21 route groups under `/api/`, serves static files in production, and starts listening on port 3001.
+`server/index.ts` creates a Hono app, registers CORS middleware, mounts 28+ route groups under `/api/`, serves static files in production, and starts listening on port 3001.
 
 ```typescript
 const app = new Hono();
@@ -170,6 +173,20 @@ app.route('/api/audit-mode', auditmodeRoutes);
 app.route('/api/dashboard', dashboardRoutes);
 app.get('/api/status', (c) => c.json({ status: 'ok', version: '3.0.0', ... }));
 app.get('/api/health', (c) => c.json({ status: 'ok', version: '3.0.0' }));
+
+// Vertical-depth routes (Sprints 1-4)
+app.route('/api/complaints', complaintRoutes);
+app.route('/api/suppliers', supplierRoutes);
+app.route('/api/batches', batchRoutes);
+app.route('/api/training', trainingRoutes);
+app.route('/api/documents', documentRoutes);
+app.route('/api/systems', systemRoutes);
+app.route('/api/impact', impactRoutes);
+app.route('/api/pms', pmsRoutes);
+app.route('/api/udi', udiRoutes);
+app.route('/api/stability', stabilityRoutes);
+app.route('/api/envmon', envmonRoutes);
+app.route('/api/auditrecords', auditRecordRoutes);
 
 // Production: serve static files from dist/
 if (process.env.NODE_ENV === 'production') {
@@ -293,7 +310,9 @@ Standard HTTP status codes:
 +-------------------+               +-------------------+
 ```
 
-### Models (15)
+### Models (25+)
+
+#### Core Models (14)
 
 | Model | Key Fields | Purpose |
 |-------|-----------|---------|
@@ -304,13 +323,46 @@ Standard HTTP status codes:
 | `Requirement` | projectId, seqId (REQ-NNN), title, description, status, tags[], riskLevel, regulatoryRef, evidenceHints[] | Requirements with auto seqId |
 | `Test` | projectId, seqId (TST-NNN), title, description, status, linkedRequirementIds[] | Tests with auto seqId |
 | `Risk` | projectId, requirementId, severity, likelihood, detectability, riskScore, riskLevel, mitigation | Risk assessments |
-| `CAPA` | projectId, title, status, rootCause, containment, correctiveAction, preventiveAction, effectivenessCheck, linkedTestId | CAPA records with lifecycle |
+| `CAPA` | projectId, title, status, rootCause, containment, correctiveAction, preventiveAction, effectivenessCheck, linkedTestId, cascadeTriggers (JSON) | CAPA records with lifecycle and cascade triggers |
 | `AuditLog` | projectId, timestamp, userId, action, entityType, entityId, previousValue (JSON), newValue (JSON), reason | Append-only audit trail |
 | `Evidence` | requirementId, type, description, reference | Evidence attachments |
 | `Approval` | entityType, entityId, status, requestedBy, approvedBy | Approval workflow records |
 | `Signature` | entityType, entityId, userId, meaning, reason, timestamp | Electronic signature records |
 | `Webhook` | orgId, name, url, secret, events[], enabled, lastTriggered, lastStatus | Webhook configurations |
 | `Integration` | orgId, type (jira/github), config (JSON), enabled, lastSyncAt | External integration configs |
+
+#### Medical Device Track Models
+
+| Model | Key Fields | Purpose |
+|-------|-----------|---------|
+| `Complaint` | projectId, title, description, status (received/investigating/resolved/closed), severity, product, regulatoryReportable, fscaReference, capaId | Complaint management with investigation workflow |
+| `Supplier` | projectId, name, defectRate, onTimeDelivery, riskScore, status (approved/conditional/disqualified), nextAuditDate | Supplier quality scorecards with auto-requalification |
+| `PMSEntry` | projectId, source, description, reportPeriod, psurIncluded | Post-market surveillance entries |
+| `UDIEntry` | projectId, deviceIdentifier, productionIdentifier, deviceName, gudidRegistered, eudamedRegistered | UDI device identifier tracking |
+
+#### Pharma Track Models
+
+| Model | Key Fields | Purpose |
+|-------|-----------|---------|
+| `BatchRecord` | projectId, batchNumber, product, status (in_progress/pending_review/released/rejected), templateId, steps (JSON), yield, releasedBy | Electronic batch records with e-signature release |
+| `StabilityStudy` | projectId, product, condition, pullSchedule[], readings (JSON), oosDetected, ootDetected | Stability studies per ICH Q1A |
+| `MonitoringPoint` | projectId, location, parameter, thresholdMin, thresholdMax, alertThreshold, actionThreshold | Environmental monitoring points |
+| `TrainingPlan` | projectId, name, courses[], targetRoles[] | Training plans |
+| `TrainingCourse` | projectId, title, description, qualificationCriteria | Training courses |
+| `TrainingRecord` | userId, courseId, planId, status (planned/in_progress/completed/expired), completedAt, expiresAt | Training completion records |
+
+#### Software/GAMP Track Models
+
+| Model | Key Fields | Purpose |
+|-------|-----------|---------|
+| `ComputerizedSystem` | projectId, name, gampCategory (1/3/4/5), validationStatus, riskLevel, nextReviewDate | Computerized system inventory (GAMP 5) |
+
+#### Cross-Vertical Models
+
+| Model | Key Fields | Purpose |
+|-------|-----------|---------|
+| `Document` | projectId, title, type, status (draft/review/approved/effective/superseded/retired), version, content, history (JSON) | Document lifecycle management (SOP versioning) |
+| `AuditRecord` | projectId, title, auditType, scheduledDate, scope, findings (JSON) | Audit management with findings tracker |
 
 ### Cascade Deletes
 
@@ -425,7 +477,7 @@ The `VITE_API_URL` environment variable controls the API base URL (defaults to `
 
 ## 5. API Architecture
 
-### Route Groups (21 route files)
+### Route Groups (28+ route files)
 
 | Route Group | Mount Point | Auth Required | Endpoints |
 |------------|------------|---------------|-----------|
@@ -433,7 +485,7 @@ The `VITE_API_URL` environment variable controls the API base URL (defaults to `
 | Projects | `/api/projects` | Yes | CRUD (list, create, get, update, delete) |
 | Requirements | `/api/requirements` | Yes | CRUD + auto seqId, projectId filter |
 | Tests | `/api/tests` | Yes | CRUD + auto seqId, projectId filter |
-| CAPA | `/api/capa` | Yes | CRUD + status transition enforcement |
+| CAPA | `/api/capa` | Yes | CRUD + status transition enforcement + cascade triggers |
 | Risks | `/api/risks` | Yes | CRUD + auto risk score/level calculation |
 | Audit | `/api/audit` | Yes | GET (filtered list), GET /export (CSV) |
 | Users | `/api/users` | Yes (admin for invite/role) | list, invite, change role |
@@ -449,6 +501,18 @@ The `VITE_API_URL` environment variable controls the API base URL (defaults to `
 | GitHub | `/api/integrations/github` | Yes | connect, status, link PR, import test results |
 | Audit Mode | `/api/audit-mode` | Partial (create: admin; read: token) | create link, 7 read-only endpoints |
 | Dashboard | `/api/dashboard` | Yes | readiness, missing-evidence, approval-status, capa-aging, risk-summary |
+| Complaints | `/api/complaints` | Yes | CRUD + investigation workflow + trending |
+| Suppliers | `/api/suppliers` | Yes | CRUD + scorecards + audit scheduling |
+| Batches | `/api/batches` | Yes | CRUD + step execution + e-signature release |
+| Training | `/api/training` | Yes | plans, courses, records, matrix, compliance |
+| Documents | `/api/documents` | Yes | CRUD + versioning workflow + distribution tracking |
+| Systems | `/api/systems` | Yes | CRUD + overdue detection + periodic review |
+| Impact | `/api/impact` | Yes | graph chains + what-if analysis |
+| PMS | `/api/pms` | Yes | CRUD + summary + PSUR assembly |
+| UDI | `/api/udi` | Yes | CRUD + GUDID/EUDAMED export |
+| Stability | `/api/stability` | Yes | CRUD + readings + OOS/OOT detection + trending |
+| EnvMon | `/api/envmon` | Yes | CRUD + readings + excursion detection + trending |
+| Audit Records | `/api/auditrecords` | Yes | CRUD + findings + CAPA linkage |
 | Health/Status | `/api/health`, `/api/status` | No | health check, detailed status |
 
 ### Route Pattern
@@ -918,13 +982,24 @@ await prisma.auditLog.create({
 Every mutation endpoint logs an audit entry:
 - **Requirements:** create, update, delete
 - **Tests:** create, update, delete
-- **CAPA:** create, update (including status transitions), delete
+- **CAPA:** create, update (including status transitions, cascade triggers), delete
 - **Risks:** create, update, delete
 - **Projects:** create, update, delete
 - **Users:** registration, role changes
 - **Imports:** CSV import operations
 - **Approvals:** request, approve, reject
 - **Signatures:** creation
+- **Complaints:** create, update (status transitions), delete
+- **Suppliers:** create, update (including auto-requalification), delete, audit scheduling
+- **Batch Records:** create, step execution, deviation recording, e-signature release, delete
+- **Training:** plan creation, course assignment, completion recording, retraining triggers
+- **Documents:** create, update (status transitions through versioning workflow), delete
+- **Systems:** create, update, periodic review start/completion, delete
+- **PMS Entries:** create, update, PSUR inclusion, delete
+- **UDI Entries:** create, update, export events, delete
+- **Stability Studies:** create, reading submission, OOS/OOT detection events, delete
+- **Environmental Monitoring:** create, reading submission, excursion detection events, delete
+- **Audit Records:** create, finding addition, CAPA linkage, delete
 
 ### Audit Query and Export
 
@@ -1345,6 +1420,48 @@ App
       |    |-- IntegrationSettings (Integrations tab)
       |    |-- SSOSettings (SSO tab)
       |
+      |-- ComplaintManagement [lazy] (Medical Device Track)
+      |    |-- ComplaintIntakeForm
+      |    |-- ComplaintInvestigation
+      |    |-- ComplaintTrendingDashboard
+      |
+      |-- SupplierScorecard [lazy] (Medical Device Track)
+      |    |-- SupplierForm
+      |    |-- SupplierAuditScheduler
+      |
+      |-- PMSDashboard [lazy] (Medical Device Track)
+      |-- UDIManager [lazy] (Medical Device Track)
+      |
+      |-- BatchRecordManager [lazy] (Pharma Track)
+      |    |-- BatchStepExecution
+      |    |-- BatchRelease
+      |
+      |-- StabilityStudyManager [lazy] (Pharma Track)
+      |    |-- StabilityReadings
+      |    |-- StabilityTrending
+      |
+      |-- EnvironmentalMonitoring [lazy] (Pharma Track)
+      |    |-- MonitoringPointForm
+      |    |-- ExcursionDetection
+      |
+      |-- TrainingManager [lazy] (Pharma Track)
+      |    |-- TrainingMatrix
+      |    |-- ComplianceDashboard
+      |
+      |-- ImpactAnalysis [lazy] (Software/GAMP Track)
+      |    |-- DependencyGraph
+      |    |-- WhatIfAnalysis
+      |
+      |-- SystemInventory [lazy] (Software/GAMP Track)
+      |    |-- PeriodicReviewWizard
+      |
+      |-- DocumentLifecycle [lazy] (Cross-Vertical)
+      |    |-- DocumentVersionHistory
+      |    |-- DistributionTracking
+      |
+      |-- AuditManagement [lazy] (Cross-Vertical)
+      |    |-- FindingsTracker
+      |
       |-- ImportWizard (modal, 3 steps)
       |-- ExportPanel (modal)
       |-- AuditTrailViewer (modal)
@@ -1361,12 +1478,24 @@ App
 | Layout | `components/layout/` | `AppShell` (main layout, navigation, tab routing) |
 | Wizard | `components/wizard/` | `SetupWizard`, `StepCompliancePack`, `StepCountry`, `StepVertical`, `StepMetadata`, `StepProjectType`, `StepModules`, `StepPreview` |
 | Data Tables | `components/requirements/`, `components/tests/` | `RequirementsTable`, `RequirementModal`, `TestsTable`, `TestModal` |
-| Dashboard | `components/dashboard/` | 14 components covering all 7 dashboard tabs |
+| Dashboard | `components/dashboard/` | 14+ components covering all dashboard tabs |
 | AI | `components/ai/` | `TestGenerationPanel`, `RiskClassificationPanel`, `QualityCheckPanel`, `ProviderSettings` |
 | Reports | `components/reports/` | `ReportGenerator`, `ReportPreview` |
 | Audit | `components/audit/` | `AuditTrailViewer`, `SignatureModal`, `AuditModeView`, `ShareAuditLink` |
 | Import/Export | `components/import/` | `ImportWizard`, `ExportPanel` |
 | Settings | `components/settings/` | `SettingsPage`, `WebhookSettings`, `IntegrationSettings`, `SSOSettings` |
+| Complaints | `components/complaints/` | `ComplaintManagement`, `ComplaintIntakeForm`, `ComplaintInvestigation`, `ComplaintTrendingDashboard` |
+| Suppliers | `components/suppliers/` | `SupplierScorecard`, `SupplierForm`, `SupplierAuditScheduler` |
+| Batch Records | `components/batches/` | `BatchRecordManager`, `BatchStepExecution`, `BatchRelease` |
+| Training | `components/training/` | `TrainingManager`, `TrainingMatrix`, `ComplianceDashboard` |
+| Documents | `components/documents/` | `DocumentLifecycle`, `DocumentVersionHistory`, `DistributionTracking` |
+| Systems | `components/systems/` | `SystemInventory`, `PeriodicReviewWizard` |
+| Impact | `components/impact/` | `ImpactAnalysis`, `DependencyGraph`, `WhatIfAnalysis` |
+| PMS | `components/pms/` | `PMSDashboard` |
+| UDI | `components/udi/` | `UDIManager` |
+| Stability | `components/stability/` | `StabilityStudyManager`, `StabilityReadings`, `StabilityTrending` |
+| Env Monitoring | `components/envmon/` | `EnvironmentalMonitoring`, `MonitoringPointForm`, `ExcursionDetection` |
+| Audit Records | `components/auditrecords/` | `AuditManagement`, `FindingsTracker` |
 | Shared | `components/shared/` | `ImportExportBar`, `ThemeToggle`, `LanguageSelector`, `ConfirmDialog` |
 
 ---
@@ -1399,7 +1528,7 @@ QAtrial/
 |   |-- index.ts                       # Hono server entry (port 3001, CORS, route mounting, static serving)
 |   |-- generated/prisma/             # Generated Prisma client
 |   |-- prisma/
-|   |   |-- schema.prisma             # PostgreSQL schema (15 models)
+|   |   |-- schema.prisma             # PostgreSQL schema (25+ models)
 |   |   |-- prisma.config.ts          # Prisma 7 migration config
 |   |-- middleware/
 |   |   |-- auth.ts                   # JWT auth + RBAC + requirePermission middleware
@@ -1425,6 +1554,18 @@ QAtrial/
 |       |-- webhooks.ts              # Webhook CRUD + test endpoint
 |       |-- auditmode.ts             # Read-only audit mode link generation
 |       |-- dashboard.ts             # Server-side dashboard analytics
+|       |-- complaints.ts            # Complaint management + investigation workflow
+|       |-- suppliers.ts             # Supplier quality scorecards + audit scheduling
+|       |-- batches.ts               # Electronic batch records + e-signature release
+|       |-- training.ts              # Training management (LMS-lite)
+|       |-- documents.ts             # Document lifecycle management (SOP versioning)
+|       |-- systems.ts               # Computerized system inventory (GAMP 5)
+|       |-- impact.ts                # Live impact analysis (req/test graph chains)
+|       |-- pms.ts                   # Post-market surveillance + PSUR assembly
+|       |-- udi.ts                   # UDI management + GUDID/EUDAMED export
+|       |-- stability.ts             # Stability study manager (ICH Q1A)
+|       |-- envmon.ts                # Environmental monitoring + excursion detection
+|       |-- auditrecords.ts          # Audit management + findings tracker
 |       |-- integrations/
 |           |-- jira.ts              # Jira Cloud bidirectional sync
 |           |-- github.ts            # GitHub PR linking + CI import
@@ -1501,6 +1642,18 @@ QAtrial/
 |   |   |-- audit/ (4 components incl. AuditModeView, ShareAuditLink)
 |   |   |-- import/ (ImportWizard, ExportPanel)
 |   |   |-- settings/ (SettingsPage, WebhookSettings, IntegrationSettings, SSOSettings)
+|   |   |-- complaints/ (ComplaintManagement, IntakeForm, Investigation, Trending)
+|   |   |-- suppliers/ (SupplierScorecard, Form, AuditScheduler)
+|   |   |-- batches/ (BatchRecordManager, StepExecution, Release)
+|   |   |-- training/ (TrainingManager, Matrix, ComplianceDashboard)
+|   |   |-- documents/ (DocumentLifecycle, VersionHistory, DistributionTracking)
+|   |   |-- systems/ (SystemInventory, PeriodicReviewWizard)
+|   |   |-- impact/ (ImpactAnalysis, DependencyGraph, WhatIfAnalysis)
+|   |   |-- pms/ (PMSDashboard)
+|   |   |-- udi/ (UDIManager)
+|   |   |-- stability/ (StabilityStudyManager, Readings, Trending)
+|   |   |-- envmon/ (EnvironmentalMonitoring, MonitoringPointForm, ExcursionDetection)
+|   |   |-- auditrecords/ (AuditManagement, FindingsTracker)
 |   |   |-- shared/ (4 components)
 |   |
 |   |-- App.tsx

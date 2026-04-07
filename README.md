@@ -33,6 +33,30 @@ Country (jurisdiction) x Vertical (domain) x Project Type (execution) x Modules 
 | Aerospace | AS9100D, DO-178C, DO-254, EASA Part 21 |
 | Chemical / Environmental | REACH, CLP, TSCA, ISO 14001, ISO 45001 |
 
+### Vertical-Depth Feature Tracks
+
+**Medical Device Track:**
+- **Complaint Management**: Intake form, investigation workflow (received -> investigating -> resolved -> closed), trending dashboard (by month/severity/product/MTTR), FSCA tracking, CAPA linkage, regulatory reportable flag
+- **Supplier Quality Scorecards**: Performance metrics (defect rate, on-time delivery), risk-based scoring, auto-requalification (score < 50 -> conditional), audit scheduling/tracking
+- **Post-Market Surveillance (PMS)**: Aggregated entries, PSUR data assembly, summary dashboard
+- **UDI Management**: Device identifier tracking, GUDID/EUDAMED export
+
+**Pharma Track:**
+- **Electronic Batch Records**: Template-driven, step execution with deviations, review-by-exception, e-signature release, yield calculation
+- **Stability Study Manager**: ICH Q1A design, storage conditions, pull schedules, OOS/OOT auto-detection, trending charts
+- **Environmental Monitoring**: Monitoring points with thresholds, readings with auto-excursion detection, trending
+- **Training Management (LMS-lite)**: Plans, courses, records, matrix, compliance dashboard, auto-retraining triggers
+
+**Software/GAMP Track:**
+- **Live Impact Analysis**: Requirement/test graph chains, what-if analysis
+- **Computerized System Inventory**: GAMP 5 categories, validation status, risk levels, overdue detection
+- **Periodic Review Automation**: 7-step wizard, auto-pull data, schedule next review
+
+**Cross-Vertical:**
+- **Document Lifecycle Management**: SOP versioning (draft -> review -> approved -> effective -> superseded -> retired), version history, distribution tracking
+- **Closed-Loop CAPA Enhancement**: Cascade triggers (SOP update, retraining)
+- **Audit Management**: Schedule, findings tracker, CAPA linkage, classification (observation/minor/major/critical)
+
 ### 15 Composable Quality Modules
 Audit Trail, Electronic Signatures, Data Integrity (ALCOA+), Change Control, CAPA, Deviation Management, Training, Supplier Qualification, Complaint Handling, Risk Management, Document Control, Backup/DR, Access Control, Validation/CSV, Traceability Matrix
 
@@ -147,18 +171,19 @@ One-click setup for common regulatory frameworks via the wizard's Step 0:
 | Compliance Statement | 21 CFR Part 11 (15 sections) + EU Annex 11 (17 sections) + GAMP 5 Cat 4 alignment |
 | Traceability Matrix | 75 regulatory requirements mapped to QAtrial features + IQ/OQ/PQ test IDs |
 
-### Backend Server (v3.0.0)
+### Backend Server (v4.0.0)
 - **Hono** TypeScript-first HTTP framework on Node.js
-- **PostgreSQL** database via **Prisma ORM v7** (15 models)
+- **PostgreSQL** database via **Prisma ORM v7** (25+ models)
 - **JWT authentication** with access/refresh token pair
-- **REST API** with 60+ endpoints across 21 route groups
+- **REST API** with 80+ endpoints across 28+ route files
 - **Append-only audit log** in PostgreSQL with CSV export
-- **CAPA lifecycle enforcement** with valid status transition checks
+- **CAPA lifecycle enforcement** with valid status transition checks and cascade triggers
 - **Auto-generated sequential IDs** (REQ-NNN, TST-NNN) per project
 - **Multi-user, multi-organization** support with workspace scoping
 - **Webhook dispatch** with HMAC signing and retry tracking
 - **SSO (OIDC)** with auto-provisioning
 - **Docker** production deployment with static file serving
+- **Vertical-depth routes**: complaints, suppliers, batches, training, documents, systems, impact, pms, udi, stability, envmon, auditrecords
 
 ### AI System Enhancements
 - **JSON Schema Validation**: All AI responses validated against expected schemas with automatic retry/repair
@@ -191,7 +216,7 @@ Light and dark mode with full design system (CSS custom properties, Tailwind tok
 | Vite | Build Tool |
 | Tailwind CSS 4 | Styling |
 | Vitest | Test Framework |
-| Zustand | State Management (20 stores on client) |
+| Zustand | State Management (20+ stores on client) |
 | TanStack Table v8 | Tables |
 | Recharts | Charts |
 | react-i18next | Internationalization |
@@ -211,7 +236,7 @@ QAtrial/
 ├── server/                          # Backend server
 │   ├── index.ts                     # Hono server entry point (port 3001)
 │   ├── prisma/
-│   │   ├── schema.prisma            # PostgreSQL schema (15 models)
+│   │   ├── schema.prisma            # PostgreSQL schema (25+ models)
 │   │   └── prisma.config.ts         # Prisma 7 migration config
 │   ├── generated/prisma/            # Generated Prisma client
 │   ├── middleware/
@@ -224,7 +249,7 @@ QAtrial/
 │       ├── projects.ts              # Project CRUD
 │       ├── requirements.ts          # Requirement CRUD + auto seqId
 │       ├── tests.ts                 # Test CRUD + auto seqId
-│       ├── capa.ts                  # CAPA CRUD + lifecycle enforcement
+│       ├── capa.ts                  # CAPA CRUD + lifecycle enforcement + cascade triggers
 │       ├── risks.ts                 # Risk CRUD + auto scoring
 │       ├── audit.ts                 # Read-only audit queries + CSV export
 │       ├── users.ts                 # User management (admin)
@@ -238,6 +263,18 @@ QAtrial/
 │       ├── webhooks.ts              # Webhook CRUD + test endpoint
 │       ├── auditmode.ts             # Read-only audit mode link generation
 │       ├── dashboard.ts             # Server-side dashboard analytics
+│       ├── complaints.ts            # Complaint management + investigation workflow
+│       ├── suppliers.ts             # Supplier quality scorecards + audit scheduling
+│       ├── batches.ts               # Electronic batch records + e-signature release
+│       ├── training.ts              # Training management (LMS-lite)
+│       ├── documents.ts             # Document lifecycle management (SOP versioning)
+│       ├── systems.ts               # Computerized system inventory (GAMP 5)
+│       ├── impact.ts                # Live impact analysis (req/test graph chains)
+│       ├── pms.ts                   # Post-market surveillance + PSUR assembly
+│       ├── udi.ts                   # UDI management + GUDID/EUDAMED export
+│       ├── stability.ts             # Stability study manager (ICH Q1A)
+│       ├── envmon.ts                # Environmental monitoring + excursion detection
+│       ├── auditrecords.ts          # Audit management + findings tracker
 │       └── integrations/
 │           ├── jira.ts              # Jira Cloud bidirectional sync
 │           └── github.ts            # GitHub PR linking + CI import
@@ -273,12 +310,24 @@ QAtrial/
 │   │   ├── wizard/                  # 7-step setup wizard (Step 0: compliance pack)
 │   │   ├── requirements/            # Requirements table + modal
 │   │   ├── tests/                   # Tests table + modal
-│   │   ├── dashboard/               # 14 dashboard components
+│   │   ├── dashboard/               # 14+ dashboard components
 │   │   ├── ai/                      # AI panels (test gen, risk, settings, quality check)
 │   │   ├── reports/                 # Report generator + preview
 │   │   ├── audit/                   # Audit trail, signature modal, audit mode, share link
 │   │   ├── import/                  # Import wizard + export panel
 │   │   ├── settings/                # Tabbed settings (AI, webhooks, integrations, SSO)
+│   │   ├── complaints/              # Complaint intake, investigation, trending dashboard
+│   │   ├── suppliers/               # Supplier scorecards, audit scheduling
+│   │   ├── batches/                 # Electronic batch records, step execution
+│   │   ├── training/                # Training plans, courses, compliance dashboard
+│   │   ├── documents/               # Document lifecycle, SOP versioning
+│   │   ├── systems/                 # Computerized system inventory
+│   │   ├── impact/                  # Live impact analysis, what-if
+│   │   ├── pms/                     # Post-market surveillance
+│   │   ├── udi/                     # UDI management
+│   │   ├── stability/               # Stability study manager
+│   │   ├── envmon/                  # Environmental monitoring
+│   │   ├── auditrecords/            # Audit management, findings tracker
 │   │   └── shared/                  # Shared components
 │   └── public/locales/              # 12 complete translation files
 ├── docs/                            # Documentation
@@ -292,7 +341,7 @@ QAtrial/
 └── vitest.config.ts                 # Test runner configuration
 ```
 
-**130+ TypeScript source files, 25,000+ lines of code, 12 translation files (425+ keys each), 15 database models, 60+ API endpoints, 21 route files, 9 AI prompt templates, 5 validation documents**
+**160+ TypeScript source files, 35,000+ lines of code, 12 translation files (425+ keys each), 25+ database models, 80+ API endpoints, 28+ route files, 60+ frontend components, 9 AI prompt templates, 5 validation documents**
 
 ## Installation
 

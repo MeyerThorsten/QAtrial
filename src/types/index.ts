@@ -123,7 +123,7 @@ export interface DashboardFilters {
   testStatus: TestStatus | 'All';
 }
 
-export type ViewTab = 'requirements' | 'tests' | 'dashboard' | 'reports' | 'settings' | 'design_control';
+export type ViewTab = 'requirements' | 'tests' | 'dashboard' | 'reports' | 'settings' | 'design_control' | 'complaints' | 'suppliers' | 'batches' | 'training' | 'documents' | 'systems' | 'impact' | 'pms' | 'udi' | 'stability' | 'envmon' | 'audit_records' | 'workflows' | 'change_control' | 'deviations' | 'tasks';
 
 // ── Templates ─────────────────────────────────────────────────────────────────
 
@@ -410,16 +410,51 @@ export interface WorkflowInstance {
 
 // ── Notifications ────────────────────────────────────────────────────────────
 
-export type NotificationType = 'approval_needed' | 'task_overdue' | 'capa_deadline' | 'workflow_escalation' | 'audit_reminder' | 'status_change' | 'mention';
+export type NotificationType = 'approval_needed' | 'task_overdue' | 'capa_deadline' | 'deviation_opened' | 'workflow_escalation' | 'comment_mention' | 'document_review' | 'training_due' | 'audit_reminder' | 'status_change' | 'mention';
 
-export interface Notification {
+export interface AppNotification {
   id: string;
   type: NotificationType;
   title: string;
   message: string;
   entityType?: string;
   entityId?: string;
+  projectId?: string;
   userId: string;
   read: boolean;
   createdAt: string;
+}
+
+export interface Comment {
+  id: string;
+  entityType: string;
+  entityId: string;
+  projectId: string;
+  userId: string;
+  userName: string;
+  content: string;
+  parentId?: string;
+  replies?: Comment[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type TaskPriority = 'low' | 'medium' | 'high' | 'critical';
+export type TaskStatus = 'open' | 'in_progress' | 'completed' | 'overdue';
+
+export interface QTask {
+  id: string;
+  projectId: string;
+  title: string;
+  description: string;
+  assigneeId: string;
+  assigneeName: string;
+  dueDate?: string;
+  priority: TaskPriority;
+  status: TaskStatus;
+  entityType?: string;
+  entityId?: string;
+  createdBy: string;
+  createdAt: string;
+  completedAt?: string;
 }

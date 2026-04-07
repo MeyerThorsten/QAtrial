@@ -24,6 +24,24 @@ import ssoRoutes from './routes/sso.js';
 import webhookRoutes from './routes/webhooks.js';
 import jiraRoutes from './routes/integrations/jira.js';
 import githubRoutes from './routes/integrations/github.js';
+import complaintRoutes from './routes/complaints.js';
+import supplierRoutes from './routes/suppliers.js';
+import batchRoutes from './routes/batches.js';
+import trainingRoutes from './routes/training.js';
+import documentRoutes from './routes/documents.js';
+import systemRoutes from './routes/systems.js';
+import impactRoutes from './routes/impact.js';
+import pmsRoutes from './routes/pms.js';
+import udiRoutes from './routes/udi.js';
+import stabilityRoutes from './routes/stability.js';
+import envmonRoutes from './routes/envmon.js';
+import auditRecordRoutes from './routes/auditrecords.js';
+import workflowRoutes from './routes/workflows.js';
+import changeControlRoutes from './routes/changecontrol.js';
+import deviationRoutes from './routes/deviations.js';
+import notificationRoutes from './routes/notifications.js';
+import commentRoutes from './routes/comments.js';
+import taskRoutes from './routes/tasks.js';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -58,8 +76,26 @@ app.route('/api/auth/sso', ssoRoutes);
 app.route('/api/webhooks', webhookRoutes);
 app.route('/api/integrations/jira', jiraRoutes);
 app.route('/api/integrations/github', githubRoutes);
+app.route('/api/complaints', complaintRoutes);
+app.route('/api/suppliers', supplierRoutes);
+app.route('/api/batches', batchRoutes);
+app.route('/api/training', trainingRoutes);
+app.route('/api/documents', documentRoutes);
+app.route('/api/systems', systemRoutes);
+app.route('/api/impact', impactRoutes);
+app.route('/api/pms', pmsRoutes);
+app.route('/api/udi', udiRoutes);
+app.route('/api/stability', stabilityRoutes);
+app.route('/api/envmon', envmonRoutes);
+app.route('/api/audit-records', auditRecordRoutes);
+app.route('/api/workflows', workflowRoutes);
+app.route('/api/change-control', changeControlRoutes);
+app.route('/api/deviations', deviationRoutes);
+app.route('/api/notifications', notificationRoutes);
+app.route('/api/comments', commentRoutes);
+app.route('/api/tasks', taskRoutes);
 
-app.get('/api/health', (c) => c.json({ status: 'ok', version: '3.0.0' }));
+app.get('/api/health', (c) => c.json({ status: 'ok', version: '5.0.0' }));
 
 // Serve static frontend files in production
 if (process.env.NODE_ENV === 'production') {

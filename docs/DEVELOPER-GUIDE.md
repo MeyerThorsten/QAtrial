@@ -167,16 +167,17 @@ Vite is configured in `vite.config.ts`. Key settings:
 ### Architecture Overview
 
 The backend is a Hono server in `server/index.ts` with:
-- 21 route groups mounted under `/api/`
+- 28+ route groups mounted under `/api/`
 - JWT authentication middleware
 - RBAC permission guards (`requirePermission()`)
-- Prisma ORM for database access (15 models)
+- Prisma ORM for database access (25+ models)
 - Audit logging service
 - Webhook dispatch service with HMAC signing
 - SSO (OIDC) discovery and token exchange
 - Static file serving in production mode
+- Vertical-depth routes for complaints, suppliers, batches, training, documents, systems, impact, pms, udi, stability, envmon, and auditrecords
 
-### Route Files (21 files)
+### Route Files (28+ files)
 
 | File | Mount Point | Purpose |
 |------|------------|---------|
@@ -184,7 +185,7 @@ The backend is a Hono server in `server/index.ts` with:
 | `projects.ts` | `/api/projects` | Project CRUD |
 | `requirements.ts` | `/api/requirements` | Requirement CRUD + auto seqId |
 | `tests.ts` | `/api/tests` | Test CRUD + auto seqId |
-| `capa.ts` | `/api/capa` | CAPA CRUD + lifecycle enforcement |
+| `capa.ts` | `/api/capa` | CAPA CRUD + lifecycle enforcement + cascade triggers |
 | `risks.ts` | `/api/risks` | Risk CRUD + auto scoring |
 | `audit.ts` | `/api/audit` | Read-only audit queries + CSV export |
 | `users.ts` | `/api/users` | User management (admin) |
@@ -198,6 +199,18 @@ The backend is a Hono server in `server/index.ts` with:
 | `webhooks.ts` | `/api/webhooks` | Webhook CRUD + test |
 | `auditmode.ts` | `/api/audit-mode` | Read-only audit mode links |
 | `dashboard.ts` | `/api/dashboard` | Server-side dashboard analytics |
+| `complaints.ts` | `/api/complaints` | Complaint management + investigation workflow + trending |
+| `suppliers.ts` | `/api/suppliers` | Supplier quality scorecards + audit scheduling |
+| `batches.ts` | `/api/batches` | Electronic batch records + step execution + e-signature release |
+| `training.ts` | `/api/training` | Training management (plans, courses, records, matrix, compliance) |
+| `documents.ts` | `/api/documents` | Document lifecycle management (SOP versioning) |
+| `systems.ts` | `/api/systems` | Computerized system inventory + periodic review |
+| `impact.ts` | `/api/impact` | Live impact analysis + what-if |
+| `pms.ts` | `/api/pms` | Post-market surveillance + PSUR assembly |
+| `udi.ts` | `/api/udi` | UDI management + GUDID/EUDAMED export |
+| `stability.ts` | `/api/stability` | Stability study manager (ICH Q1A) |
+| `envmon.ts` | `/api/envmon` | Environmental monitoring + excursion detection |
+| `auditrecords.ts` | `/api/auditrecords` | Audit management + findings tracker |
 | `integrations/jira.ts` | `/api/integrations/jira` | Jira Cloud sync |
 | `integrations/github.ts` | `/api/integrations/github` | GitHub integration |
 
@@ -354,7 +367,7 @@ await logAudit(prisma, {
 
 ### Modifying the Prisma Schema
 
-The schema lives at `server/prisma/schema.prisma`. Currently has 15 models. To add or modify a model:
+The schema lives at `server/prisma/schema.prisma`. Currently has 25+ models. To add or modify a model:
 
 1. Edit `server/prisma/schema.prisma`:
 
@@ -1457,6 +1470,54 @@ npm run test:coverage     # Generate coverage report
 
 - [ ] **Theme:** Toggle between light and dark mode.
 - [ ] **Language:** Switch to at least 2 non-English languages.
+
+### Vertical-Depth Features (Sprints 1-4)
+
+#### Medical Device Track
+
+- [ ] **Complaint Management:** Create a complaint. Advance through received -> investigating -> resolved -> closed. Verify audit trail.
+- [ ] **Complaint Trending:** View trending dashboard. Verify charts by month, severity, product, MTTR.
+- [ ] **FSCA Tracking:** Create a complaint with FSCA reference. Verify field persistence.
+- [ ] **Complaint-CAPA Linkage:** Link a complaint to a CAPA record. Verify bidirectional traceability.
+- [ ] **Regulatory Reportable Flag:** Set regulatory reportable flag. Verify it persists on the complaint.
+- [ ] **Supplier Scorecards:** Create a supplier with metrics. Verify risk score calculation.
+- [ ] **Supplier Auto-Requalification:** Set supplier score below 50. Verify status changes to "conditional".
+- [ ] **Supplier Audit Scheduling:** Schedule an audit for a supplier. Verify date tracking.
+- [ ] **PMS Entries:** Create PMS entries. Mark for PSUR inclusion. Verify summary dashboard.
+- [ ] **UDI Management:** Create UDI entries. Export in GUDID and EUDAMED format. Verify data integrity.
+
+#### Pharma Track
+
+- [ ] **Batch Record Creation:** Create a batch record from template. Verify all steps are populated.
+- [ ] **Batch Step Execution:** Execute batch steps. Record deviations. Verify review-by-exception highlights deviations.
+- [ ] **Batch E-Signature Release:** Complete all steps. Release batch with e-signature. Verify status change.
+- [ ] **Batch Yield Calculation:** Record input/output values. Verify yield is computed correctly.
+- [ ] **Stability Study:** Create a study with ICH Q1A conditions. Add readings. Verify OOS/OOT detection.
+- [ ] **Stability Trending:** View trending charts. Verify specification lines and regression.
+- [ ] **Environmental Monitoring:** Create monitoring points with thresholds. Add readings. Verify excursion detection.
+- [ ] **EnvMon Trending:** View environmental trending data. Verify threshold lines are displayed.
+- [ ] **Training Plans:** Create a plan with courses. Assign to users/roles. Verify matrix view.
+- [ ] **Training Records:** Record completions. Verify expiration tracking.
+- [ ] **Training Compliance Dashboard:** Verify compliance percentage and overdue detection.
+- [ ] **Auto-Retraining Triggers:** Revise a document. Verify affected users are flagged for retraining.
+
+#### Software/GAMP Track
+
+- [ ] **Impact Analysis:** View requirement/test dependency graph. Verify chain visualization.
+- [ ] **What-If Analysis:** Run what-if on a requirement. Verify downstream impacts listed.
+- [ ] **System Inventory:** Create systems with GAMP 5 categories. Verify validation status tracking.
+- [ ] **Overdue Detection:** Set a past review date. Verify overdue flag appears.
+- [ ] **Periodic Review:** Start 7-step review wizard. Verify auto-pull of data. Complete and verify next review scheduled.
+
+#### Cross-Vertical
+
+- [ ] **Document Lifecycle:** Create a document. Advance through draft -> review -> approved -> effective -> superseded -> retired. Verify audit trail.
+- [ ] **Document Version History:** View version history. Verify all transitions are recorded.
+- [ ] **Document Distribution Tracking:** Assign document. Verify acknowledgment tracking.
+- [ ] **CAPA Cascade Triggers:** Resolve a CAPA with SOP update trigger. Verify document update task created.
+- [ ] **CAPA Retraining Trigger:** Resolve a CAPA with retraining trigger. Verify training assignments created.
+- [ ] **Audit Management:** Create an audit. Add findings with classifications. Verify CAPA linkage.
+- [ ] **Finding Classifications:** Test observation, minor, major, and critical classifications. Verify correct storage.
 
 ### Automated Tests
 

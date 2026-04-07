@@ -24,7 +24,7 @@ Reference documentation for the REST API, stores, hooks, utilities, and types.
 
 The QAtrial backend exposes a REST API at `http://localhost:3001/api`. All endpoints return JSON. Endpoints marked with "Auth: Yes" require a valid JWT access token in the `Authorization: Bearer <token>` header.
 
-**60+ endpoints across 21 route files.**
+**80+ endpoints across 28+ route files.**
 
 ### Health Check and Status
 
@@ -878,6 +878,470 @@ Risk level counts and matrix data.
 
 ---
 
+### Complaint Management Endpoints (Medical Device Track)
+
+#### GET /api/complaints?projectId=uuid
+
+List all complaints for a project. **Auth:** Yes
+
+---
+
+#### POST /api/complaints
+
+Create a new complaint with intake form data. Defaults to status "received". **Auth:** Yes
+
+**Request Body:**
+```json
+{
+  "projectId": "uuid",
+  "title": "Device malfunction report",
+  "description": "Patient reported intermittent shutdown...",
+  "severity": "major",
+  "product": "CardioMonitor X100",
+  "regulatoryReportable": true
+}
+```
+
+---
+
+#### PUT /api/complaints/:id
+
+Update a complaint. **Status transitions are enforced server-side:**
+
+```
+received -> investigating -> resolved -> closed
+```
+
+Supports FSCA tracking and CAPA linkage fields. **Auth:** Yes
+
+---
+
+#### GET /api/complaints/trending?projectId=uuid
+
+Complaint trending dashboard data: by month, severity, product, and MTTR (mean time to resolution). **Auth:** Yes
+
+---
+
+#### DELETE /api/complaints/:id
+
+Delete a complaint. **Auth:** Yes
+
+---
+
+### Supplier Quality Endpoints (Medical Device Track)
+
+#### GET /api/suppliers?projectId=uuid
+
+List all suppliers with quality scorecards. **Auth:** Yes
+
+---
+
+#### POST /api/suppliers
+
+Create a new supplier with performance metrics. **Auth:** Yes
+
+**Request Body:**
+```json
+{
+  "projectId": "uuid",
+  "name": "Precision Components Ltd.",
+  "defectRate": 0.02,
+  "onTimeDelivery": 0.95,
+  "riskScore": 72
+}
+```
+
+---
+
+#### PUT /api/suppliers/:id
+
+Update supplier metrics. Auto-requalification triggers when score < 50 (status set to "conditional"). **Auth:** Yes
+
+---
+
+#### POST /api/suppliers/:id/audit
+
+Schedule or record an audit for a supplier. **Auth:** Yes
+
+---
+
+#### DELETE /api/suppliers/:id
+
+Delete a supplier record. **Auth:** Yes
+
+---
+
+### Post-Market Surveillance Endpoints (Medical Device Track)
+
+#### GET /api/pms?projectId=uuid
+
+List all PMS entries for a project. **Auth:** Yes
+
+---
+
+#### POST /api/pms
+
+Create a new PMS entry. Supports PSUR data assembly. **Auth:** Yes
+
+---
+
+#### GET /api/pms/summary?projectId=uuid
+
+PMS summary dashboard with aggregated entries. **Auth:** Yes
+
+---
+
+#### PUT /api/pms/:id | DELETE /api/pms/:id
+
+Standard CRUD. **Auth:** Yes
+
+---
+
+### UDI Management Endpoints (Medical Device Track)
+
+#### GET /api/udi?projectId=uuid
+
+List all UDI device identifiers. **Auth:** Yes
+
+---
+
+#### POST /api/udi
+
+Create a new UDI entry with device identifier tracking. **Auth:** Yes
+
+---
+
+#### GET /api/udi/export?format=gudid|eudamed&projectId=uuid
+
+Export UDI data in GUDID or EUDAMED format. **Auth:** Yes
+
+---
+
+#### PUT /api/udi/:id | DELETE /api/udi/:id
+
+Standard CRUD. **Auth:** Yes
+
+---
+
+### Electronic Batch Record Endpoints (Pharma Track)
+
+#### GET /api/batches?projectId=uuid
+
+List all batch records for a project. **Auth:** Yes
+
+---
+
+#### POST /api/batches
+
+Create a new batch record from a template. **Auth:** Yes
+
+**Request Body:**
+```json
+{
+  "projectId": "uuid",
+  "templateId": "uuid",
+  "batchNumber": "BATCH-2026-0042",
+  "product": "Aspirin 500mg"
+}
+```
+
+---
+
+#### PUT /api/batches/:id/steps/:stepId
+
+Execute a batch step. Supports deviations, review-by-exception, and yield calculation. **Auth:** Yes
+
+---
+
+#### POST /api/batches/:id/release
+
+E-signature release for a completed batch record. **Auth:** Yes (canApprove)
+
+---
+
+#### DELETE /api/batches/:id
+
+Delete a batch record. **Auth:** Yes
+
+---
+
+### Stability Study Endpoints (Pharma Track)
+
+#### GET /api/stability?projectId=uuid
+
+List all stability studies. **Auth:** Yes
+
+---
+
+#### POST /api/stability
+
+Create a stability study with ICH Q1A design, storage conditions, and pull schedules. **Auth:** Yes
+
+---
+
+#### POST /api/stability/:id/readings
+
+Add stability reading data. OOS/OOT auto-detection is applied. **Auth:** Yes
+
+---
+
+#### GET /api/stability/:id/trending
+
+Trending charts data for a stability study. **Auth:** Yes
+
+---
+
+#### PUT /api/stability/:id | DELETE /api/stability/:id
+
+Standard CRUD. **Auth:** Yes
+
+---
+
+### Environmental Monitoring Endpoints (Pharma Track)
+
+#### GET /api/envmon?projectId=uuid
+
+List all environmental monitoring points. **Auth:** Yes
+
+---
+
+#### POST /api/envmon
+
+Create a monitoring point with thresholds. **Auth:** Yes
+
+---
+
+#### POST /api/envmon/:id/readings
+
+Add a reading. Auto-excursion detection triggers when thresholds are breached. **Auth:** Yes
+
+---
+
+#### GET /api/envmon/trending?projectId=uuid
+
+Environmental monitoring trending data. **Auth:** Yes
+
+---
+
+#### PUT /api/envmon/:id | DELETE /api/envmon/:id
+
+Standard CRUD. **Auth:** Yes
+
+---
+
+### Training Management Endpoints (Pharma Track)
+
+#### GET /api/training?projectId=uuid
+
+List training plans, courses, and records. **Auth:** Yes
+
+---
+
+#### POST /api/training/plans
+
+Create a training plan. **Auth:** Yes
+
+---
+
+#### POST /api/training/courses
+
+Create a training course. **Auth:** Yes
+
+---
+
+#### POST /api/training/records
+
+Record training completion for a user. **Auth:** Yes
+
+---
+
+#### GET /api/training/matrix?projectId=uuid
+
+Training matrix showing user/course completion status. **Auth:** Yes
+
+---
+
+#### GET /api/training/compliance?projectId=uuid
+
+Training compliance dashboard with auto-retraining trigger detection. **Auth:** Yes
+
+---
+
+### Document Lifecycle Endpoints (Cross-Vertical)
+
+#### GET /api/documents?projectId=uuid
+
+List all documents with version history. **Auth:** Yes
+
+---
+
+#### POST /api/documents
+
+Create a new document (SOP, work instruction, etc.). Starts in "draft" status. **Auth:** Yes
+
+**Request Body:**
+```json
+{
+  "projectId": "uuid",
+  "title": "SOP-001: Equipment Calibration",
+  "type": "sop",
+  "content": "..."
+}
+```
+
+---
+
+#### PUT /api/documents/:id
+
+Update a document. **Status transitions (SOP versioning):**
+
+```
+draft -> review -> approved -> effective -> superseded -> retired
+```
+
+**Auth:** Yes
+
+---
+
+#### GET /api/documents/:id/history
+
+Version history for a document. **Auth:** Yes
+
+---
+
+#### GET /api/documents/:id/distribution
+
+Distribution tracking for a document. **Auth:** Yes
+
+---
+
+#### DELETE /api/documents/:id
+
+Delete a document. **Auth:** Yes
+
+---
+
+### Impact Analysis Endpoints (Software/GAMP Track)
+
+#### GET /api/impact?projectId=uuid
+
+Get requirement/test graph chains for a project. **Auth:** Yes
+
+---
+
+#### POST /api/impact/what-if
+
+Run a what-if analysis: given a proposed change to a requirement, return all downstream affected tests, CAPAs, and documents. **Auth:** Yes
+
+**Request Body:**
+```json
+{
+  "projectId": "uuid",
+  "requirementId": "uuid",
+  "changeDescription": "Modify validation threshold from 95% to 99%"
+}
+```
+
+---
+
+### Computerized System Inventory Endpoints (Software/GAMP Track)
+
+#### GET /api/systems?projectId=uuid
+
+List all computerized systems in the inventory. **Auth:** Yes
+
+---
+
+#### POST /api/systems
+
+Create a system entry with GAMP 5 category, validation status, and risk level. **Auth:** Yes
+
+**Request Body:**
+```json
+{
+  "projectId": "uuid",
+  "name": "LIMS v4.2",
+  "gampCategory": 4,
+  "validationStatus": "validated",
+  "riskLevel": "medium",
+  "nextReviewDate": "2027-01-15"
+}
+```
+
+---
+
+#### GET /api/systems/overdue?projectId=uuid
+
+Detect systems with overdue periodic reviews. **Auth:** Yes
+
+---
+
+#### PUT /api/systems/:id | DELETE /api/systems/:id
+
+Standard CRUD. **Auth:** Yes
+
+---
+
+### Periodic Review Endpoints (Software/GAMP Track)
+
+#### POST /api/systems/:id/periodic-review
+
+Start a 7-step periodic review wizard for a system. Auto-pulls data from related records. **Auth:** Yes
+
+---
+
+#### PUT /api/systems/:id/periodic-review
+
+Update periodic review progress (step completion). Schedules next review on completion. **Auth:** Yes
+
+---
+
+### Audit Management Endpoints (Cross-Vertical)
+
+#### GET /api/auditrecords?projectId=uuid
+
+List all audit records (schedule, findings, actions). **Auth:** Yes
+
+---
+
+#### POST /api/auditrecords
+
+Create an audit record with schedule and classification. **Auth:** Yes
+
+**Request Body:**
+```json
+{
+  "projectId": "uuid",
+  "title": "Annual ISO 13485 Internal Audit",
+  "auditType": "internal",
+  "scheduledDate": "2026-06-15",
+  "scope": "Design Controls, CAPA, Document Control"
+}
+```
+
+---
+
+#### POST /api/auditrecords/:id/findings
+
+Add a finding to an audit. Classification: observation, minor, major, or critical. CAPA linkage supported. **Auth:** Yes
+
+**Request Body:**
+```json
+{
+  "description": "Training records not updated after SOP revision",
+  "classification": "minor",
+  "capaId": "uuid"
+}
+```
+
+---
+
+#### PUT /api/auditrecords/:id | DELETE /api/auditrecords/:id
+
+Standard CRUD. **Auth:** Yes
+
+---
+
 ## 2. Authentication
 
 ### Token-Based Authentication
@@ -1157,4 +1621,164 @@ interface QualityIssue {
 }
 ```
 
-See `src/types/index.ts` for the full set of 60+ type definitions.
+### Vertical-Depth Types (Sprints 1-4)
+
+```typescript
+// Complaint Management (Medical Device)
+type ComplaintStatus = 'received' | 'investigating' | 'resolved' | 'closed';
+type ComplaintSeverity = 'minor' | 'major' | 'critical';
+
+interface Complaint {
+  id: string;
+  projectId: string;
+  title: string;
+  description: string;
+  status: ComplaintStatus;
+  severity: ComplaintSeverity;
+  product: string;
+  regulatoryReportable: boolean;
+  fscaReference?: string;
+  capaId?: string;
+  createdAt: string;
+  resolvedAt?: string;
+}
+
+// Supplier Quality Scorecards (Medical Device)
+type SupplierStatus = 'approved' | 'conditional' | 'disqualified' | 'pending';
+
+interface Supplier {
+  id: string;
+  projectId: string;
+  name: string;
+  defectRate: number;
+  onTimeDelivery: number;
+  riskScore: number;
+  status: SupplierStatus;
+  nextAuditDate?: string;
+}
+
+// Electronic Batch Records (Pharma)
+type BatchStatus = 'in_progress' | 'pending_review' | 'released' | 'rejected';
+
+interface BatchRecord {
+  id: string;
+  projectId: string;
+  batchNumber: string;
+  product: string;
+  status: BatchStatus;
+  templateId: string;
+  steps: BatchStep[];
+  yield?: number;
+  releasedBy?: string;
+  releasedAt?: string;
+}
+
+// Stability Study (Pharma)
+type StabilityCondition = 'long_term' | 'intermediate' | 'accelerated';
+
+interface StabilityStudy {
+  id: string;
+  projectId: string;
+  product: string;
+  condition: StabilityCondition;
+  pullSchedule: string[];
+  readings: StabilityReading[];
+  oosDetected: boolean;
+  ootDetected: boolean;
+}
+
+// Environmental Monitoring (Pharma)
+interface MonitoringPoint {
+  id: string;
+  projectId: string;
+  location: string;
+  parameter: string;
+  thresholdMin?: number;
+  thresholdMax?: number;
+  alertThreshold?: number;
+  actionThreshold?: number;
+}
+
+// Training Management (Pharma)
+type TrainingStatus = 'planned' | 'in_progress' | 'completed' | 'expired';
+
+interface TrainingRecord {
+  id: string;
+  userId: string;
+  courseId: string;
+  planId: string;
+  status: TrainingStatus;
+  completedAt?: string;
+  expiresAt?: string;
+}
+
+// Document Lifecycle (Cross-Vertical)
+type DocumentStatus = 'draft' | 'review' | 'approved' | 'effective' | 'superseded' | 'retired';
+
+interface Document {
+  id: string;
+  projectId: string;
+  title: string;
+  type: string;
+  status: DocumentStatus;
+  version: number;
+  content: string;
+  history: DocumentVersion[];
+}
+
+// Computerized System Inventory (Software/GAMP)
+type GAMPCategory = 1 | 3 | 4 | 5;
+type ValidationStatus = 'not_validated' | 'in_progress' | 'validated' | 'retired';
+
+interface ComputerizedSystem {
+  id: string;
+  projectId: string;
+  name: string;
+  gampCategory: GAMPCategory;
+  validationStatus: ValidationStatus;
+  riskLevel: RiskLevel;
+  nextReviewDate?: string;
+}
+
+// PMS (Medical Device)
+interface PMSEntry {
+  id: string;
+  projectId: string;
+  source: string;
+  description: string;
+  reportPeriod: string;
+  psurIncluded: boolean;
+}
+
+// UDI Management (Medical Device)
+interface UDIEntry {
+  id: string;
+  projectId: string;
+  deviceIdentifier: string;
+  productionIdentifier?: string;
+  deviceName: string;
+  gudidRegistered: boolean;
+  eudamedRegistered: boolean;
+}
+
+// Audit Management (Cross-Vertical)
+type FindingClassification = 'observation' | 'minor' | 'major' | 'critical';
+
+interface AuditRecord {
+  id: string;
+  projectId: string;
+  title: string;
+  auditType: string;
+  scheduledDate: string;
+  findings: AuditFinding[];
+}
+
+interface AuditFinding {
+  id: string;
+  description: string;
+  classification: FindingClassification;
+  capaId?: string;
+}
+```
+
+See `src/types/index.ts` for the full set of 80+ type definitions.

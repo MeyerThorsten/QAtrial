@@ -274,6 +274,464 @@ exports.Prisma.SignatureScalarFieldEnum = {
   timestamp: 'timestamp'
 };
 
+exports.Prisma.WebhookScalarFieldEnum = {
+  id: 'id',
+  orgId: 'orgId',
+  name: 'name',
+  url: 'url',
+  secret: 'secret',
+  events: 'events',
+  enabled: 'enabled',
+  lastTriggered: 'lastTriggered',
+  lastStatus: 'lastStatus',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.IntegrationScalarFieldEnum = {
+  id: 'id',
+  orgId: 'orgId',
+  type: 'type',
+  config: 'config',
+  enabled: 'enabled',
+  lastSyncAt: 'lastSyncAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.ComplaintScalarFieldEnum = {
+  id: 'id',
+  projectId: 'projectId',
+  productName: 'productName',
+  reportDate: 'reportDate',
+  severity: 'severity',
+  patientImpact: 'patientImpact',
+  description: 'description',
+  reporterType: 'reporterType',
+  investigationStatus: 'investigationStatus',
+  rootCause: 'rootCause',
+  capaId: 'capaId',
+  regulatoryReportable: 'regulatoryReportable',
+  fscaRequired: 'fscaRequired',
+  createdBy: 'createdBy',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.SupplierScalarFieldEnum = {
+  id: 'id',
+  orgId: 'orgId',
+  name: 'name',
+  category: 'category',
+  riskLevel: 'riskLevel',
+  qualificationStatus: 'qualificationStatus',
+  overallScore: 'overallScore',
+  defectRate: 'defectRate',
+  onTimeDelivery: 'onTimeDelivery',
+  lastAuditDate: 'lastAuditDate',
+  nextAuditDate: 'nextAuditDate',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.SupplierAuditScalarFieldEnum = {
+  id: 'id',
+  supplierId: 'supplierId',
+  auditDate: 'auditDate',
+  auditType: 'auditType',
+  findings: 'findings',
+  score: 'score',
+  auditor: 'auditor',
+  status: 'status',
+  nextAuditDate: 'nextAuditDate',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.BatchRecordScalarFieldEnum = {
+  id: 'id',
+  projectId: 'projectId',
+  productName: 'productName',
+  batchNumber: 'batchNumber',
+  status: 'status',
+  startDate: 'startDate',
+  endDate: 'endDate',
+  yieldActual: 'yieldActual',
+  yieldExpected: 'yieldExpected',
+  releasedBy: 'releasedBy',
+  releasedAt: 'releasedAt',
+  createdBy: 'createdBy',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.BatchStepScalarFieldEnum = {
+  id: 'id',
+  batchId: 'batchId',
+  stepNumber: 'stepNumber',
+  instruction: 'instruction',
+  expectedValue: 'expectedValue',
+  actualValue: 'actualValue',
+  unit: 'unit',
+  inSpec: 'inSpec',
+  deviation: 'deviation',
+  deviationNote: 'deviationNote',
+  performedBy: 'performedBy',
+  performedAt: 'performedAt',
+  verifiedBy: 'verifiedBy',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.TrainingPlanScalarFieldEnum = {
+  id: 'id',
+  orgId: 'orgId',
+  name: 'name',
+  role: 'role',
+  description: 'description',
+  courses: 'courses',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.CourseScalarFieldEnum = {
+  id: 'id',
+  orgId: 'orgId',
+  title: 'title',
+  description: 'description',
+  linkedDocumentId: 'linkedDocumentId',
+  version: 'version',
+  durationMinutes: 'durationMinutes',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.TrainingRecordScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  courseId: 'courseId',
+  completedAt: 'completedAt',
+  score: 'score',
+  status: 'status',
+  validUntil: 'validUntil',
+  assignedAt: 'assignedAt'
+};
+
+exports.Prisma.DocumentScalarFieldEnum = {
+  id: 'id',
+  projectId: 'projectId',
+  title: 'title',
+  type: 'type',
+  currentVersion: 'currentVersion',
+  status: 'status',
+  createdBy: 'createdBy',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.DocumentVersionScalarFieldEnum = {
+  id: 'id',
+  documentId: 'documentId',
+  version: 'version',
+  content: 'content',
+  changeReason: 'changeReason',
+  author: 'author',
+  reviewedBy: 'reviewedBy',
+  approvedBy: 'approvedBy',
+  effectiveDate: 'effectiveDate',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.ComputerizedSystemScalarFieldEnum = {
+  id: 'id',
+  orgId: 'orgId',
+  name: 'name',
+  vendor: 'vendor',
+  version: 'version',
+  gampCategory: 'gampCategory',
+  validationStatus: 'validationStatus',
+  riskLevel: 'riskLevel',
+  description: 'description',
+  lastReviewDate: 'lastReviewDate',
+  nextReviewDate: 'nextReviewDate',
+  retiredDate: 'retiredDate',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.PeriodicReviewScalarFieldEnum = {
+  id: 'id',
+  systemId: 'systemId',
+  reviewDate: 'reviewDate',
+  reviewer: 'reviewer',
+  status: 'status',
+  stillInUse: 'stillInUse',
+  changesNoted: 'changesNoted',
+  incidentsNoted: 'incidentsNoted',
+  regulatoryChanges: 'regulatoryChanges',
+  accessReviewed: 'accessReviewed',
+  findings: 'findings',
+  nextReviewDate: 'nextReviewDate',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.PMSEntryScalarFieldEnum = {
+  id: 'id',
+  projectId: 'projectId',
+  entryType: 'entryType',
+  title: 'title',
+  description: 'description',
+  source: 'source',
+  date: 'date',
+  severity: 'severity',
+  actionTaken: 'actionTaken',
+  linkedEntityId: 'linkedEntityId',
+  createdBy: 'createdBy',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.UDIScalarFieldEnum = {
+  id: 'id',
+  projectId: 'projectId',
+  deviceIdentifier: 'deviceIdentifier',
+  productionId: 'productionId',
+  productName: 'productName',
+  deviceDescription: 'deviceDescription',
+  brandName: 'brandName',
+  versionModelNo: 'versionModelNo',
+  companyName: 'companyName',
+  gudidSubmitted: 'gudidSubmitted',
+  eudamedRegistered: 'eudamedRegistered',
+  labelContent: 'labelContent',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.StabilityStudyScalarFieldEnum = {
+  id: 'id',
+  projectId: 'projectId',
+  productName: 'productName',
+  studyType: 'studyType',
+  conditions: 'conditions',
+  startDate: 'startDate',
+  durationMonths: 'durationMonths',
+  pullSchedule: 'pullSchedule',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.StabilitySampleScalarFieldEnum = {
+  id: 'id',
+  studyId: 'studyId',
+  timePointMonths: 'timePointMonths',
+  testDate: 'testDate',
+  parameter: 'parameter',
+  result: 'result',
+  specification: 'specification',
+  inSpec: 'inSpec',
+  oosFlag: 'oosFlag',
+  ootFlag: 'ootFlag',
+  investigationId: 'investigationId',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.WorkflowTemplateScalarFieldEnum = {
+  id: 'id',
+  orgId: 'orgId',
+  name: 'name',
+  description: 'description',
+  entityType: 'entityType',
+  enabled: 'enabled',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.WorkflowStepScalarFieldEnum = {
+  id: 'id',
+  templateId: 'templateId',
+  order: 'order',
+  name: 'name',
+  type: 'type',
+  assigneeRole: 'assigneeRole',
+  requiredApprovers: 'requiredApprovers',
+  slaHours: 'slaHours',
+  escalateTo: 'escalateTo',
+  conditions: 'conditions',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.WorkflowExecutionScalarFieldEnum = {
+  id: 'id',
+  templateId: 'templateId',
+  entityType: 'entityType',
+  entityId: 'entityId',
+  projectId: 'projectId',
+  currentStep: 'currentStep',
+  status: 'status',
+  startedAt: 'startedAt',
+  completedAt: 'completedAt'
+};
+
+exports.Prisma.WorkflowActionScalarFieldEnum = {
+  id: 'id',
+  executionId: 'executionId',
+  stepOrder: 'stepOrder',
+  userId: 'userId',
+  userName: 'userName',
+  action: 'action',
+  reason: 'reason',
+  delegatedTo: 'delegatedTo',
+  timestamp: 'timestamp'
+};
+
+exports.Prisma.ChangeControlScalarFieldEnum = {
+  id: 'id',
+  projectId: 'projectId',
+  title: 'title',
+  changeNumber: 'changeNumber',
+  type: 'type',
+  description: 'description',
+  justification: 'justification',
+  status: 'status',
+  riskLevel: 'riskLevel',
+  initiatedBy: 'initiatedBy',
+  impactAssessment: 'impactAssessment',
+  affectedDocuments: 'affectedDocuments',
+  affectedTraining: 'affectedTraining',
+  affectedValidation: 'affectedValidation',
+  workflowExecutionId: 'workflowExecutionId',
+  effectivenessCheckDate: 'effectivenessCheckDate',
+  effectivenessVerified: 'effectivenessVerified',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.ChangeTaskScalarFieldEnum = {
+  id: 'id',
+  changeControlId: 'changeControlId',
+  title: 'title',
+  assignee: 'assignee',
+  dueDate: 'dueDate',
+  status: 'status',
+  completedAt: 'completedAt',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.DeviationScalarFieldEnum = {
+  id: 'id',
+  projectId: 'projectId',
+  deviationNumber: 'deviationNumber',
+  title: 'title',
+  classification: 'classification',
+  area: 'area',
+  description: 'description',
+  detectedBy: 'detectedBy',
+  detectedAt: 'detectedAt',
+  status: 'status',
+  investigationMethod: 'investigationMethod',
+  investigationNotes: 'investigationNotes',
+  rootCause: 'rootCause',
+  capaId: 'capaId',
+  closedBy: 'closedBy',
+  closedAt: 'closedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.MonitoringPointScalarFieldEnum = {
+  id: 'id',
+  projectId: 'projectId',
+  name: 'name',
+  zone: 'zone',
+  type: 'type',
+  unit: 'unit',
+  alertThreshold: 'alertThreshold',
+  actionThreshold: 'actionThreshold',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.MonitoringReadingScalarFieldEnum = {
+  id: 'id',
+  pointId: 'pointId',
+  value: 'value',
+  timestamp: 'timestamp',
+  excursion: 'excursion',
+  excursionType: 'excursionType',
+  actionTaken: 'actionTaken',
+  acknowledgedBy: 'acknowledgedBy'
+};
+
+exports.Prisma.AuditRecordScalarFieldEnum = {
+  id: 'id',
+  projectId: 'projectId',
+  type: 'type',
+  title: 'title',
+  scheduledDate: 'scheduledDate',
+  actualDate: 'actualDate',
+  status: 'status',
+  scope: 'scope',
+  leadAuditor: 'leadAuditor',
+  reportSummary: 'reportSummary',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.AuditFindingScalarFieldEnum = {
+  id: 'id',
+  auditId: 'auditId',
+  classification: 'classification',
+  area: 'area',
+  description: 'description',
+  responsibleParty: 'responsibleParty',
+  dueDate: 'dueDate',
+  capaId: 'capaId',
+  status: 'status',
+  response: 'response',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.NotificationScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  type: 'type',
+  title: 'title',
+  message: 'message',
+  entityType: 'entityType',
+  entityId: 'entityId',
+  projectId: 'projectId',
+  read: 'read',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.CommentScalarFieldEnum = {
+  id: 'id',
+  entityType: 'entityType',
+  entityId: 'entityId',
+  projectId: 'projectId',
+  userId: 'userId',
+  userName: 'userName',
+  content: 'content',
+  parentId: 'parentId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.QTaskScalarFieldEnum = {
+  id: 'id',
+  projectId: 'projectId',
+  title: 'title',
+  description: 'description',
+  assigneeId: 'assigneeId',
+  assigneeName: 'assigneeName',
+  dueDate: 'dueDate',
+  priority: 'priority',
+  status: 'status',
+  entityType: 'entityType',
+  entityId: 'entityId',
+  createdBy: 'createdBy',
+  createdAt: 'createdAt',
+  completedAt: 'completedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -281,6 +739,10 @@ exports.Prisma.SortOrder = {
 
 exports.Prisma.NullableJsonNullValueInput = {
   DbNull: Prisma.DbNull,
+  JsonNull: Prisma.JsonNull
+};
+
+exports.Prisma.JsonNullValueInput = {
   JsonNull: Prisma.JsonNull
 };
 
@@ -313,7 +775,39 @@ exports.Prisma.ModelName = {
   AuditLog: 'AuditLog',
   Evidence: 'Evidence',
   Approval: 'Approval',
-  Signature: 'Signature'
+  Signature: 'Signature',
+  Webhook: 'Webhook',
+  Integration: 'Integration',
+  Complaint: 'Complaint',
+  Supplier: 'Supplier',
+  SupplierAudit: 'SupplierAudit',
+  BatchRecord: 'BatchRecord',
+  BatchStep: 'BatchStep',
+  TrainingPlan: 'TrainingPlan',
+  Course: 'Course',
+  TrainingRecord: 'TrainingRecord',
+  Document: 'Document',
+  DocumentVersion: 'DocumentVersion',
+  ComputerizedSystem: 'ComputerizedSystem',
+  PeriodicReview: 'PeriodicReview',
+  PMSEntry: 'PMSEntry',
+  UDI: 'UDI',
+  StabilityStudy: 'StabilityStudy',
+  StabilitySample: 'StabilitySample',
+  WorkflowTemplate: 'WorkflowTemplate',
+  WorkflowStep: 'WorkflowStep',
+  WorkflowExecution: 'WorkflowExecution',
+  WorkflowAction: 'WorkflowAction',
+  ChangeControl: 'ChangeControl',
+  ChangeTask: 'ChangeTask',
+  Deviation: 'Deviation',
+  MonitoringPoint: 'MonitoringPoint',
+  MonitoringReading: 'MonitoringReading',
+  AuditRecord: 'AuditRecord',
+  AuditFinding: 'AuditFinding',
+  Notification: 'Notification',
+  Comment: 'Comment',
+  QTask: 'QTask'
 };
 
 /**

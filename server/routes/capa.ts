@@ -147,8 +147,24 @@ capa.put('/:id', async (c) => {
     });
 
     if (user.orgId) {
-      const webhookEvent = action === 'status_change' ? 'capa.status_changed' : 'capa.status_changed';
+      const webhookEvent = action === 'status_change' ? 'capa.status_changed' : 'capa.updated';
       dispatchWebhook(user.orgId, webhookEvent, { capa: item, previous: existing });
+    }
+
+    // Closed-loop cascade: when CAPA is resolved, log cascade and dispatch webhook
+    if (body.status === 'resolved' && existing.status !== 'resolved') {
+      await logAudit({
+        projectId: existing.projectId,
+        userId: user.userId,
+        action: 'cascade',
+        entityType: 'capa',
+        entityId: item.id,
+        newValue: { note: 'CAPA resolved — closed-loop cascade triggered. Review linked documents and training records for updates.' },
+      });
+
+      if (user.orgId) {
+        dispatchWebhook(user.orgId, 'capa.resolved', { capa: item, previous: existing });
+      }
     }
 
     return c.json({ capa: item });
