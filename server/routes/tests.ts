@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
-import { prisma } from '../index.js';
-import { authMiddleware, getUser, JwtPayload } from '../middleware/auth.js';
+import { prisma } from '../lib/prisma.js';
+import { authMiddleware, getUser, requirePermission } from '../middleware/auth.js';
 import { logAudit } from '../services/audit.service.js';
 import { dispatchWebhook } from '../services/webhook.service.js';
 
@@ -32,7 +32,7 @@ tests.get('/', async (c) => {
   }
 });
 
-tests.post('/', async (c) => {
+tests.post('/', requirePermission('canEdit'), async (c) => {
   try {
     const user = getUser(c);
     const body = await c.req.json();
@@ -91,7 +91,7 @@ tests.get('/:id', async (c) => {
   }
 });
 
-tests.put('/:id', async (c) => {
+tests.put('/:id', requirePermission('canEdit'), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();
@@ -134,7 +134,7 @@ tests.put('/:id', async (c) => {
   }
 });
 
-tests.delete('/:id', async (c) => {
+tests.delete('/:id', requirePermission('canDelete'), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();

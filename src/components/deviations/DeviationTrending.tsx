@@ -6,6 +6,8 @@ import {
 } from 'recharts';
 import { useProjectStore } from '../../store/useProjectStore';
 import { useAuth } from '../../hooks/useAuth';
+import { apiFetch } from '../../lib/apiClient';
+import { getProjectId } from '../../lib/projectUtils';
 
 const CLASSIFICATION_COLORS: Record<string, string> = {
   minor: '#eab308',
@@ -31,22 +33,18 @@ export function DeviationTrending() {
   const { token } = useAuth();
   const [trending, setTrending] = useState<TrendingData | null>(null);
   const [loading, setLoading] = useState(true);
-
-  const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+  const projectId = getProjectId(project);
 
   useEffect(() => {
-    if (!project?.name || !token) return;
+    if (!projectId || !token) return;
     setLoading(true);
-    fetch(`${apiBase}/api/deviations/trending?projectId=${project.name}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((r) => r.json())
+    apiFetch<{ trending: TrendingData }>(`/deviations/trending?projectId=${encodeURIComponent(projectId)}`)
       .then((data) => {
         if (data.trending) setTrending(data.trending);
       })
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, [project?.name, token, apiBase]);
+  }, [projectId, token]);
 
   if (loading) {
     return (

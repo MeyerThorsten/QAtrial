@@ -3,6 +3,9 @@ import { useTranslation } from 'react-i18next';
 import { Save } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { useProjectStore } from '../../store/useProjectStore';
+import { apiFetch } from '../../lib/apiClient';
+import { roleHasPermission } from '../../lib/permissions';
+import { getProjectId } from '../../lib/projectUtils';
 
 const CLASSIFICATIONS = ['minor', 'major', 'critical'];
 const STATUS_ORDER = ['detected', 'investigating', 'root_cause_identified', 'capa_created', 'closed'];
@@ -22,7 +25,7 @@ interface Props {
 
 export function DeviationForm({ deviation, onSaved, onCancel }: Props) {
   const { t } = useTranslation();
-  const { token } = useAuth();
+  const { user } = useAuth();
   const project = useProjectStore((s) => s.project);
 
   const [title, setTitle] = useState('');
@@ -31,9 +34,9 @@ export function DeviationForm({ deviation, onSaved, onCancel }: Props) {
   const [description, setDescription] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
-
-  const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+  const projectId = getProjectId(project);
   const isEdit = !!deviation;
+  const canEdit = roleHasPermission(user?.role, 'canEdit');
 
   useEffect(() => {
     if (deviation) {
@@ -45,30 +48,23 @@ export function DeviationForm({ deviation, onSaved, onCancel }: Props) {
   }, [deviation]);
 
   const handleSave = async () => {
+    if (!canEdit) { setError('Insufficient permissions: requires canEdit'); return; }
     if (!title.trim()) { setError(t('deviations.titleRequired')); return; }
     setSaving(true);
     setError('');
 
     const payload: any = { title, classification, area, description };
-    if (!isEdit) payload.projectId = project?.name || '';
+    if (!isEdit) payload.projectId = projectId;
 
     try {
-      const url = isEdit
-        ? `${apiBase}/api/deviations/${deviation.id}`
-        : `${apiBase}/api/deviations`;
-      const res = await fetch(url, {
+      await apiFetch(isEdit ? `/deviations/${deviation.id}` : '/deviations', {
         method: isEdit ? 'PUT' : 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify(payload),
       });
-      if (!res.ok) {
-        const data = await res.json();
-        setError(data.message || 'Failed to save');
-        return;
-      }
+      setError('');
       onSaved?.();
-    } catch {
-      setError('Network error');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to save');
     } finally {
       setSaving(false);
     }
@@ -117,6 +113,7 @@ export function DeviationForm({ deviation, onSaved, onCancel }: Props) {
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
+            disabled={!canEdit}
             className="w-full px-3 py-2 bg-surface border border-border rounded-lg text-text-primary text-sm focus:outline-none focus:ring-2 focus:ring-accent"
           />
         </div>
@@ -125,6 +122,7 @@ export function DeviationForm({ deviation, onSaved, onCancel }: Props) {
           <select
             value={classification}
             onChange={(e) => setClassification(e.target.value)}
+            disabled={!canEdit}
             className="w-full px-3 py-2 bg-surface border border-border rounded-lg text-text-primary text-sm focus:outline-none focus:ring-2 focus:ring-accent"
           >
             {CLASSIFICATIONS.map((cl) => (
@@ -140,6 +138,7 @@ export function DeviationForm({ deviation, onSaved, onCancel }: Props) {
           type="text"
           value={area}
           onChange={(e) => setArea(e.target.value)}
+          disabled={!canEdit}
           className="w-full px-3 py-2 bg-surface border border-border rounded-lg text-text-primary text-sm focus:outline-none focus:ring-2 focus:ring-accent"
           placeholder={t('deviations.areaPlaceholder')}
         />
@@ -150,6 +149,7 @@ export function DeviationForm({ deviation, onSaved, onCancel }: Props) {
         <textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
+          disabled={!canEdit}
           className="w-full px-3 py-2 bg-surface border border-border rounded-lg text-text-primary text-sm focus:outline-none focus:ring-2 focus:ring-accent"
           rows={4}
         />
@@ -158,7 +158,7 @@ export function DeviationForm({ deviation, onSaved, onCancel }: Props) {
       <div className="flex items-center gap-3 pt-2">
         <button
           onClick={handleSave}
-          disabled={saving}
+          disabled={saving || !canEdit}
           className="inline-flex items-center gap-2 px-4 py-2 bg-accent text-white rounded-lg hover:bg-accent/90 transition-colors text-sm font-medium disabled:opacity-50"
         >
           <Save className="w-4 h-4" />

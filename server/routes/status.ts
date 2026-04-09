@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import { prisma } from '../index.js';
+import { prisma } from '../lib/prisma.js';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';

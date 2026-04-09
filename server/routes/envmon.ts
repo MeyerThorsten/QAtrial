@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
-import { prisma } from '../index.js';
-import { authMiddleware, getUser } from '../middleware/auth.js';
+import { findAccessibleProject } from '../lib/projectAccess.js';
+import { prisma } from '../lib/prisma.js';
+import { authMiddleware, getUser, requirePermission } from '../middleware/auth.js';
 import { logAudit } from '../services/audit.service.js';
 import { dispatchWebhook } from '../services/webhook.service.js';
 
@@ -8,12 +9,31 @@ const envmon = new Hono();
 
 envmon.use('*', authMiddleware);
 
+async function findAccessiblePoint(id: string, orgId: string | null) {
+  const point = await prisma.monitoringPoint.findUnique({ where: { id } });
+  if (!point) {
+    return null;
+  }
+
+  const project = await findAccessibleProject(point.projectId, orgId);
+  if (!project) {
+    return null;
+  }
+
+  return point;
+}
+
 // List monitoring points
 envmon.get('/points', async (c) => {
   try {
+    const user = getUser(c);
     const projectId = c.req.query('projectId');
     if (!projectId) {
       return c.json({ message: 'projectId query parameter is required' }, 400);
+    }
+    const project = await findAccessibleProject(projectId, user.orgId);
+    if (!project) {
+      return c.json({ message: 'Project not found' }, 404);
     }
 
     const items = await prisma.monitoringPoint.findMany({
@@ -29,13 +49,17 @@ envmon.get('/points', async (c) => {
 });
 
 // Create monitoring point
-envmon.post('/points', async (c) => {
+envmon.post('/points', requirePermission('canEdit'), async (c) => {
   try {
     const user = getUser(c);
     const body = await c.req.json();
 
     if (!body.projectId || !body.name || !body.zone) {
       return c.json({ message: 'projectId, name, and zone are required' }, 400);
+    }
+    const project = await findAccessibleProject(body.projectId, user.orgId);
+    if (!project) {
+      return c.json({ message: 'Project not found' }, 404);
     }
 
     const item = await prisma.monitoringPoint.create({
@@ -67,13 +91,13 @@ envmon.post('/points', async (c) => {
 });
 
 // Add reading (auto-detect excursion)
-envmon.post('/points/:id/readings', async (c) => {
+envmon.post('/points/:id/readings', requirePermission('canEdit'), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();
     const body = await c.req.json();
 
-    const point = await prisma.monitoringPoint.findUnique({ where: { id } });
+    const point = await findAccessiblePoint(id, user.orgId);
     if (!point) {
       return c.json({ message: 'Monitoring point not found' }, 404);
     }
@@ -106,6 +130,15 @@ envmon.post('/points/:id/readings', async (c) => {
       },
     });
 
+    await logAudit({
+      projectId: point.projectId,
+      userId: user.userId,
+      action: 'create',
+      entityType: 'monitoring_reading',
+      entityId: reading.id,
+      newValue: reading,
+    });
+
     if (excursion && user.orgId) {
       dispatchWebhook(user.orgId, 'envmon.excursion_detected', {
         reading,
@@ -124,10 +157,11 @@ envmon.post('/points/:id/readings', async (c) => {
 // Get readings for a point
 envmon.get('/points/:id/readings', async (c) => {
   try {
+    const user = getUser(c);
     const { id } = c.req.param();
     const limit = parseInt(c.req.query('limit') || '100');
 
-    const point = await prisma.monitoringPoint.findUnique({ where: { id } });
+    const point = await findAccessiblePoint(id, user.orgId);
     if (!point) {
       return c.json({ message: 'Monitoring point not found' }, 404);
     }
@@ -148,9 +182,14 @@ envmon.get('/points/:id/readings', async (c) => {
 // List all excursions for project
 envmon.get('/excursions', async (c) => {
   try {
+    const user = getUser(c);
     const projectId = c.req.query('projectId');
     if (!projectId) {
       return c.json({ message: 'projectId query parameter is required' }, 400);
+    }
+    const project = await findAccessibleProject(projectId, user.orgId);
+    if (!project) {
+      return c.json({ message: 'Project not found' }, 404);
     }
 
     const points = await prisma.monitoringPoint.findMany({
@@ -184,9 +223,14 @@ envmon.get('/excursions', async (c) => {
 // Environmental trending data
 envmon.get('/trending', async (c) => {
   try {
+    const user = getUser(c);
     const projectId = c.req.query('projectId');
     if (!projectId) {
       return c.json({ message: 'projectId query parameter is required' }, 400);
+    }
+    const project = await findAccessibleProject(projectId, user.orgId);
+    if (!project) {
+      return c.json({ message: 'Project not found' }, 404);
     }
 
     const points = await prisma.monitoringPoint.findMany({

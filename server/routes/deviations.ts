@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
-import { prisma } from '../index.js';
-import { authMiddleware, getUser } from '../middleware/auth.js';
+import { prisma } from '../lib/prisma.js';
+import { authMiddleware, getUser, requirePermission } from '../middleware/auth.js';
+import { findAccessibleProject } from '../lib/projectAccess.js';
 import { logAudit } from '../services/audit.service.js';
 import { dispatchWebhook } from '../services/webhook.service.js';
 
@@ -18,8 +19,11 @@ const VALID_TRANSITIONS: Record<string, string[]> = {
 // GET /trending — deviations by classification/area/month, root cause categories
 deviations.get('/trending', async (c) => {
   try {
+    const user = getUser(c);
     const projectId = c.req.query('projectId');
     if (!projectId) return c.json({ message: 'projectId required' }, 400);
+    const project = await findAccessibleProject(projectId, user.orgId);
+    if (!project) return c.json({ message: 'Project not found' }, 404);
 
     const all = await prisma.deviation.findMany({ where: { projectId } });
 
@@ -64,8 +68,11 @@ deviations.get('/trending', async (c) => {
 // GET / — list deviations by projectId
 deviations.get('/', async (c) => {
   try {
+    const user = getUser(c);
     const projectId = c.req.query('projectId');
     if (!projectId) return c.json({ message: 'projectId required' }, 400);
+    const project = await findAccessibleProject(projectId, user.orgId);
+    if (!project) return c.json({ message: 'Project not found' }, 404);
 
     const items = await prisma.deviation.findMany({
       where: { projectId },
@@ -79,7 +86,7 @@ deviations.get('/', async (c) => {
 });
 
 // POST / — create (auto-generate DEV-NNN number)
-deviations.post('/', async (c) => {
+deviations.post('/', requirePermission('canEdit'), async (c) => {
   try {
     const user = getUser(c);
     const body = await c.req.json();
@@ -88,6 +95,9 @@ deviations.post('/', async (c) => {
     if (!projectId || !title) {
       return c.json({ message: 'projectId and title are required' }, 400);
     }
+
+    const project = await findAccessibleProject(projectId, user.orgId);
+    if (!project) return c.json({ message: 'Project not found' }, 404);
 
     const count = await prisma.deviation.count({ where: { projectId } });
     const deviationNumber = `DEV-${String(count + 1).padStart(3, '0')}`;
@@ -128,9 +138,12 @@ deviations.post('/', async (c) => {
 // GET /:id — get single
 deviations.get('/:id', async (c) => {
   try {
+    const user = getUser(c);
     const { id } = c.req.param();
     const deviation = await prisma.deviation.findUnique({ where: { id } });
     if (!deviation) return c.json({ message: 'Deviation not found' }, 404);
+    const project = await findAccessibleProject(deviation.projectId, user.orgId);
+    if (!project) return c.json({ message: 'Deviation not found' }, 404);
     return c.json({ deviation });
   } catch (error: any) {
     console.error('Get deviation error:', error);
@@ -139,7 +152,7 @@ deviations.get('/:id', async (c) => {
 });
 
 // PUT /:id — update (with status transition validation)
-deviations.put('/:id', async (c) => {
+deviations.put('/:id', requirePermission('canEdit'), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();
@@ -147,6 +160,8 @@ deviations.put('/:id', async (c) => {
 
     const existing = await prisma.deviation.findUnique({ where: { id } });
     if (!existing) return c.json({ message: 'Deviation not found' }, 404);
+    const project = await findAccessibleProject(existing.projectId, user.orgId);
+    if (!project) return c.json({ message: 'Deviation not found' }, 404);
 
     if (body.status && body.status !== existing.status) {
       const allowed = VALID_TRANSITIONS[existing.status];
@@ -190,9 +205,14 @@ deviations.put('/:id', async (c) => {
 });
 
 // DELETE /:id — delete
-deviations.delete('/:id', async (c) => {
+deviations.delete('/:id', requirePermission('canDelete'), async (c) => {
   try {
+    const user = getUser(c);
     const { id } = c.req.param();
+    const existing = await prisma.deviation.findUnique({ where: { id } });
+    if (!existing) return c.json({ message: 'Deviation not found' }, 404);
+    const project = await findAccessibleProject(existing.projectId, user.orgId);
+    if (!project) return c.json({ message: 'Deviation not found' }, 404);
     await prisma.deviation.delete({ where: { id } });
     return c.json({ message: 'Deviation deleted' });
   } catch (error: any) {
@@ -202,7 +222,7 @@ deviations.delete('/:id', async (c) => {
 });
 
 // PUT /:id/investigate — start investigation
-deviations.put('/:id/investigate', async (c) => {
+deviations.put('/:id/investigate', requirePermission('canEdit'), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();
@@ -210,6 +230,8 @@ deviations.put('/:id/investigate', async (c) => {
 
     const existing = await prisma.deviation.findUnique({ where: { id } });
     if (!existing) return c.json({ message: 'Deviation not found' }, 404);
+    const project = await findAccessibleProject(existing.projectId, user.orgId);
+    if (!project) return c.json({ message: 'Deviation not found' }, 404);
 
     const deviation = await prisma.deviation.update({
       where: { id },
@@ -237,7 +259,7 @@ deviations.put('/:id/investigate', async (c) => {
 });
 
 // PUT /:id/root-cause — record root cause
-deviations.put('/:id/root-cause', async (c) => {
+deviations.put('/:id/root-cause', requirePermission('canEdit'), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();
@@ -245,6 +267,8 @@ deviations.put('/:id/root-cause', async (c) => {
 
     const existing = await prisma.deviation.findUnique({ where: { id } });
     if (!existing) return c.json({ message: 'Deviation not found' }, 404);
+    const project = await findAccessibleProject(existing.projectId, user.orgId);
+    if (!project) return c.json({ message: 'Deviation not found' }, 404);
 
     const deviation = await prisma.deviation.update({
       where: { id },
@@ -271,13 +295,15 @@ deviations.put('/:id/root-cause', async (c) => {
 });
 
 // PUT /:id/create-capa — auto-create CAPA linked to this deviation
-deviations.put('/:id/create-capa', async (c) => {
+deviations.put('/:id/create-capa', requirePermission('canEdit'), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();
 
     const existing = await prisma.deviation.findUnique({ where: { id } });
     if (!existing) return c.json({ message: 'Deviation not found' }, 404);
+    const project = await findAccessibleProject(existing.projectId, user.orgId);
+    if (!project) return c.json({ message: 'Deviation not found' }, 404);
 
     // Create a CAPA linked to this deviation
     const capa = await prisma.cAPA.create({

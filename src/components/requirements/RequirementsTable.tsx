@@ -18,23 +18,28 @@ import { useLLMStore } from '../../store/useLLMStore';
 import { useAuditStore } from '../../store/useAuditStore';
 import { useEvidenceStore } from '../../store/useEvidenceStore';
 import { useProjectStore } from '../../store/useProjectStore';
+import { useAppMode } from '../../hooks/useAppMode';
 import { StatusBadge } from '../shared/StatusBadge';
 import { ConfirmDialog } from '../shared/ConfirmDialog';
 import { EmptyState } from '../shared/EmptyState';
 import { RequirementModal } from './RequirementModal';
-import { SignatureModal } from '../audit/SignatureModal';
+import { EnhancedSignatureModal } from '../audit/EnhancedSignatureModal';
 import { EvidencePanel } from '../evidence/EvidencePanel';
 import { ApprovalPanel } from '../approval/ApprovalPanel';
 import { TestGenerationPanel } from '../ai/TestGenerationPanel';
 import { RiskClassificationPanel } from '../ai/RiskClassificationPanel';
 import { QualityCheckPanel } from '../ai/QualityCheckPanel';
 import { isApproved } from '../../lib/approvalHelpers';
+import { useProjectData } from '../../context/ProjectDataContext';
+import { getProjectId } from '../../lib/projectUtils';
 import type { Requirement } from '../../types';
 
 const columnHelper = createColumnHelper<Requirement & { linkedTestCount: number }>();
 
 export function RequirementsTable() {
   const { t } = useTranslation();
+  const { mode } = useAppMode();
+  const isServerMode = mode === 'server';
   const requirements = useRequirementsStore((s) => s.requirements);
   const addRequirement = useRequirementsStore((s) => s.addRequirement);
   const updateRequirement = useRequirementsStore((s) => s.updateRequirement);
@@ -57,6 +62,12 @@ export function RequirementsTable() {
   const [approvalReq, setApprovalReq] = useState<Requirement | null>(null);
   const evidenceAttachments = useEvidenceStore((s) => s.attachments);
   const project = useProjectStore((s) => s.project);
+  const {
+    createRequirement: createServerRequirement,
+    updateRequirement: updateServerRequirement,
+    removeRequirement: removeServerRequirement,
+  } = useProjectData();
+  const projectId = getProjectId(project);
 
   const data = useMemo(
     () =>
@@ -285,9 +296,17 @@ export function RequirementsTable() {
         requirement={editingReq}
         onSave={(data) => {
           if (editingReq) {
-            updateRequirement(editingReq.id, data);
+            if (isServerMode) {
+              void updateServerRequirement(editingReq.id, data);
+            } else {
+              updateRequirement(editingReq.id, data);
+            }
           } else {
-            addRequirement(data);
+            if (isServerMode) {
+              void createServerRequirement(data);
+            } else {
+              addRequirement(data);
+            }
           }
         }}
         onClose={() => { setModalOpen(false); setEditingReq(null); }}
@@ -297,7 +316,16 @@ export function RequirementsTable() {
         open={deleteId !== null}
         title={t('requirements.deleteTitle')}
         message={t('requirements.deleteMessage')}
-        onConfirm={() => { if (deleteId) deleteRequirement(deleteId); setDeleteId(null); }}
+        onConfirm={() => {
+          if (deleteId) {
+            if (isServerMode) {
+              void removeServerRequirement(deleteId);
+            } else {
+              deleteRequirement(deleteId);
+            }
+          }
+          setDeleteId(null);
+        }}
         onCancel={() => setDeleteId(null)}
       />
 
@@ -323,15 +351,16 @@ export function RequirementsTable() {
       )}
 
       {/* Signature Modal for approving Active requirements */}
-      <SignatureModal
+      <EnhancedSignatureModal
         open={signReq !== null}
         entityType="requirement"
         entityId={signReq?.id ?? ''}
-        entityTitle={signReq?.title ?? ''}
-        onSign={() => {
+        projectId={projectId}
+        meaning="approved"
+        onComplete={() => {
           setSignReq(null);
         }}
-        onCancel={() => setSignReq(null)}
+        onClose={() => setSignReq(null)}
       />
 
       {/* Evidence Panel */}
@@ -339,7 +368,7 @@ export function RequirementsTable() {
         open={evidenceReq !== null}
         entityType="requirement"
         entityId={evidenceReq?.id ?? ''}
-        projectId={project?.name ?? 'default'}
+        projectId={projectId}
         onClose={() => setEvidenceReq(null)}
       />
 
@@ -348,7 +377,7 @@ export function RequirementsTable() {
         open={approvalReq !== null}
         entityType="requirement"
         entityId={approvalReq?.id ?? ''}
-        projectId={project?.name ?? 'default'}
+        projectId={projectId}
         currentStatus={approvalReq?.status ?? 'Draft'}
         onClose={() => setApprovalReq(null)}
       />

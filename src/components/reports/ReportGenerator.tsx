@@ -19,6 +19,7 @@ import { useRequirementsStore } from '../../store/useRequirementsStore';
 import { useTestsStore } from '../../store/useTestsStore';
 import { generateVSR } from '../../ai/prompts/vsrReport';
 import { generateExecutiveBrief } from '../../ai/prompts/executiveBrief';
+import { getProjectId } from '../../lib/projectUtils';
 import { ReportPreview } from './ReportPreview';
 
 interface ReportTypeCard {
@@ -94,6 +95,7 @@ export function ReportGenerator() {
 
   async function handleGenerate() {
     if (!selectedType || !project) return;
+    const projectId = getProjectId(project);
 
     setGenerating(true);
     setError(null);
@@ -204,7 +206,8 @@ export function ReportGenerator() {
 
       const config: ReportConfig = {
         type: selectedType,
-        projectId: project.name,
+        projectId,
+        projectName: project.name,
         format,
         includeSignatures,
         targetAuthority: selectedType === 'submission_package' ? targetAuthority : undefined,

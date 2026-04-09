@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
-import { prisma } from '../index.js';
-import { authMiddleware, getUser } from '../middleware/auth.js';
+import { prisma } from '../lib/prisma.js';
+import { authMiddleware, getUser, requirePermission } from '../middleware/auth.js';
+import { findAccessibleProject } from '../lib/projectAccess.js';
 import { logAudit } from '../services/audit.service.js';
 import { dispatchWebhook } from '../services/webhook.service.js';
 
@@ -19,8 +20,11 @@ const VALID_TRANSITIONS: Record<string, string[]> = {
 // GET /trending — change controls by type/month/status
 changecontrol.get('/trending', async (c) => {
   try {
+    const user = getUser(c);
     const projectId = c.req.query('projectId');
     if (!projectId) return c.json({ message: 'projectId required' }, 400);
+    const project = await findAccessibleProject(projectId, user.orgId);
+    if (!project) return c.json({ message: 'Project not found' }, 404);
 
     const all = await prisma.changeControl.findMany({ where: { projectId } });
 
@@ -52,8 +56,11 @@ changecontrol.get('/trending', async (c) => {
 // GET / — list change controls by projectId
 changecontrol.get('/', async (c) => {
   try {
+    const user = getUser(c);
     const projectId = c.req.query('projectId');
     if (!projectId) return c.json({ message: 'projectId required' }, 400);
+    const project = await findAccessibleProject(projectId, user.orgId);
+    if (!project) return c.json({ message: 'Project not found' }, 404);
 
     const items = await prisma.changeControl.findMany({
       where: { projectId },
@@ -68,7 +75,7 @@ changecontrol.get('/', async (c) => {
 });
 
 // POST / — create (auto-generate CC-NNN number)
-changecontrol.post('/', async (c) => {
+changecontrol.post('/', requirePermission('canEdit'), async (c) => {
   try {
     const user = getUser(c);
     const body = await c.req.json();
@@ -77,6 +84,9 @@ changecontrol.post('/', async (c) => {
     if (!projectId || !title) {
       return c.json({ message: 'projectId and title are required' }, 400);
     }
+
+    const project = await findAccessibleProject(projectId, user.orgId);
+    if (!project) return c.json({ message: 'Project not found' }, 404);
 
     // Auto-generate change number
     const count = await prisma.changeControl.count({ where: { projectId } });
@@ -124,12 +134,15 @@ changecontrol.post('/', async (c) => {
 // GET /:id — get with tasks
 changecontrol.get('/:id', async (c) => {
   try {
+    const user = getUser(c);
     const { id } = c.req.param();
     const cc = await prisma.changeControl.findUnique({
       where: { id },
       include: { tasks: { orderBy: { createdAt: 'asc' } } },
     });
     if (!cc) return c.json({ message: 'Change control not found' }, 404);
+    const project = await findAccessibleProject(cc.projectId, user.orgId);
+    if (!project) return c.json({ message: 'Change control not found' }, 404);
     return c.json({ changeControl: cc });
   } catch (error: any) {
     console.error('Get change control error:', error);
@@ -138,7 +151,7 @@ changecontrol.get('/:id', async (c) => {
 });
 
 // PUT /:id — update (with status transition validation)
-changecontrol.put('/:id', async (c) => {
+changecontrol.put('/:id', requirePermission('canEdit'), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();
@@ -146,6 +159,8 @@ changecontrol.put('/:id', async (c) => {
 
     const existing = await prisma.changeControl.findUnique({ where: { id } });
     if (!existing) return c.json({ message: 'Change control not found' }, 404);
+    const project = await findAccessibleProject(existing.projectId, user.orgId);
+    if (!project) return c.json({ message: 'Change control not found' }, 404);
 
     // Validate status transition if status is changing
     if (body.status && body.status !== existing.status) {
@@ -192,9 +207,14 @@ changecontrol.put('/:id', async (c) => {
 });
 
 // DELETE /:id — delete
-changecontrol.delete('/:id', async (c) => {
+changecontrol.delete('/:id', requirePermission('canDelete'), async (c) => {
   try {
+    const user = getUser(c);
     const { id } = c.req.param();
+    const existing = await prisma.changeControl.findUnique({ where: { id } });
+    if (!existing) return c.json({ message: 'Change control not found' }, 404);
+    const project = await findAccessibleProject(existing.projectId, user.orgId);
+    if (!project) return c.json({ message: 'Change control not found' }, 404);
     await prisma.changeControl.delete({ where: { id } });
     return c.json({ message: 'Change control deleted' });
   } catch (error: any) {
@@ -204,13 +224,16 @@ changecontrol.delete('/:id', async (c) => {
 });
 
 // POST /:id/tasks — add implementation task
-changecontrol.post('/:id/tasks', async (c) => {
+changecontrol.post('/:id/tasks', requirePermission('canEdit'), async (c) => {
   try {
+    const user = getUser(c);
     const { id } = c.req.param();
     const body = await c.req.json();
 
     const cc = await prisma.changeControl.findUnique({ where: { id } });
     if (!cc) return c.json({ message: 'Change control not found' }, 404);
+    const project = await findAccessibleProject(cc.projectId, user.orgId);
+    if (!project) return c.json({ message: 'Change control not found' }, 404);
 
     const task = await prisma.changeTask.create({
       data: {
@@ -230,13 +253,19 @@ changecontrol.post('/:id/tasks', async (c) => {
 });
 
 // PUT /:id/tasks/:taskId — update task
-changecontrol.put('/:id/tasks/:taskId', async (c) => {
+changecontrol.put('/:id/tasks/:taskId', requirePermission('canEdit'), async (c) => {
   try {
+    const user = getUser(c);
     const { taskId } = c.req.param();
     const body = await c.req.json();
 
-    const existing = await prisma.changeTask.findUnique({ where: { id: taskId } });
+    const existing = await prisma.changeTask.findUnique({
+      where: { id: taskId },
+      include: { changeControl: { select: { projectId: true } } },
+    });
     if (!existing) return c.json({ message: 'Task not found' }, 404);
+    const project = await findAccessibleProject(existing.changeControl.projectId, user.orgId);
+    if (!project) return c.json({ message: 'Task not found' }, 404);
 
     const task = await prisma.changeTask.update({
       where: { id: taskId },
@@ -257,7 +286,7 @@ changecontrol.put('/:id/tasks/:taskId', async (c) => {
 });
 
 // PUT /:id/start-approval — create workflow execution for this change control
-changecontrol.put('/:id/start-approval', async (c) => {
+changecontrol.put('/:id/start-approval', requirePermission('canEdit'), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();
@@ -268,12 +297,15 @@ changecontrol.put('/:id/start-approval', async (c) => {
 
     const cc = await prisma.changeControl.findUnique({ where: { id } });
     if (!cc) return c.json({ message: 'Change control not found' }, 404);
+    const project = await findAccessibleProject(cc.projectId, user.orgId);
+    if (!project) return c.json({ message: 'Change control not found' }, 404);
 
     const template = await prisma.workflowTemplate.findUnique({
       where: { id: templateId },
       include: { steps: true },
     });
     if (!template) return c.json({ message: 'Workflow template not found' }, 404);
+    if (template.orgId !== user.orgId) return c.json({ message: 'Workflow template not found' }, 404);
 
     const execution = await prisma.workflowExecution.create({
       data: {
@@ -308,13 +340,15 @@ changecontrol.put('/:id/start-approval', async (c) => {
 });
 
 // PUT /:id/verify-effectiveness — mark effectiveness verified
-changecontrol.put('/:id/verify-effectiveness', async (c) => {
+changecontrol.put('/:id/verify-effectiveness', requirePermission('canEdit'), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();
 
     const cc = await prisma.changeControl.findUnique({ where: { id } });
     if (!cc) return c.json({ message: 'Change control not found' }, 404);
+    const project = await findAccessibleProject(cc.projectId, user.orgId);
+    if (!project) return c.json({ message: 'Change control not found' }, 404);
 
     const updated = await prisma.changeControl.update({
       where: { id },

@@ -3,6 +3,9 @@ import { useTranslation } from 'react-i18next';
 import { FlaskConical, Plus, AlertTriangle, Lock, ChevronDown, ChevronUp } from 'lucide-react';
 import { useProjectStore } from '../../store/useProjectStore';
 import { useAuth } from '../../hooks/useAuth';
+import { apiFetch } from '../../lib/apiClient';
+import { roleHasPermission } from '../../lib/permissions';
+import { getProjectId } from '../../lib/projectUtils';
 
 interface BatchStep {
   id: string;
@@ -35,7 +38,7 @@ interface BatchRecord {
 export function BatchRecordForm() {
   const { t } = useTranslation();
   const project = useProjectStore((s) => s.project);
-  const { token } = useAuth();
+  const { token, user } = useAuth();
   const [batches, setBatches] = useState<BatchRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -43,6 +46,7 @@ export function BatchRecordForm() {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [releasePassword, setReleasePassword] = useState('');
   const [releasingId, setReleasingId] = useState<string | null>(null);
+  const [error, setError] = useState('');
 
   // New batch form state
   const [newBatch, setNewBatch] = useState({
@@ -50,22 +54,20 @@ export function BatchRecordForm() {
   });
   // New step form
   const [newStep, setNewStep] = useState({ instruction: '', expectedValue: '', unit: '' });
-
-  const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+  const projectId = getProjectId(project);
+  const canEdit = roleHasPermission(user?.role, 'canEdit');
+  const canApprove = roleHasPermission(user?.role, 'canApprove');
 
   const fetchBatches = async () => {
-    if (!project?.name || !token) return;
+    if (!projectId || !token) return;
     setLoading(true);
+    setError('');
     try {
-      const res = await fetch(`${apiBase}/api/batches?projectId=${project.name}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setBatches(data.batches || []);
-      }
+      const data = await apiFetch<{ batches: BatchRecord[] }>(`/batches?projectId=${projectId}`);
+      setBatches(data.batches || []);
     } catch (err) {
       console.error('Failed to fetch batches:', err);
+      setError(err instanceof Error ? err.message : 'Failed to fetch batches');
     } finally {
       setLoading(false);
     }
@@ -74,110 +76,125 @@ export function BatchRecordForm() {
   const fetchBatchDetail = async (id: string) => {
     if (!token) return;
     try {
-      const res = await fetch(`${apiBase}/api/batches/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setExpandedBatch(data.batch);
-      }
+      const data = await apiFetch<{ batch: BatchRecord }>(`/batches/${id}`);
+      setExpandedBatch(data.batch);
     } catch (err) {
       console.error('Failed to fetch batch detail:', err);
+      setError(err instanceof Error ? err.message : 'Failed to fetch batch detail');
     }
   };
 
   useEffect(() => {
     fetchBatches();
-  }, [project?.name, token]);
+  }, [projectId, token]);
 
   const handleCreateBatch = async () => {
-    if (!project?.name || !token || !newBatch.productName || !newBatch.batchNumber) return;
+    if (!projectId || !token || !newBatch.productName || !newBatch.batchNumber) return;
+    if (!canEdit) {
+      setError('Insufficient permissions: requires canEdit');
+      return;
+    }
     try {
-      const res = await fetch(`${apiBase}/api/batches`, {
+      await apiFetch('/batches', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({
-          projectId: project.name,
+          projectId,
           ...newBatch,
           yieldExpected: newBatch.yieldExpected ? parseFloat(newBatch.yieldExpected) : null,
         }),
       });
-      if (res.ok) {
-        setShowCreateForm(false);
-        setNewBatch({ productName: '', batchNumber: '', startDate: '', yieldExpected: '' });
-        fetchBatches();
-      }
+      setShowCreateForm(false);
+      setNewBatch({ productName: '', batchNumber: '', startDate: '', yieldExpected: '' });
+      setError('');
+      fetchBatches();
     } catch (err) {
       console.error('Failed to create batch:', err);
+      setError(err instanceof Error ? err.message : 'Failed to create batch');
     }
   };
 
   const handleStatusChange = async (id: string, status: string) => {
     if (!token) return;
+    if (!canEdit) {
+      setError('Insufficient permissions: requires canEdit');
+      return;
+    }
     try {
-      const res = await fetch(`${apiBase}/api/batches/${id}`, {
+      await apiFetch(`/batches/${id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ status }),
       });
-      if (res.ok) {
-        fetchBatches();
-        if (expandedId === id) fetchBatchDetail(id);
+      setError('');
+      fetchBatches();
+      if (expandedId === id) {
+        fetchBatchDetail(id);
       }
     } catch (err) {
       console.error('Failed to update batch status:', err);
+      setError(err instanceof Error ? err.message : 'Failed to update batch status');
     }
   };
 
   const handleRelease = async (id: string) => {
     if (!token || !releasePassword) return;
+    if (!canApprove) {
+      setError('Insufficient permissions: requires canApprove');
+      return;
+    }
     try {
-      const res = await fetch(`${apiBase}/api/batches/${id}/release`, {
+      await apiFetch(`/batches/${id}/release`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ password: releasePassword }),
       });
-      if (res.ok) {
-        setReleasingId(null);
-        setReleasePassword('');
-        fetchBatches();
-      } else {
-        const data = await res.json();
-        alert(data.message || 'Release failed');
+      setReleasingId(null);
+      setReleasePassword('');
+      setError('');
+      fetchBatches();
+      if (expandedId === id) {
+        fetchBatchDetail(id);
       }
     } catch (err) {
       console.error('Failed to release batch:', err);
+      setError(err instanceof Error ? err.message : 'Release failed');
     }
   };
 
   const handleAddStep = async (batchId: string) => {
     if (!token || !newStep.instruction) return;
+    if (!canEdit) {
+      setError('Insufficient permissions: requires canEdit');
+      return;
+    }
     try {
-      const res = await fetch(`${apiBase}/api/batches/${batchId}/steps`, {
+      await apiFetch(`/batches/${batchId}/steps`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify(newStep),
       });
-      if (res.ok) {
-        setNewStep({ instruction: '', expectedValue: '', unit: '' });
-        fetchBatchDetail(batchId);
-      }
+      setNewStep({ instruction: '', expectedValue: '', unit: '' });
+      setError('');
+      fetchBatchDetail(batchId);
     } catch (err) {
       console.error('Failed to add step:', err);
+      setError(err instanceof Error ? err.message : 'Failed to add step');
     }
   };
 
   const handleUpdateStep = async (batchId: string, stepId: string, data: any) => {
     if (!token) return;
+    if (!canEdit) {
+      setError('Insufficient permissions: requires canEdit');
+      return;
+    }
     try {
-      await fetch(`${apiBase}/api/batches/${batchId}/steps/${stepId}`, {
+      await apiFetch(`/batches/${batchId}/steps/${stepId}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify(data),
       });
+      setError('');
       fetchBatchDetail(batchId);
     } catch (err) {
       console.error('Failed to update step:', err);
+      setError(err instanceof Error ? err.message : 'Failed to update step');
     }
   };
 
@@ -215,14 +232,22 @@ export function BatchRecordForm() {
           <FlaskConical className="w-5 h-5 text-accent" />
           <h2 className="text-lg font-semibold text-text-primary">{t('batches.title')}</h2>
         </div>
-        <button
-          onClick={() => setShowCreateForm(true)}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white bg-accent rounded-lg hover:bg-accent/90 transition-colors"
-        >
-          <Plus className="w-4 h-4" />
-          {t('batches.createBatch')}
-        </button>
+        {canEdit && (
+          <button
+            onClick={() => setShowCreateForm(true)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white bg-accent rounded-lg hover:bg-accent/90 transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            {t('batches.createBatch')}
+          </button>
+        )}
       </div>
+
+      {error && (
+        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {error}
+        </div>
+      )}
 
       {/* Create Form */}
       {showCreateForm && (
@@ -299,7 +324,7 @@ export function BatchRecordForm() {
                     </span>
                   )}
                   {/* Status action buttons */}
-                  {batch.status === 'draft' && (
+                  {canEdit && batch.status === 'draft' && (
                     <button
                       onClick={(e) => { e.stopPropagation(); handleStatusChange(batch.id, 'in_progress'); }}
                       className="px-2 py-1 text-xs font-medium text-white bg-blue-500 rounded-lg hover:bg-blue-600"
@@ -307,7 +332,7 @@ export function BatchRecordForm() {
                       {t('batches.start')}
                     </button>
                   )}
-                  {batch.status === 'in_progress' && (
+                  {canEdit && batch.status === 'in_progress' && (
                     <button
                       onClick={(e) => { e.stopPropagation(); handleStatusChange(batch.id, 'review'); }}
                       className="px-2 py-1 text-xs font-medium text-white bg-purple-500 rounded-lg hover:bg-purple-600"
@@ -315,7 +340,7 @@ export function BatchRecordForm() {
                       {t('batches.submitForReview')}
                     </button>
                   )}
-                  {batch.status === 'review' && (
+                  {canApprove && batch.status === 'review' && (
                     <button
                       onClick={(e) => { e.stopPropagation(); setReleasingId(batch.id); }}
                       className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-white bg-green-500 rounded-lg hover:bg-green-600"
@@ -329,7 +354,7 @@ export function BatchRecordForm() {
               </div>
 
               {/* Release Password Dialog */}
-              {releasingId === batch.id && (
+              {canApprove && releasingId === batch.id && (
                 <div className="px-4 py-3 border-t border-border bg-green-50">
                   <div className="flex items-center gap-2">
                     <Lock className="w-4 h-4 text-green-600" />
@@ -390,7 +415,7 @@ export function BatchRecordForm() {
                             )}
                           </div>
                           {/* Inline edit for actual value when batch is in_progress */}
-                          {batch.status === 'in_progress' && !step.actualValue && (
+                          {canEdit && batch.status === 'in_progress' && !step.actualValue && (
                             <div className="flex gap-2 mt-2">
                               <input
                                 type="text"
@@ -413,7 +438,7 @@ export function BatchRecordForm() {
                   )}
 
                   {/* Add Step */}
-                  {(batch.status === 'draft' || batch.status === 'in_progress') && (
+                  {canEdit && (batch.status === 'draft' || batch.status === 'in_progress') && (
                     <div className="bg-surface-secondary rounded-lg p-3 space-y-2">
                       <h5 className="text-xs font-semibold text-text-secondary">{t('batches.addStep')}</h5>
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-2">

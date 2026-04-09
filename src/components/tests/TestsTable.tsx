@@ -16,17 +16,22 @@ import { useTestsStore } from '../../store/useTestsStore';
 import { useRequirementsStore } from '../../store/useRequirementsStore';
 import { useEvidenceStore } from '../../store/useEvidenceStore';
 import { useProjectStore } from '../../store/useProjectStore';
+import { useAppMode } from '../../hooks/useAppMode';
 import { StatusBadge } from '../shared/StatusBadge';
 import { ConfirmDialog } from '../shared/ConfirmDialog';
 import { EmptyState } from '../shared/EmptyState';
 import { TestModal } from './TestModal';
 import { EvidencePanel } from '../evidence/EvidencePanel';
+import { useProjectData } from '../../context/ProjectDataContext';
+import { getProjectId } from '../../lib/projectUtils';
 import type { Test } from '../../types';
 
 const columnHelper = createColumnHelper<Test>();
 
 export function TestsTable() {
   const { t } = useTranslation();
+  const { mode } = useAppMode();
+  const isServerMode = mode === 'server';
   const tests = useTestsStore((s) => s.tests);
   const addTest = useTestsStore((s) => s.addTest);
   const updateTest = useTestsStore((s) => s.updateTest);
@@ -41,6 +46,12 @@ export function TestsTable() {
   const [evidenceTest, setEvidenceTest] = useState<Test | null>(null);
   const evidenceAttachments = useEvidenceStore((s) => s.attachments);
   const project = useProjectStore((s) => s.project);
+  const {
+    createTest: createServerTest,
+    updateTest: updateServerTest,
+    removeTest: removeServerTest,
+  } = useProjectData();
+  const projectId = getProjectId(project);
 
   const reqMap = useMemo(() => new Map(requirements.map((r) => [r.id, r])), [requirements]);
 
@@ -213,9 +224,17 @@ export function TestsTable() {
         test={editingTest}
         onSave={(data) => {
           if (editingTest) {
-            updateTest(editingTest.id, data);
+            if (isServerMode) {
+              void updateServerTest(editingTest.id, data);
+            } else {
+              updateTest(editingTest.id, data);
+            }
           } else {
-            addTest(data);
+            if (isServerMode) {
+              void createServerTest(data);
+            } else {
+              addTest(data);
+            }
           }
         }}
         onClose={() => { setModalOpen(false); setEditingTest(null); }}
@@ -225,7 +244,16 @@ export function TestsTable() {
         open={deleteId !== null}
         title={t('tests.deleteTitle')}
         message={t('tests.deleteMessage')}
-        onConfirm={() => { if (deleteId) deleteTest(deleteId); setDeleteId(null); }}
+        onConfirm={() => {
+          if (deleteId) {
+            if (isServerMode) {
+              void removeServerTest(deleteId);
+            } else {
+              deleteTest(deleteId);
+            }
+          }
+          setDeleteId(null);
+        }}
         onCancel={() => setDeleteId(null)}
       />
 
@@ -234,7 +262,7 @@ export function TestsTable() {
         open={evidenceTest !== null}
         entityType="test"
         entityId={evidenceTest?.id ?? ''}
-        projectId={project?.name ?? 'default'}
+        projectId={projectId}
         onClose={() => setEvidenceTest(null)}
       />
     </div>

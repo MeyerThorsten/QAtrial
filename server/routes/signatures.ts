@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
-import { prisma } from '../index.js';
-import { authMiddleware, getUser } from '../middleware/auth.js';
+import { prisma } from '../lib/prisma.js';
+import { authMiddleware, getUser, requirePermission, roleHasPermission } from '../middleware/auth.js';
 import { logAudit } from '../services/audit.service.js';
 import { dispatchWebhook } from '../services/webhook.service.js';
 import * as bcrypt from 'bcryptjs';
@@ -10,7 +10,7 @@ const signatures = new Hono();
 signatures.use('*', authMiddleware);
 
 // POST / — create signature (re-verify password per 21 CFR Part 11)
-signatures.post('/', async (c) => {
+signatures.post('/', requirePermission('canSign'), async (c) => {
   try {
     const user = getUser(c);
     const body = await c.req.json();
@@ -26,6 +26,11 @@ signatures.post('/', async (c) => {
     const validMeanings = ['authored', 'reviewed', 'approved', 'verified', 'rejected'];
     if (!validMeanings.includes(meaning)) {
       return c.json({ message: `meaning must be one of: ${validMeanings.join(', ')}` }, 400);
+    }
+
+    const approvalMeanings = new Set(['reviewed', 'approved', 'rejected']);
+    if (approvalMeanings.has(meaning) && !roleHasPermission(user.role, 'canApprove')) {
+      return c.json({ message: 'Insufficient permissions: requires canApprove' }, 403);
     }
 
     // Re-verify password: fetch user from DB and compare with bcrypt
@@ -57,13 +62,12 @@ signatures.post('/', async (c) => {
     await logAudit({
       projectId,
       userId: user.userId,
-      action: 'create_signature',
-      entityType: 'signature',
-      entityId: signature.id,
+      action: meaning === 'approved' ? 'approve' : meaning === 'rejected' ? 'reject' : 'sign',
+      entityType,
+      entityId,
       newValue: {
+        signatureId: signature.id,
         meaning,
-        entityType,
-        entityId,
         userName: dbUser.name,
       },
       reason,
@@ -87,11 +91,12 @@ signatures.get('/', async (c) => {
     const entityType = c.req.query('entityType');
     const projectId = c.req.query('projectId');
 
-    if (!entityId) {
-      return c.json({ message: 'entityId query parameter is required' }, 400);
+    if (!entityId && !projectId) {
+      return c.json({ message: 'entityId or projectId query parameter is required' }, 400);
     }
 
-    const where: any = { entityId };
+    const where: any = {};
+    if (entityId) where.entityId = entityId;
     if (entityType) where.entityType = entityType;
     if (projectId) where.projectId = projectId;
 

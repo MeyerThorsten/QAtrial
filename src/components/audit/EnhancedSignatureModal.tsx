@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { X, ShieldCheck, AlertTriangle, CheckCircle } from 'lucide-react';
 import { useAppMode } from '../../hooks/useAppMode';
@@ -6,20 +6,30 @@ import { useAuditStore } from '../../store/useAuditStore';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useAuth } from '../../hooks/useAuth';
 import { apiFetch } from '../../lib/apiClient';
+import { roleHasPermission } from '../../lib/permissions';
 import type { ElectronicSignature, SignatureMeaning } from '../../types';
 
 interface Props {
   open: boolean;
   entityType: string;
   entityId: string;
+  projectId?: string;
   meaning?: SignatureMeaning;
-  onComplete: (signature: ElectronicSignature, signatureId?: string) => void;
+  onComplete: (signature: ElectronicSignature, signatureId?: string, reason?: string) => void;
   onClose: () => void;
 }
 
 const MEANINGS: SignatureMeaning[] = ['authored', 'reviewed', 'approved', 'verified', 'rejected'];
 
-export function EnhancedSignatureModal({ open, entityType, entityId, meaning: initialMeaning, onComplete, onClose }: Props) {
+export function EnhancedSignatureModal({
+  open,
+  entityType,
+  entityId,
+  projectId,
+  meaning: initialMeaning,
+  onComplete,
+  onClose,
+}: Props) {
   const { t } = useTranslation();
   const { mode } = useAppMode();
   const isServerMode = mode === 'server';
@@ -29,6 +39,9 @@ export function EnhancedSignatureModal({ open, entityType, entityId, meaning: in
   const verifyForSignature = useAuthStore((s) => s.verifyForSignature);
   const isSignatureValid = useAuthStore((s) => s.isSignatureValid);
   const { user: authUser } = useAuth();
+  const currentRole = currentUser?.role || authUser?.role || null;
+  const canApprove = roleHasPermission(currentRole, 'canApprove');
+  const canSign = roleHasPermission(currentRole, 'canSign');
 
   const [meaning, setMeaning] = useState<SignatureMeaning>(initialMeaning || 'approved');
   const [reason, setReason] = useState('');
@@ -37,6 +50,31 @@ export function EnhancedSignatureModal({ open, entityType, entityId, meaning: in
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState<{ signatureId: string; timestamp: string } | null>(null);
 
+  const allowedMeanings = useMemo(
+    () =>
+      MEANINGS.filter((value) => {
+        if (['reviewed', 'approved', 'rejected'].includes(value)) {
+          return canApprove;
+        }
+
+        return canSign;
+      }),
+    [canApprove, canSign],
+  );
+
+  useEffect(() => {
+    if (!open) return;
+
+    if (initialMeaning && allowedMeanings.includes(initialMeaning)) {
+      setMeaning(initialMeaning);
+      return;
+    }
+
+    if (!allowedMeanings.includes(meaning)) {
+      setMeaning(allowedMeanings[0] ?? 'authored');
+    }
+  }, [allowedMeanings, initialMeaning, meaning, open]);
+
   if (!open) return null;
 
   const validate = (): boolean => {
@@ -44,7 +82,10 @@ export function EnhancedSignatureModal({ open, entityType, entityId, meaning: in
     if (!reason.trim()) {
       newErrors.reason = t('common.required');
     }
-    if (!isSignatureValid() && !password.trim()) {
+    if (!allowedMeanings.includes(meaning)) {
+      newErrors.auth = 'You do not have permission to apply this signature meaning.';
+    }
+    if ((isServerMode || !isSignatureValid()) && !password.trim()) {
       newErrors.password = t('common.required');
     }
     setErrors(newErrors);
@@ -53,6 +94,7 @@ export function EnhancedSignatureModal({ open, entityType, entityId, meaning: in
 
   const handleSign = async () => {
     if (!validate()) return;
+    if (!allowedMeanings.includes(meaning)) return;
 
     setLoading(true);
     setErrors({});
@@ -94,19 +136,36 @@ export function EnhancedSignatureModal({ open, entityType, entityId, meaning: in
 
     if (isServerMode) {
       try {
-        const result = await apiFetch<{ id: string; timestamp: string }>('/signatures', {
+        if (!projectId) {
+          setErrors({ auth: 'Missing project context for signature' });
+          setLoading(false);
+          return;
+        }
+
+        const result = await apiFetch<{
+          signature: {
+            id: string;
+            timestamp: string;
+          };
+        }>('/signatures', {
           method: 'POST',
           body: JSON.stringify({
+            projectId,
             entityType,
             entityId,
             meaning,
             reason,
+            password,
           }),
         });
-        signatureId = result.id;
-        signature.timestamp = result.timestamp;
-      } catch {
-        // Fall through to local handling
+        signatureId = result.signature.id;
+        signature.timestamp = result.signature.timestamp;
+      } catch (error) {
+        setErrors({
+          auth: error instanceof Error ? error.message : t('signature.authFailed'),
+        });
+        setLoading(false);
+        return;
       }
     }
 
@@ -126,7 +185,7 @@ export function EnhancedSignatureModal({ open, entityType, entityId, meaning: in
     }
 
     setSuccess({ signatureId, timestamp: signature.timestamp });
-    onComplete(signature, signatureId);
+    onComplete(signature, signatureId, reason.trim());
   };
 
   const handleClose = () => {
@@ -200,7 +259,7 @@ export function EnhancedSignatureModal({ open, entityType, entityId, meaning: in
                   {t('signature.meaning')}
                 </label>
                 <div className="space-y-1.5">
-                  {MEANINGS.map((m) => (
+                  {allowedMeanings.map((m) => (
                     <label
                       key={m}
                       className={`flex items-center gap-2.5 px-3 py-2 rounded-lg cursor-pointer transition-colors ${
@@ -220,6 +279,11 @@ export function EnhancedSignatureModal({ open, entityType, entityId, meaning: in
                       <span className="text-sm text-text-primary">{t(`signature.${m}`)}</span>
                     </label>
                   ))}
+                  {allowedMeanings.length === 0 && (
+                    <div className="rounded-lg border border-danger/30 bg-danger/10 px-3 py-2 text-sm text-danger">
+                      No allowed signature actions are available for your role.
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -312,7 +376,7 @@ export function EnhancedSignatureModal({ open, entityType, entityId, meaning: in
               </button>
               <button
                 onClick={handleSign}
-                disabled={loading}
+                disabled={loading || allowedMeanings.length === 0 || !allowedMeanings.includes(meaning)}
                 className="inline-flex items-center gap-1.5 px-4 py-1.5 text-sm text-text-inverse bg-accent rounded-lg hover:bg-accent-hover transition-colors font-medium disabled:opacity-50"
               >
                 <ShieldCheck className="w-3.5 h-3.5" />

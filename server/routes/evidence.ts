@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
-import { prisma } from '../index.js';
-import { authMiddleware, getUser, requireRole } from '../middleware/auth.js';
+import { prisma } from '../lib/prisma.js';
+import { authMiddleware, getUser, requirePermission } from '../middleware/auth.js';
 import { logAudit } from '../services/audit.service.js';
 import { dispatchWebhook } from '../services/webhook.service.js';
 import * as fs from 'fs';
@@ -20,7 +20,7 @@ function ensureDir(dir: string) {
 }
 
 // POST /upload — multipart form upload
-evidence.post('/upload', async (c) => {
+evidence.post('/upload', requirePermission('canEdit'), async (c) => {
   try {
     const user = getUser(c);
     const body = await c.req.parseBody();
@@ -210,8 +210,8 @@ evidence.get('/:id/download', async (c) => {
   }
 });
 
-// DELETE /:id — delete file + record (admin/editor only)
-evidence.delete('/:id', requireRole('admin', 'editor'), async (c) => {
+// DELETE /:id — delete file + record
+evidence.delete('/:id', requirePermission('canDelete'), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();

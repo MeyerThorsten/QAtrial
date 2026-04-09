@@ -3,8 +3,11 @@ import { useTranslation } from 'react-i18next';
 import { Plus, FileEdit, Trash2, Search, Zap, AlertTriangle } from 'lucide-react';
 import { useProjectStore } from '../../store/useProjectStore';
 import { useAuth } from '../../hooks/useAuth';
+import { apiFetch } from '../../lib/apiClient';
+import { roleHasPermission } from '../../lib/permissions';
 import { DeviationForm } from './DeviationForm';
 import { DeviationTrending } from './DeviationTrending';
+import { getProjectId } from '../../lib/projectUtils';
 
 const CLASSIFICATION_COLORS: Record<string, string> = {
   minor: 'bg-yellow-500/10 text-yellow-600',
@@ -17,9 +20,10 @@ const INVESTIGATION_METHODS = ['fishbone', 'five_why', 'ishikawa', 'other'];
 export function DeviationInvestigation() {
   const { t } = useTranslation();
   const project = useProjectStore((s) => s.project);
-  const { token } = useAuth();
+  const { token, user } = useAuth();
   const [deviations, setDeviations] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<any>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -27,77 +31,81 @@ export function DeviationInvestigation() {
   const [investigationMethod, setInvestigationMethod] = useState('fishbone');
   const [investigationNotes, setInvestigationNotes] = useState('');
   const [rootCauseText, setRootCauseText] = useState('');
-
-  const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+  const projectId = getProjectId(project);
+  const canEdit = roleHasPermission(user?.role, 'canEdit');
+  const canDelete = roleHasPermission(user?.role, 'canDelete');
 
   const fetchData = useCallback(async () => {
-    if (!project?.name || !token) return;
+    if (!projectId || !token) return;
     setLoading(true);
     try {
-      const res = await fetch(`${apiBase}/api/deviations?projectId=${project.name}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setDeviations(data.deviations || []);
-      }
-    } catch {
-      // ignore
+      const data = await apiFetch<{ deviations: any[] }>(`/deviations?projectId=${encodeURIComponent(projectId)}`);
+      setDeviations(data.deviations || []);
+      setError('');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load deviations');
     } finally {
       setLoading(false);
     }
-  }, [project?.name, token, apiBase]);
+  }, [projectId, token]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
   const handleDelete = async (id: string) => {
+    if (!canDelete) {
+      setError('Insufficient permissions: requires canDelete');
+      return;
+    }
     try {
-      await fetch(`${apiBase}/api/deviations/${id}`, {
+      await apiFetch(`/deviations/${id}`, {
         method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
       });
+      setError('');
       fetchData();
-    } catch {
-      // ignore
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete deviation');
     }
   };
 
   const handleInvestigate = async (devId: string) => {
+    if (!canEdit) return;
     try {
-      await fetch(`${apiBase}/api/deviations/${devId}/investigate`, {
+      await apiFetch(`/deviations/${devId}/investigate`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ method: investigationMethod, notes: investigationNotes }),
       });
+      setError('');
       fetchData();
-    } catch {
-      // ignore
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update investigation');
     }
   };
 
   const handleRootCause = async (devId: string) => {
+    if (!canEdit) return;
     try {
-      await fetch(`${apiBase}/api/deviations/${devId}/root-cause`, {
+      await apiFetch(`/deviations/${devId}/root-cause`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ rootCause: rootCauseText }),
       });
       setRootCauseText('');
+      setError('');
       fetchData();
-    } catch {
-      // ignore
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to record root cause');
     }
   };
 
   const handleCreateCapa = async (devId: string) => {
+    if (!canEdit) return;
     try {
-      await fetch(`${apiBase}/api/deviations/${devId}/create-capa`, {
+      await apiFetch(`/deviations/${devId}/create-capa`, {
         method: 'PUT',
-        headers: { Authorization: `Bearer ${token}` },
       });
+      setError('');
       fetchData();
-    } catch {
-      // ignore
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to create CAPA');
     }
   };
 
@@ -146,6 +154,12 @@ export function DeviationInvestigation() {
 
   return (
     <div className="space-y-4">
+      {error && (
+        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {error}
+        </div>
+      )}
+
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold text-text-primary">{t('deviations.title')}</h2>
         <div className="flex gap-2">
@@ -156,13 +170,15 @@ export function DeviationInvestigation() {
             <Search className="w-4 h-4" />
             {t('deviations.trending')}
           </button>
-          <button
-            onClick={() => setShowForm(true)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-accent bg-accent-subtle rounded-lg hover:bg-accent/20 transition-colors"
-          >
-            <Plus className="w-4 h-4" />
-            {t('deviations.create')}
-          </button>
+          {canEdit && (
+            <button
+              onClick={() => setShowForm(true)}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-accent bg-accent-subtle rounded-lg hover:bg-accent/20 transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+              {t('deviations.create')}
+            </button>
+          )}
         </div>
       </div>
 
@@ -191,18 +207,22 @@ export function DeviationInvestigation() {
                   {dev.area && <span className="text-xs text-text-tertiary">{dev.area}</span>}
                 </div>
                 <div className="flex items-center gap-2">
-                  <button
-                    onClick={(e) => { e.stopPropagation(); setEditing(dev); }}
-                    className="p-1 text-text-tertiary hover:text-accent transition-colors"
-                  >
-                    <FileEdit className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); handleDelete(dev.id); }}
-                    className="p-1 text-text-tertiary hover:text-red-500 transition-colors"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                  {canEdit && (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setEditing(dev); }}
+                      className="p-1 text-text-tertiary hover:text-accent transition-colors"
+                    >
+                      <FileEdit className="w-4 h-4" />
+                    </button>
+                  )}
+                  {canDelete && (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); handleDelete(dev.id); }}
+                      className="p-1 text-text-tertiary hover:text-red-500 transition-colors"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
                 </div>
               </div>
 
@@ -217,7 +237,7 @@ export function DeviationInvestigation() {
                   )}
 
                   {/* Investigation panel */}
-                  {(dev.status === 'detected' || dev.status === 'investigating') && (
+                  {canEdit && (dev.status === 'detected' || dev.status === 'investigating') && (
                     <div className="bg-surface-secondary rounded-lg p-4 space-y-3">
                       <h4 className="text-sm font-semibold text-text-primary">{t('deviations.investigation')}</h4>
                       <div>
@@ -251,7 +271,7 @@ export function DeviationInvestigation() {
                   )}
 
                   {/* Root cause entry */}
-                  {dev.status === 'investigating' && (
+                  {canEdit && dev.status === 'investigating' && (
                     <div className="bg-surface-secondary rounded-lg p-4 space-y-3">
                       <h4 className="text-sm font-semibold text-text-primary">{t('deviations.rootCause')}</h4>
                       <textarea
@@ -279,7 +299,7 @@ export function DeviationInvestigation() {
                   )}
 
                   {/* Create CAPA button */}
-                  {dev.status === 'root_cause_identified' && !dev.capaId && (
+                  {canEdit && dev.status === 'root_cause_identified' && !dev.capaId && (
                     <button
                       onClick={() => handleCreateCapa(dev.id)}
                       className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm bg-accent text-white rounded-lg hover:bg-accent/90 transition-colors"

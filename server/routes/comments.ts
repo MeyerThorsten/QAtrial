@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
-import { prisma } from '../index.js';
-import { authMiddleware, getUser } from '../middleware/auth.js';
+import { prisma } from '../lib/prisma.js';
+import { findAccessibleProject } from '../lib/projectAccess.js';
+import { authMiddleware, getUser, roleHasPermission } from '../middleware/auth.js';
 import { createNotification } from './notifications.js';
 
 const comments = new Hono();
@@ -10,15 +11,20 @@ comments.use('*', authMiddleware);
 // GET / — list comments for entity (threaded: parent + children)
 comments.get('/', async (c) => {
   try {
+    const user = getUser(c);
     const entityType = c.req.query('entityType');
     const entityId = c.req.query('entityId');
+    const projectId = c.req.query('projectId');
 
-    if (!entityType || !entityId) {
-      return c.json({ message: 'entityType and entityId are required' }, 400);
+    if (!entityType || !entityId || !projectId) {
+      return c.json({ message: 'entityType, entityId, and projectId are required' }, 400);
     }
 
+    const project = await findAccessibleProject(projectId, user.orgId);
+    if (!project) return c.json({ message: 'Project not found' }, 404);
+
     const allComments = await prisma.comment.findMany({
-      where: { entityType, entityId },
+      where: { entityType, entityId, projectId },
       orderBy: { createdAt: 'asc' },
     });
 
@@ -55,6 +61,9 @@ comments.post('/', async (c) => {
       return c.json({ message: 'entityType, entityId, projectId, and content are required' }, 400);
     }
 
+    const project = await findAccessibleProject(projectId, user.orgId);
+    if (!project) return c.json({ message: 'Project not found' }, 404);
+
     const comment = await prisma.comment.create({
       data: {
         entityType,
@@ -79,6 +88,7 @@ comments.post('/', async (c) => {
       // Look up mentioned users by email or name
       const users = await prisma.user.findMany({
         where: {
+          orgId: user.orgId ?? undefined,
           OR: [
             { email: { in: Array.from(mentionedNames) } },
             { name: { in: Array.from(mentionedNames) } },
@@ -118,6 +128,8 @@ comments.put('/:id', async (c) => {
 
     const existing = await prisma.comment.findUnique({ where: { id } });
     if (!existing) return c.json({ message: 'Comment not found' }, 404);
+    const project = await findAccessibleProject(existing.projectId, user.orgId);
+    if (!project) return c.json({ message: 'Comment not found' }, 404);
     if (existing.userId !== user.userId) {
       return c.json({ message: 'You can only edit your own comments' }, 403);
     }
@@ -142,7 +154,9 @@ comments.delete('/:id', async (c) => {
 
     const existing = await prisma.comment.findUnique({ where: { id } });
     if (!existing) return c.json({ message: 'Comment not found' }, 404);
-    if (existing.userId !== user.userId && user.role !== 'admin') {
+    const project = await findAccessibleProject(existing.projectId, user.orgId);
+    if (!project) return c.json({ message: 'Comment not found' }, 404);
+    if (existing.userId !== user.userId && !roleHasPermission(user.role, 'canDelete')) {
       return c.json({ message: 'Not authorized to delete this comment' }, 403);
     }
 

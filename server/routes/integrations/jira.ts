@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import { prisma } from '../../index.js';
+import { prisma } from '../../lib/prisma.js';
 import { authMiddleware, getUser, requirePermission } from '../../middleware/auth.js';
 
 const jira = new Hono();

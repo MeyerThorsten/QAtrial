@@ -2,6 +2,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Inbox, CheckCircle2, XCircle, UserPlus, Clock, Plus, Settings2 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
+import { apiFetch } from '../../lib/apiClient';
+import { roleHasPermission } from '../../lib/permissions';
 import { WorkflowBuilder } from './WorkflowBuilder';
 import { WorkflowStatus } from './WorkflowStatus';
 
@@ -40,10 +42,11 @@ interface ExecutionItem {
 
 export function WorkflowInbox() {
   const { t } = useTranslation();
-  const { token } = useAuth();
+  const { token, user } = useAuth();
   const [pending, setPending] = useState<ExecutionItem[]>([]);
   const [templates, setTemplates] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [view, setView] = useState<'inbox' | 'templates'>('inbox');
   const [showBuilder, setShowBuilder] = useState(false);
   const [editTemplateId, setEditTemplateId] = useState<string | undefined>();
@@ -51,34 +54,25 @@ export function WorkflowInbox() {
   const [delegateTo, setDelegateTo] = useState<Record<string, string>>({});
   const [selectedExecution, setSelectedExecution] = useState<ExecutionItem | null>(null);
 
-  const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+  const canAdmin = roleHasPermission(user?.role, 'canAdmin');
 
   const fetchData = useCallback(async () => {
     if (!token) return;
     setLoading(true);
     try {
       const [pendingRes, templatesRes] = await Promise.all([
-        fetch(`${apiBase}/api/workflows/executions/my-pending`, {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        fetch(`${apiBase}/api/workflows/templates`, {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
+        apiFetch<{ executions: ExecutionItem[] }>('/workflows/executions/my-pending'),
+        apiFetch<{ templates: any[] }>('/workflows/templates'),
       ]);
-      if (pendingRes.ok) {
-        const data = await pendingRes.json();
-        setPending(data.executions || []);
-      }
-      if (templatesRes.ok) {
-        const data = await templatesRes.json();
-        setTemplates(data.templates || []);
-      }
-    } catch {
-      // ignore
+      setPending(pendingRes.executions || []);
+      setTemplates(templatesRes.templates || []);
+      setError('');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load workflows');
     } finally {
       setLoading(false);
     }
-  }, [token, apiBase]);
+  }, [token]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
@@ -88,28 +82,30 @@ export function WorkflowInbox() {
       if (action === 'delegated') {
         body.delegatedTo = delegateTo[executionId] || '';
       }
-      const res = await fetch(`${apiBase}/api/workflows/executions/${executionId}/act`, {
+      await apiFetch(`/workflows/executions/${executionId}/act`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify(body),
       });
-      if (res.ok) {
-        fetchData();
-      }
-    } catch {
-      // ignore
+      setError('');
+      fetchData();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to perform workflow action');
     }
   };
 
   const deleteTemplate = async (id: string) => {
+    if (!canAdmin) {
+      setError('Insufficient permissions: requires canAdmin');
+      return;
+    }
     try {
-      await fetch(`${apiBase}/api/workflows/templates/${id}`, {
+      await apiFetch(`/workflows/templates/${id}`, {
         method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
       });
+      setError('');
       fetchData();
-    } catch {
-      // ignore
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete template');
     }
   };
 
@@ -164,6 +160,12 @@ export function WorkflowInbox() {
 
   return (
     <div className="space-y-6">
+      {error && (
+        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {error}
+        </div>
+      )}
+
       {/* Tab switcher */}
       <div className="flex items-center gap-4 border-b border-border pb-2">
         <button
@@ -281,15 +283,17 @@ export function WorkflowInbox() {
 
       {view === 'templates' && (
         <div className="space-y-4">
-          <div className="flex justify-end">
-            <button
-              onClick={() => { setEditTemplateId(undefined); setShowBuilder(true); }}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-accent bg-accent-subtle rounded-lg hover:bg-accent/20 transition-colors"
-            >
-              <Plus className="w-4 h-4" />
-              {t('workflows.createTemplate')}
-            </button>
-          </div>
+          {canAdmin && (
+            <div className="flex justify-end">
+              <button
+                onClick={() => { setEditTemplateId(undefined); setShowBuilder(true); }}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-accent bg-accent-subtle rounded-lg hover:bg-accent/20 transition-colors"
+              >
+                <Plus className="w-4 h-4" />
+                {t('workflows.createTemplate')}
+              </button>
+            </div>
+          )}
 
           {templates.length === 0 ? (
             <div className="text-center py-12 text-text-tertiary">
@@ -306,20 +310,22 @@ export function WorkflowInbox() {
                       {tpl.enabled ? t('workflows.active') : t('workflows.disabled')}
                     </p>
                   </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => { setEditTemplateId(tpl.id); setShowBuilder(true); }}
-                      className="text-xs text-accent hover:underline"
-                    >
-                      {t('common.edit')}
-                    </button>
-                    <button
-                      onClick={() => deleteTemplate(tpl.id)}
-                      className="text-xs text-red-500 hover:underline"
-                    >
-                      {t('common.delete')}
-                    </button>
-                  </div>
+                  {canAdmin && (
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => { setEditTemplateId(tpl.id); setShowBuilder(true); }}
+                        className="text-xs text-accent hover:underline"
+                      >
+                        {t('common.edit')}
+                      </button>
+                      <button
+                        onClick={() => deleteTemplate(tpl.id)}
+                        className="text-xs text-red-500 hover:underline"
+                      >
+                        {t('common.delete')}
+                      </button>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

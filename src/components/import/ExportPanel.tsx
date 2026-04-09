@@ -2,9 +2,13 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Download, X, FileSpreadsheet, Loader2 } from 'lucide-react';
 import { useAppMode } from '../../hooks/useAppMode';
+import { useAuth } from '../../hooks/useAuth';
 import { useRequirementsStore } from '../../store/useRequirementsStore';
 import { useTestsStore } from '../../store/useTestsStore';
 import { useProjectStore } from '../../store/useProjectStore';
+import { getApiBase } from '../../lib/apiClient';
+import { roleHasPermission } from '../../lib/permissions';
+import { getProjectId } from '../../lib/projectUtils';
 
 interface ExportPanelProps {
   open: boolean;
@@ -24,10 +28,12 @@ function escapeCsvField(value: string | null | undefined): string {
 export function ExportPanel({ open, onClose }: ExportPanelProps) {
   const { t } = useTranslation();
   const { mode } = useAppMode();
+  const { user } = useAuth();
   const isServer = mode === 'server';
   const project = useProjectStore((s) => s.project);
   const requirements = useRequirementsStore((s) => s.requirements);
   const tests = useTestsStore((s) => s.tests);
+  const canExport = roleHasPermission(user?.role, 'canExport');
 
   const [exportType, setExportType] = useState<ExportType>('requirements');
   const [exporting, setExporting] = useState(false);
@@ -78,10 +84,9 @@ export function ExportPanel({ open, onClose }: ExportPanelProps) {
     if (isServer && project) {
       // Server mode: fetch from API
       try {
-        const projectId = (project as any).id ?? project.name;
+        const projectId = getProjectId(project);
         const token = localStorage.getItem('qatrial:token');
-        const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
-        const res = await fetch(`${API_BASE}/export/${projectId}/csv?type=${exportType}`, {
+        const res = await fetch(`${getApiBase()}/export/${projectId}/csv?type=${exportType}`, {
           headers: token ? { Authorization: `Bearer ${token}` } : {},
         });
 
@@ -151,6 +156,11 @@ export function ExportPanel({ open, onClose }: ExportPanelProps) {
 
         {/* Content */}
         <div className="px-6 py-4 space-y-4">
+          {!canExport && (
+            <div className="rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text-secondary">
+              Export is not available for your current role.
+            </div>
+          )}
           <div>
             <label className="text-sm font-medium text-text-primary block mb-2">
               {t('reports.selectType')}
@@ -190,7 +200,7 @@ export function ExportPanel({ open, onClose }: ExportPanelProps) {
           </button>
           <button
             onClick={handleExport}
-            disabled={exporting}
+            disabled={exporting || !canExport}
             className="inline-flex items-center gap-1.5 px-4 py-2 text-sm text-text-inverse bg-accent rounded-lg hover:bg-accent-hover transition-colors font-medium disabled:opacity-50"
           >
             {exporting ? (

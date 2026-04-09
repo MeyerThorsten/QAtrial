@@ -6,6 +6,9 @@ import {
 import { Thermometer, Plus, AlertCircle, ChevronDown, ChevronUp } from 'lucide-react';
 import { useProjectStore } from '../../store/useProjectStore';
 import { useAuth } from '../../hooks/useAuth';
+import { apiFetch } from '../../lib/apiClient';
+import { roleHasPermission } from '../../lib/permissions';
+import { getProjectId } from '../../lib/projectUtils';
 
 interface MonitoringPointData {
   id: string;
@@ -37,7 +40,7 @@ interface Excursion {
 export function EnvironmentalMonitoring() {
   const { t } = useTranslation();
   const project = useProjectStore((s) => s.project);
-  const { token } = useAuth();
+  const { token, user } = useAuth();
   const [points, setPoints] = useState<MonitoringPointData[]>([]);
   const [excursions, setExcursions] = useState<Excursion[]>([]);
   const [loading, setLoading] = useState(true);
@@ -45,31 +48,24 @@ export function EnvironmentalMonitoring() {
   const [readings, setReadings] = useState<ReadingData[]>([]);
   const [showPointForm, setShowPointForm] = useState(false);
   const [showReadingForm, setShowReadingForm] = useState<string | null>(null);
-
-  const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+  const [error, setError] = useState('');
+  const projectId = getProjectId(project);
+  const canEdit = roleHasPermission(user?.role, 'canEdit');
 
   const fetchData = async () => {
-    if (!project?.name || !token) return;
+    if (!projectId || !token) return;
     setLoading(true);
+    setError('');
     try {
-      const [pointsRes, excRes] = await Promise.all([
-        fetch(`${apiBase}/api/envmon/points?projectId=${project.name}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        fetch(`${apiBase}/api/envmon/excursions?projectId=${project.name}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
+      const [pointsData, excursionsData] = await Promise.all([
+        apiFetch<{ points: MonitoringPointData[] }>(`/envmon/points?projectId=${projectId}`),
+        apiFetch<{ excursions: Excursion[] }>(`/envmon/excursions?projectId=${projectId}`),
       ]);
-      if (pointsRes.ok) {
-        const data = await pointsRes.json();
-        setPoints(data.points || []);
-      }
-      if (excRes.ok) {
-        const data = await excRes.json();
-        setExcursions(data.excursions || []);
-      }
+      setPoints(pointsData.points || []);
+      setExcursions(excursionsData.excursions || []);
     } catch (err) {
       console.error('Failed to fetch envmon data:', err);
+      setError(err instanceof Error ? err.message : 'Failed to fetch environmental monitoring data');
     } finally {
       setLoading(false);
     }
@@ -77,7 +73,12 @@ export function EnvironmentalMonitoring() {
 
   useEffect(() => {
     fetchData();
-  }, [project?.name, token]);
+  }, [projectId, token]);
+
+  const loadReadings = async (id: string) => {
+    const data = await apiFetch<{ readings: ReadingData[] }>(`/envmon/points/${id}/readings`);
+    setReadings(data.readings || []);
+  };
 
   const handleExpand = async (id: string) => {
     if (expanded === id) {
@@ -88,50 +89,52 @@ export function EnvironmentalMonitoring() {
     setExpanded(id);
     if (!token) return;
     try {
-      const res = await fetch(`${apiBase}/api/envmon/points/${id}/readings`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setReadings(data.readings || []);
-      }
+      await loadReadings(id);
     } catch (err) {
       console.error('Failed to fetch readings:', err);
+      setError(err instanceof Error ? err.message : 'Failed to fetch readings');
     }
   };
 
   const handleCreatePoint = async (formData: any) => {
-    if (!project?.name || !token) return;
+    if (!projectId || !token) return;
+    if (!canEdit) {
+      setError('Insufficient permissions: requires canEdit');
+      return;
+    }
     try {
-      const res = await fetch(`${apiBase}/api/envmon/points`, {
+      await apiFetch('/envmon/points', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ ...formData, projectId: project.name }),
+        body: JSON.stringify({ ...formData, projectId }),
       });
-      if (res.ok) {
-        setShowPointForm(false);
-        fetchData();
-      }
+      setShowPointForm(false);
+      setError('');
+      fetchData();
     } catch (err) {
       console.error('Failed to create point:', err);
+      setError(err instanceof Error ? err.message : 'Failed to create monitoring point');
     }
   };
 
   const handleAddReading = async (pointId: string, value: number) => {
     if (!token) return;
+    if (!canEdit) {
+      setError('Insufficient permissions: requires canEdit');
+      return;
+    }
     try {
-      const res = await fetch(`${apiBase}/api/envmon/points/${pointId}/readings`, {
+      await apiFetch(`/envmon/points/${pointId}/readings`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ value }),
       });
-      if (res.ok) {
-        setShowReadingForm(null);
-        handleExpand(pointId);
-        fetchData(); // Refresh excursions
-      }
+      setShowReadingForm(null);
+      setError('');
+      setExpanded(pointId);
+      await loadReadings(pointId);
+      fetchData();
     } catch (err) {
       console.error('Failed to add reading:', err);
+      setError(err instanceof Error ? err.message : 'Failed to add reading');
     }
   };
 
@@ -152,14 +155,22 @@ export function EnvironmentalMonitoring() {
           <Thermometer className="w-5 h-5 text-accent" />
           <h2 className="text-lg font-semibold text-text-primary">{t('envmon.title')}</h2>
         </div>
-        <button
-          onClick={() => setShowPointForm(true)}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white bg-accent rounded-lg hover:bg-accent/90 transition-colors"
-        >
-          <Plus className="w-4 h-4" />
-          {t('envmon.addPoint')}
-        </button>
+        {canEdit && (
+          <button
+            onClick={() => setShowPointForm(true)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white bg-accent rounded-lg hover:bg-accent/90 transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            {t('envmon.addPoint')}
+          </button>
+        )}
       </div>
+
+      {error && (
+        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {error}
+        </div>
+      )}
 
       {/* Excursion Alert Banner */}
       {excursions.length > 0 && (
@@ -209,12 +220,14 @@ export function EnvironmentalMonitoring() {
                   {point.actionThreshold !== null && (
                     <span className="text-xs text-red-600">{t('envmon.action')}: {point.actionThreshold}{point.unit}</span>
                   )}
-                  <button
-                    onClick={(e) => { e.stopPropagation(); setShowReadingForm(point.id); }}
-                    className="px-2 py-1 text-xs font-medium text-accent border border-accent rounded hover:bg-accent/10"
-                  >
-                    + {t('envmon.addReading')}
-                  </button>
+                  {canEdit && (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setShowReadingForm(point.id); }}
+                      className="px-2 py-1 text-xs font-medium text-accent border border-accent rounded hover:bg-accent/10"
+                    >
+                      + {t('envmon.addReading')}
+                    </button>
+                  )}
                   {expanded === point.id ? <ChevronUp className="w-4 h-4 text-text-tertiary" /> : <ChevronDown className="w-4 h-4 text-text-tertiary" />}
                 </div>
               </button>
@@ -280,10 +293,10 @@ export function EnvironmentalMonitoring() {
       )}
 
       {/* Create Point Modal */}
-      {showPointForm && <PointForm onSave={handleCreatePoint} onCancel={() => setShowPointForm(false)} />}
+      {canEdit && showPointForm && <PointForm onSave={handleCreatePoint} onCancel={() => setShowPointForm(false)} />}
 
       {/* Add Reading Modal */}
-      {showReadingForm && (
+      {canEdit && showReadingForm && (
         <ReadingForm
           pointId={showReadingForm}
           unit={points.find((p) => p.id === showReadingForm)?.unit || ''}

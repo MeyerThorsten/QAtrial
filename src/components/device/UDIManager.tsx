@@ -3,6 +3,9 @@ import { useTranslation } from 'react-i18next';
 import { Barcode, Plus, Download, CheckCircle2, XCircle } from 'lucide-react';
 import { useProjectStore } from '../../store/useProjectStore';
 import { useAuth } from '../../hooks/useAuth';
+import { apiFetch } from '../../lib/apiClient';
+import { roleHasPermission } from '../../lib/permissions';
+import { getProjectId } from '../../lib/projectUtils';
 
 interface UDIRecord {
   id: string;
@@ -20,26 +23,25 @@ interface UDIRecord {
 export function UDIManager() {
   const { t } = useTranslation();
   const project = useProjectStore((s) => s.project);
-  const { token } = useAuth();
+  const { token, user } = useAuth();
   const [udis, setUdis] = useState<UDIRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
-
-  const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+  const [error, setError] = useState('');
+  const projectId = getProjectId(project);
+  const canEdit = roleHasPermission(user?.role, 'canEdit');
+  const canExport = roleHasPermission(user?.role, 'canExport');
 
   const fetchUDIs = async () => {
-    if (!project?.name || !token) return;
+    if (!projectId || !token) return;
     setLoading(true);
+    setError('');
     try {
-      const res = await fetch(`${apiBase}/api/udi?projectId=${project.name}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setUdis(data.udis || []);
-      }
+      const data = await apiFetch<{ udis: UDIRecord[] }>(`/udi?projectId=${projectId}`);
+      setUdis(data.udis || []);
     } catch (err) {
       console.error('Failed to fetch UDIs:', err);
+      setError(err instanceof Error ? err.message : 'Failed to fetch UDIs');
     } finally {
       setLoading(false);
     }
@@ -47,44 +49,47 @@ export function UDIManager() {
 
   useEffect(() => {
     fetchUDIs();
-  }, [project?.name, token]);
+  }, [projectId, token]);
 
   const handleCreate = async (formData: any) => {
-    if (!project?.name || !token) return;
+    if (!projectId || !token) return;
+    if (!canEdit) {
+      setError('Insufficient permissions: requires canEdit');
+      return;
+    }
     try {
-      const res = await fetch(`${apiBase}/api/udi`, {
+      await apiFetch('/udi', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ ...formData, projectId: project.name }),
+        body: JSON.stringify({ ...formData, projectId }),
       });
-      if (res.ok) {
-        setShowForm(false);
-        fetchUDIs();
-      }
+      setShowForm(false);
+      setError('');
+      fetchUDIs();
     } catch (err) {
       console.error('Failed to create UDI:', err);
+      setError(err instanceof Error ? err.message : 'Failed to create UDI');
     }
   };
 
   const handleExport = async (format: 'gudid' | 'eudamed') => {
-    if (!project?.name || !token) return;
+    if (!projectId || !token) return;
+    if (!canExport) {
+      setError('Insufficient permissions: requires canExport');
+      return;
+    }
     try {
-      const res = await fetch(`${apiBase}/api/udi/${format}-export?projectId=${project.name}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (res.ok) {
-        const data = await res.json();
-        const exportData = format === 'gudid' ? data.gudidExport : data.eudamedExport;
-        const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${format}-export-${project.name}.json`;
-        a.click();
-        URL.revokeObjectURL(url);
-      }
+      const data = await apiFetch<{ gudidExport?: any; eudamedExport?: any }>(`/udi/${format}-export?projectId=${projectId}`);
+      const exportData = format === 'gudid' ? data.gudidExport : data.eudamedExport;
+      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${format}-export-${projectId}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
     } catch (err) {
       console.error(`Failed to export ${format} data:`, err);
+      setError(err instanceof Error ? err.message : `Failed to export ${format} data`);
     }
   };
 
@@ -104,29 +109,41 @@ export function UDIManager() {
           <h2 className="text-lg font-semibold text-text-primary">{t('udi.title')}</h2>
         </div>
         <div className="flex items-center gap-2">
-          <button
-            onClick={() => handleExport('gudid')}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-text-secondary border border-border rounded-lg hover:bg-surface-hover transition-colors"
-          >
-            <Download className="w-4 h-4" />
-            {t('udi.exportGUDID')}
-          </button>
-          <button
-            onClick={() => handleExport('eudamed')}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-text-secondary border border-border rounded-lg hover:bg-surface-hover transition-colors"
-          >
-            <Download className="w-4 h-4" />
-            {t('udi.exportEUDAMED')}
-          </button>
-          <button
-            onClick={() => setShowForm(true)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white bg-accent rounded-lg hover:bg-accent/90 transition-colors"
-          >
-            <Plus className="w-4 h-4" />
-            {t('udi.addUDI')}
-          </button>
+          {canExport && (
+            <>
+              <button
+                onClick={() => handleExport('gudid')}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-text-secondary border border-border rounded-lg hover:bg-surface-hover transition-colors"
+              >
+                <Download className="w-4 h-4" />
+                {t('udi.exportGUDID')}
+              </button>
+              <button
+                onClick={() => handleExport('eudamed')}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-text-secondary border border-border rounded-lg hover:bg-surface-hover transition-colors"
+              >
+                <Download className="w-4 h-4" />
+                {t('udi.exportEUDAMED')}
+              </button>
+            </>
+          )}
+          {canEdit && (
+            <button
+              onClick={() => setShowForm(true)}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white bg-accent rounded-lg hover:bg-accent/90 transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+              {t('udi.addUDI')}
+            </button>
+          )}
         </div>
       </div>
+
+      {error && (
+        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {error}
+        </div>
+      )}
 
       {udis.length === 0 ? (
         <div className="text-center py-12 text-text-tertiary">{t('udi.noUDIs')}</div>

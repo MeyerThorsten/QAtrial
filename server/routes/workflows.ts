@@ -1,5 +1,6 @@
 import { Hono } from 'hono';
-import { prisma } from '../index.js';
+import { prisma } from '../lib/prisma.js';
+import { findAccessibleProject, listAccessibleProjectIds } from '../lib/projectAccess.js';
 import { authMiddleware, getUser, requirePermission } from '../middleware/auth.js';
 import { logAudit } from '../services/audit.service.js';
 import { dispatchWebhook } from '../services/webhook.service.js';
@@ -123,9 +124,10 @@ workflows.post('/templates', requirePermission('canAdmin'), async (c) => {
 // GET /templates/:id — get with steps
 workflows.get('/templates/:id', async (c) => {
   try {
+    const user = getUser(c);
     const { id } = c.req.param();
-    const template = await prisma.workflowTemplate.findUnique({
-      where: { id },
+    const template = await prisma.workflowTemplate.findFirst({
+      where: { id, orgId: user.orgId || '' },
       include: { steps: { orderBy: { order: 'asc' } } },
     });
     if (!template) return c.json({ message: 'Template not found' }, 404);
@@ -139,11 +141,14 @@ workflows.get('/templates/:id', async (c) => {
 // PUT /templates/:id — update (admin)
 workflows.put('/templates/:id', requirePermission('canAdmin'), async (c) => {
   try {
+    const user = getUser(c);
     const { id } = c.req.param();
     const body = await c.req.json();
     const { name, description, entityType, enabled, steps } = body;
 
-    const existing = await prisma.workflowTemplate.findUnique({ where: { id } });
+    const existing = await prisma.workflowTemplate.findFirst({
+      where: { id, orgId: user.orgId || '' },
+    });
     if (!existing) return c.json({ message: 'Template not found' }, 404);
 
     // Delete old steps and recreate
@@ -186,7 +191,12 @@ workflows.put('/templates/:id', requirePermission('canAdmin'), async (c) => {
 // DELETE /templates/:id — delete (admin)
 workflows.delete('/templates/:id', requirePermission('canAdmin'), async (c) => {
   try {
+    const user = getUser(c);
     const { id } = c.req.param();
+    const existing = await prisma.workflowTemplate.findFirst({
+      where: { id, orgId: user.orgId || '' },
+    });
+    if (!existing) return c.json({ message: 'Template not found' }, 404);
     await prisma.workflowTemplate.delete({ where: { id } });
     return c.json({ message: 'Template deleted' });
   } catch (error: any) {
@@ -198,12 +208,13 @@ workflows.delete('/templates/:id', requirePermission('canAdmin'), async (c) => {
 // POST /templates/:id/simulate — simulate workflow path for entity data
 workflows.post('/templates/:id/simulate', async (c) => {
   try {
+    const user = getUser(c);
     const { id } = c.req.param();
     const body = await c.req.json();
     const { entityData } = body;
 
-    const template = await prisma.workflowTemplate.findUnique({
-      where: { id },
+    const template = await prisma.workflowTemplate.findFirst({
+      where: { id, orgId: user.orgId || '' },
       include: { steps: { orderBy: { order: 'asc' } } },
     });
     if (!template) return c.json({ message: 'Template not found' }, 404);
@@ -238,7 +249,7 @@ workflows.post('/templates/:id/simulate', async (c) => {
 // ── Execution ───────────────────────────────────────────────────────────────
 
 // POST /execute — start workflow execution on entity
-workflows.post('/execute', async (c) => {
+workflows.post('/execute', requirePermission('canEdit'), async (c) => {
   try {
     const user = getUser(c);
     const body = await c.req.json();
@@ -248,13 +259,19 @@ workflows.post('/execute', async (c) => {
       return c.json({ message: 'templateId, entityType, entityId, and projectId are required' }, 400);
     }
 
-    const template = await prisma.workflowTemplate.findUnique({
-      where: { id: templateId },
+    const project = await findAccessibleProject(projectId, user.orgId);
+    if (!project) return c.json({ message: 'Project not found' }, 404);
+
+    const template = await prisma.workflowTemplate.findFirst({
+      where: { id: templateId, orgId: user.orgId || '' },
       include: { steps: { orderBy: { order: 'asc' } } },
     });
     if (!template) return c.json({ message: 'Template not found' }, 404);
     if (!template.enabled) return c.json({ message: 'Template is disabled' }, 400);
     if (template.steps.length === 0) return c.json({ message: 'Template has no steps' }, 400);
+    if (template.entityType !== entityType) {
+      return c.json({ message: 'Template entity type does not match execution entity type' }, 400);
+    }
 
     const execution = await prisma.workflowExecution.create({
       data: {
@@ -310,6 +327,8 @@ workflows.put('/executions/:id/act', async (c) => {
     });
 
     if (!execution) return c.json({ message: 'Execution not found' }, 404);
+    const project = await findAccessibleProject(execution.projectId, user.orgId);
+    if (!project) return c.json({ message: 'Execution not found' }, 404);
     if (execution.status !== 'active') {
       return c.json({ message: `Execution is ${execution.status}, not active` }, 400);
     }
@@ -318,6 +337,22 @@ workflows.put('/executions/:id/act', async (c) => {
     const currentStepDef = steps[execution.currentStep];
     if (!currentStepDef) {
       return c.json({ message: 'Current step not found in template' }, 400);
+    }
+
+    const latestDelegations = execution.actions
+      .filter((entry) => entry.stepOrder === execution.currentStep && entry.action === 'delegated' && entry.delegatedTo)
+      .sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
+    const latestDelegation = latestDelegations[latestDelegations.length - 1];
+    const isDelegatedActor = latestDelegation
+      ? [user.userId, user.email].includes(latestDelegation.delegatedTo || '')
+      : false;
+    const canActOnCurrentStep = user.role === 'admin' || currentStepDef.assigneeRole === user.role || isDelegatedActor;
+
+    if (!canActOnCurrentStep) {
+      return c.json({ message: `Current step requires role ${currentStepDef.assigneeRole}` }, 403);
+    }
+    if (action === 'delegated' && !delegatedTo) {
+      return c.json({ message: 'delegatedTo is required when delegating a workflow step' }, 400);
     }
 
     // Record the action
@@ -513,9 +548,13 @@ workflows.put('/executions/:id/act', async (c) => {
 workflows.get('/executions/my-pending', async (c) => {
   try {
     const user = getUser(c);
+    const accessibleProjectIds = await listAccessibleProjectIds(user.orgId);
+    if (accessibleProjectIds.length === 0) {
+      return c.json({ executions: [] });
+    }
 
     const executions = await prisma.workflowExecution.findMany({
-      where: { status: 'active' },
+      where: { status: 'active', projectId: { in: accessibleProjectIds } },
       include: {
         template: { include: { steps: { orderBy: { order: 'asc' } } } },
         actions: true,
@@ -527,7 +566,14 @@ workflows.get('/executions/my-pending', async (c) => {
     const pending = executions.filter((exec) => {
       const currentStepDef = exec.template.steps[exec.currentStep];
       if (!currentStepDef) return false;
-      return currentStepDef.assigneeRole === user.role || user.role === 'admin';
+      const latestDelegations = exec.actions
+        .filter((action) => action.stepOrder === exec.currentStep && action.action === 'delegated' && action.delegatedTo)
+        .sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
+      const latestDelegation = latestDelegations[latestDelegations.length - 1];
+      const isDelegatedActor = latestDelegation
+        ? [user.userId, user.email].includes(latestDelegation.delegatedTo || '')
+        : false;
+      return currentStepDef.assigneeRole === user.role || user.role === 'admin' || isDelegatedActor;
     });
 
     return c.json({ executions: pending });
@@ -540,8 +586,14 @@ workflows.get('/executions/my-pending', async (c) => {
 // GET /executions/overdue — executions where current step SLA exceeded
 workflows.get('/executions/overdue', async (c) => {
   try {
+    const user = getUser(c);
+    const accessibleProjectIds = await listAccessibleProjectIds(user.orgId);
+    if (accessibleProjectIds.length === 0) {
+      return c.json({ executions: [] });
+    }
+
     const executions = await prisma.workflowExecution.findMany({
-      where: { status: 'active' },
+      where: { status: 'active', projectId: { in: accessibleProjectIds } },
       include: {
         template: { include: { steps: { orderBy: { order: 'asc' } } } },
         actions: true,
@@ -573,6 +625,7 @@ workflows.get('/executions/overdue', async (c) => {
 // GET /executions/:id — execution with all actions
 workflows.get('/executions/:id', async (c) => {
   try {
+    const user = getUser(c);
     const { id } = c.req.param();
     const execution = await prisma.workflowExecution.findUnique({
       where: { id },
@@ -582,6 +635,8 @@ workflows.get('/executions/:id', async (c) => {
       },
     });
     if (!execution) return c.json({ message: 'Execution not found' }, 404);
+    const project = await findAccessibleProject(execution.projectId, user.orgId);
+    if (!project) return c.json({ message: 'Execution not found' }, 404);
     return c.json({ execution });
   } catch (error: any) {
     console.error('Get execution error:', error);

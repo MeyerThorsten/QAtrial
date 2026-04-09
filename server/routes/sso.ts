@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import { prisma } from '../index.js';
+import { prisma } from '../lib/prisma.js';
 import { signAccessToken, signRefreshToken, type JwtPayload } from '../middleware/auth.js';
 import * as crypto from 'crypto';
 

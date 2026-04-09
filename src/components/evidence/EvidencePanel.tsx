@@ -1,9 +1,10 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { X, Upload, Download, Trash2, Paperclip, FileText, AlertTriangle } from 'lucide-react';
 import { useAppMode } from '../../hooks/useAppMode';
 import { useEvidenceStore, type EvidenceAttachment } from '../../store/useEvidenceStore';
 import { useAuthStore } from '../../store/useAuthStore';
+import { apiFetch, getApiBase } from '../../lib/apiClient';
 
 interface Props {
   entityType: 'requirement' | 'test' | 'capa';
@@ -11,6 +12,35 @@ interface Props {
   projectId: string;
   open: boolean;
   onClose: () => void;
+}
+
+interface ServerEvidenceAttachment {
+  id: string;
+  entityId: string;
+  entityType: 'requirement' | 'test' | 'capa';
+  fileName: string;
+  fileSize: number;
+  mimeType: string;
+  description: string;
+  uploadedBy: string;
+  createdAt: string;
+}
+
+function toEvidenceAttachment(item: ServerEvidenceAttachment): EvidenceAttachment {
+  return {
+    id: item.id,
+    entityId: item.entityId,
+    entityType: item.entityType,
+    name: item.fileName,
+    fileName: item.fileName,
+    mimeType: item.mimeType,
+    sizeBytes: item.fileSize,
+    evidenceType: 'document',
+    description: item.description || undefined,
+    uploadedBy: item.uploadedBy,
+    uploadedAt: item.createdAt,
+    reviewed: false,
+  };
 }
 
 export function EvidencePanel({ entityType, entityId, projectId, open, onClose }: Props) {
@@ -22,12 +52,42 @@ export function EvidencePanel({ entityType, entityId, projectId, open, onClose }
   const addAttachment = useEvidenceStore((s) => s.addAttachment);
   const removeAttachment = useEvidenceStore((s) => s.removeAttachment);
   const currentUser = useAuthStore((s) => s.currentUser);
+  const [serverAttachments, setServerAttachments] = useState<EvidenceAttachment[]>([]);
 
   const [description, setDescription] = useState('');
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!open || !isServerMode || !projectId) return;
+
+    let cancelled = false;
+
+    async function loadEvidence() {
+      try {
+        const response = await apiFetch<{ evidence: ServerEvidenceAttachment[] }>(
+          `/evidence?projectId=${encodeURIComponent(projectId)}&entityType=${encodeURIComponent(entityType)}&entityId=${encodeURIComponent(entityId)}`,
+        );
+        if (!cancelled) {
+          setServerAttachments((response.evidence ?? []).map(toEvidenceAttachment));
+        }
+      } catch {
+        if (!cancelled) {
+          setServerAttachments([]);
+        }
+      }
+    }
+
+    void loadEvidence();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [entityId, entityType, isServerMode, open, projectId]);
+
+  const visibleAttachments = isServerMode ? serverAttachments : attachments;
 
   const readFileAsDataUrl = useCallback((file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -75,14 +135,18 @@ export function EvidencePanel({ entityType, entityId, projectId, open, onClose }
             formData.append('description', description);
 
             const token = localStorage.getItem('qatrial:token');
-            const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
-            await fetch(`${apiBase}/evidence/upload`, {
+            const response = await fetch(`${getApiBase()}/evidence/upload`, {
               method: 'POST',
               headers: {
                 ...(token ? { Authorization: `Bearer ${token}` } : {}),
               },
               body: formData,
             });
+            if (!response.ok) {
+              throw new Error('Failed to upload evidence');
+            }
+            const result = await response.json() as { evidence: ServerEvidenceAttachment };
+            setServerAttachments((current) => [toEvidenceAttachment(result.evidence), ...current]);
           } catch {
             // Fall back to client-side storage on error
             await addFileLocally(file, description);
@@ -102,7 +166,7 @@ export function EvidencePanel({ entityType, entityId, projectId, open, onClose }
     [isServerMode, entityType, entityId, projectId, description, addFileLocally],
   );
 
-  const handleDownload = (attachment: EvidenceAttachment) => {
+  const handleDownload = async (attachment: EvidenceAttachment) => {
     if (attachment.dataUrl) {
       const link = document.createElement('a');
       link.href = attachment.dataUrl;
@@ -112,12 +176,35 @@ export function EvidencePanel({ entityType, entityId, projectId, open, onClose }
       document.body.removeChild(link);
     } else if (isServerMode) {
       const token = localStorage.getItem('qatrial:token');
-      const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
-      window.open(`${apiBase}/evidence/${attachment.id}/download?token=${token}`, '_blank');
+      const response = await fetch(`${getApiBase()}/evidence/${attachment.id}/download`, {
+        headers: {
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      });
+      if (!response.ok) return;
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = attachment.fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
     }
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
+    if (isServerMode) {
+      try {
+        await apiFetch(`/evidence/${id}`, { method: 'DELETE' });
+        setServerAttachments((current) => current.filter((attachment) => attachment.id !== id));
+      } catch {
+        // keep current list untouched if delete fails
+      }
+      return;
+    }
+
     removeAttachment(id);
   };
 
@@ -237,14 +324,14 @@ export function EvidencePanel({ entityType, entityId, projectId, open, onClose }
           )}
 
           {/* Evidence list */}
-          {attachments.length === 0 ? (
+          {visibleAttachments.length === 0 ? (
             <div className="text-center py-8 text-text-tertiary">
               <FileText className="w-8 h-8 mx-auto mb-2" />
               <p className="text-sm">{t('evidence.noEvidence')}</p>
             </div>
           ) : (
             <div className="space-y-2">
-              {attachments.map((att) => (
+              {visibleAttachments.map((att) => (
                 <div
                   key={att.id}
                   className="flex items-center justify-between p-3 bg-surface rounded-lg border border-border"

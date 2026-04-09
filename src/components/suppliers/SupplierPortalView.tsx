@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { BarChart3, ClipboardCheck, AlertTriangle, FileText, Upload, Send, Clock, Shield, CheckCircle } from 'lucide-react';
+import { getApiBase } from '../../lib/apiClient';
 
 interface PortalDashboard {
   supplier: { name: string; category: string; qualificationStatus: string };
@@ -56,60 +57,64 @@ export function SupplierPortalView({ token }: { token: string }) {
   const [dragOver, setDragOver] = useState(false);
   const [uploadDesc, setUploadDesc] = useState('');
 
-  const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+  const apiBase = getApiBase();
+
+  const portalFetch = useCallback(async (path: string, init?: RequestInit) => {
+    const res = await fetch(`${apiBase}${path}`, init);
+    if (!res.ok) {
+      let message = res.statusText;
+      try {
+        const data = await res.json();
+        message = data.message || message;
+      } catch {
+        // ignore parse failures
+      }
+      throw new Error(message);
+    }
+    return res.json();
+  }, [apiBase]);
 
   const fetchDashboard = useCallback(async () => {
     try {
-      const res = await fetch(`${apiBase}/api/supplier-portal/${token}/dashboard`);
-      if (!res.ok) {
-        if (res.status === 403) throw new Error('Portal link has expired');
-        if (res.status === 404) throw new Error('Invalid portal link');
-        throw new Error('Failed to load dashboard');
-      }
-      const data = await res.json();
+      const data = await portalFetch(`/supplier-portal/${token}/dashboard`);
       setDashboard(data);
     } catch (err: any) {
-      setError(err.message);
+      if (err.message === 'Portal link has expired' || err.message === 'Invalid portal link') {
+        setError(err.message);
+      } else {
+        setError(err.message || 'Failed to load dashboard');
+      }
     } finally {
       setLoading(false);
     }
-  }, [token, apiBase]);
+  }, [token, portalFetch]);
 
   const fetchAudits = useCallback(async () => {
     try {
-      const res = await fetch(`${apiBase}/api/supplier-portal/${token}/audits`);
-      if (res.ok) {
-        const data = await res.json();
-        setAudits(data.audits || []);
-      }
+      const data = await portalFetch(`/supplier-portal/${token}/audits`);
+      setAudits(data.audits || []);
     } catch (err) {
       console.error('Failed to fetch audits:', err);
     }
-  }, [token, apiBase]);
+  }, [token, portalFetch]);
 
   const fetchActions = useCallback(async () => {
     try {
-      const res = await fetch(`${apiBase}/api/supplier-portal/${token}/actions`);
-      if (res.ok) {
-        const data = await res.json();
-        setActions(data.actions || []);
-      }
+      const data = await portalFetch(`/supplier-portal/${token}/actions`);
+      setActions(data.actions || []);
     } catch (err) {
       console.error('Failed to fetch actions:', err);
     }
-  }, [token, apiBase]);
+  }, [token, portalFetch]);
 
   const fetchDocuments = useCallback(async () => {
     try {
-      const res = await fetch(`${apiBase}/api/supplier-portal/${token}/documents`);
-      if (res.ok) {
-        const data = await res.json();
-        setDocuments(data.documents || []);
-      }
+      const data = await portalFetch(`/supplier-portal/${token}/documents`);
+      setDocuments(data.documents || []);
     } catch (err) {
       console.error('Failed to fetch documents:', err);
     }
-  }, [token, apiBase]);
+  }, [token, portalFetch]);
 
   useEffect(() => {
     fetchDashboard();
@@ -127,7 +132,7 @@ export function SupplierPortalView({ token }: { token: string }) {
       const formData = new FormData();
       formData.append('file', file);
       formData.append('description', uploadDesc);
-      const res = await fetch(`${apiBase}/api/supplier-portal/${token}/upload`, {
+      const res = await fetch(`${apiBase}/supplier-portal/${token}/upload`, {
         method: 'POST',
         body: formData,
       });
@@ -153,7 +158,7 @@ export function SupplierPortalView({ token }: { token: string }) {
     const text = responseText[findingId];
     if (!text) return;
     try {
-      await fetch(`${apiBase}/api/supplier-portal/${token}/respond/${findingId}`, {
+      await portalFetch(`/supplier-portal/${token}/respond/${findingId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ response: text }),

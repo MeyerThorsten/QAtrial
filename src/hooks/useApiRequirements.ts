@@ -2,6 +2,12 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { apiFetch } from '../lib/apiClient';
 import type { Requirement } from '../types';
 
+type RequirementListResponse = Requirement[] | { requirements: Requirement[] };
+
+function unwrapRequirements(data: RequirementListResponse): Requirement[] {
+  return Array.isArray(data) ? data : data.requirements ?? [];
+}
+
 export function useApiRequirements(projectId: string) {
   const [requirements, setRequirements] = useState<Requirement[]>([]);
   const [loading, setLoading] = useState(true);
@@ -9,12 +15,18 @@ export function useApiRequirements(projectId: string) {
   const mountedRef = useRef(true);
 
   const fetchAll = useCallback(async () => {
-    if (!projectId) return;
+    if (!projectId) {
+      if (mountedRef.current) {
+        setRequirements([]);
+        setLoading(false);
+      }
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
-      const data = await apiFetch<Requirement[]>(`/requirements?projectId=${encodeURIComponent(projectId)}`);
-      if (mountedRef.current) setRequirements(data);
+      const data = await apiFetch<RequirementListResponse>(`/requirements?projectId=${encodeURIComponent(projectId)}`);
+      if (mountedRef.current) setRequirements(unwrapRequirements(data));
     } catch (err: unknown) {
       if (mountedRef.current) {
         const msg = err instanceof Error ? err.message : String(err); if (msg.includes('401')) {

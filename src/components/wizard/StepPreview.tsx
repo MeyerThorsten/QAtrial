@@ -10,7 +10,9 @@ interface Props {
   onToggleReq: (index: number) => void;
   onToggleTest: (index: number) => void;
   onBack: () => void;
-  onCreate: () => void;
+  onCreate: () => void | Promise<void>;
+  creating?: boolean;
+  errorMessage?: string | null;
 }
 
 export function StepPreview({
@@ -22,6 +24,8 @@ export function StepPreview({
   onToggleTest,
   onBack,
   onCreate,
+  creating = false,
+  errorMessage,
 }: Props) {
   const { t } = useTranslation();
 
@@ -122,16 +126,23 @@ export function StepPreview({
       <div className="flex justify-between pt-6 border-t border-border mt-4">
         <button
           onClick={onBack}
+          disabled={creating}
           className="px-4 py-2 text-sm text-text-secondary bg-surface-tertiary rounded-lg hover:bg-surface-hover transition-colors"
         >
           {t('common.back')}
         </button>
-        <button
-          onClick={onCreate}
-          className="px-6 py-2 text-sm text-text-inverse bg-accent rounded-lg hover:bg-accent-hover transition-colors font-medium"
-        >
-          {t('wizard.createWithCounts', { reqCount, testCount })}
-        </button>
+        <div className="flex items-end gap-3">
+          {errorMessage && (
+            <p className="max-w-xs text-right text-xs text-danger">{errorMessage}</p>
+          )}
+          <button
+            onClick={onCreate}
+            disabled={creating}
+            className="px-6 py-2 text-sm text-text-inverse bg-accent rounded-lg hover:bg-accent-hover transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {creating ? 'Creating...' : t('wizard.createWithCounts', { reqCount, testCount })}
+          </button>
+        </div>
       </div>
     </div>
   );

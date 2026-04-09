@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
-import { prisma } from '../index.js';
-import { authMiddleware, getUser } from '../middleware/auth.js';
+import { findAccessibleProject } from '../lib/projectAccess.js';
+import { prisma } from '../lib/prisma.js';
+import { authMiddleware, getUser, requirePermission } from '../middleware/auth.js';
 import { logAudit } from '../services/audit.service.js';
 import { dispatchWebhook } from '../services/webhook.service.js';
 import * as bcrypt from 'bcryptjs';
@@ -21,12 +22,49 @@ function isValidTransition(from: string, to: string): boolean {
   return VALID_TRANSITIONS[from]?.includes(to) ?? false;
 }
 
+async function findAccessibleBatch(id: string, orgId: string | null) {
+  const batch = await prisma.batchRecord.findUnique({ where: { id } });
+  if (!batch) {
+    return null;
+  }
+
+  const project = await findAccessibleProject(batch.projectId, orgId);
+  if (!project) {
+    return null;
+  }
+
+  return batch;
+}
+
+async function findAccessibleBatchWithSteps(id: string, orgId: string | null) {
+  const batch = await prisma.batchRecord.findUnique({
+    where: { id },
+    include: { steps: { orderBy: { stepNumber: 'asc' } } },
+  });
+
+  if (!batch) {
+    return null;
+  }
+
+  const project = await findAccessibleProject(batch.projectId, orgId);
+  if (!project) {
+    return null;
+  }
+
+  return batch;
+}
+
 // List batch records by projectId
 batches.get('/', async (c) => {
   try {
+    const user = getUser(c);
     const projectId = c.req.query('projectId');
     if (!projectId) {
       return c.json({ message: 'projectId query parameter is required' }, 400);
+    }
+    const project = await findAccessibleProject(projectId, user.orgId);
+    if (!project) {
+      return c.json({ message: 'Project not found' }, 404);
     }
 
     const items = await prisma.batchRecord.findMany({
@@ -44,11 +82,9 @@ batches.get('/', async (c) => {
 // Get single batch with steps
 batches.get('/:id', async (c) => {
   try {
+    const user = getUser(c);
     const { id } = c.req.param();
-    const item = await prisma.batchRecord.findUnique({
-      where: { id },
-      include: { steps: { orderBy: { stepNumber: 'asc' } } },
-    });
+    const item = await findAccessibleBatchWithSteps(id, user.orgId);
 
     if (!item) {
       return c.json({ message: 'Batch record not found' }, 404);
@@ -62,13 +98,17 @@ batches.get('/:id', async (c) => {
 });
 
 // Create batch record
-batches.post('/', async (c) => {
+batches.post('/', requirePermission('canEdit'), async (c) => {
   try {
     const user = getUser(c);
     const body = await c.req.json();
 
     if (!body.projectId || !body.productName || !body.batchNumber) {
       return c.json({ message: 'projectId, productName, and batchNumber are required' }, 400);
+    }
+    const project = await findAccessibleProject(body.projectId, user.orgId);
+    if (!project) {
+      return c.json({ message: 'Project not found' }, 404);
     }
 
     const item = await prisma.batchRecord.create({
@@ -105,13 +145,13 @@ batches.post('/', async (c) => {
 });
 
 // Update batch record
-batches.put('/:id', async (c) => {
+batches.put('/:id', requirePermission('canEdit'), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();
     const body = await c.req.json();
 
-    const existing = await prisma.batchRecord.findUnique({ where: { id } });
+    const existing = await findAccessibleBatch(id, user.orgId);
     if (!existing) {
       return c.json({ message: 'Batch record not found' }, 404);
     }
@@ -156,12 +196,12 @@ batches.put('/:id', async (c) => {
 });
 
 // Delete batch record
-batches.delete('/:id', async (c) => {
+batches.delete('/:id', requirePermission('canDelete'), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();
 
-    const existing = await prisma.batchRecord.findUnique({ where: { id } });
+    const existing = await findAccessibleBatch(id, user.orgId);
     if (!existing) {
       return c.json({ message: 'Batch record not found' }, 404);
     }
@@ -185,13 +225,13 @@ batches.delete('/:id', async (c) => {
 });
 
 // Add step to batch
-batches.post('/:id/steps', async (c) => {
+batches.post('/:id/steps', requirePermission('canEdit'), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();
     const body = await c.req.json();
 
-    const batch = await prisma.batchRecord.findUnique({ where: { id } });
+    const batch = await findAccessibleBatch(id, user.orgId);
     if (!batch) {
       return c.json({ message: 'Batch record not found' }, 404);
     }
@@ -216,6 +256,15 @@ batches.post('/:id/steps', async (c) => {
       },
     });
 
+    await logAudit({
+      projectId: batch.projectId,
+      userId: user.userId,
+      action: 'create',
+      entityType: 'batch_step',
+      entityId: step.id,
+      newValue: step,
+    });
+
     return c.json({ step }, 201);
   } catch (error: any) {
     console.error('Add batch step error:', error);
@@ -224,7 +273,7 @@ batches.post('/:id/steps', async (c) => {
 });
 
 // Update batch step (record actual value, deviation)
-batches.put('/:id/steps/:stepId', async (c) => {
+batches.put('/:id/steps/:stepId', requirePermission('canEdit'), async (c) => {
   try {
     const user = getUser(c);
     const { id, stepId } = c.req.param();
@@ -232,6 +281,10 @@ batches.put('/:id/steps/:stepId', async (c) => {
 
     const existing = await prisma.batchStep.findUnique({ where: { id: stepId } });
     if (!existing || existing.batchId !== id) {
+      return c.json({ message: 'Batch step not found' }, 404);
+    }
+    const batch = await findAccessibleBatch(id, user.orgId);
+    if (!batch) {
       return c.json({ message: 'Batch step not found' }, 404);
     }
 
@@ -248,9 +301,18 @@ batches.put('/:id/steps/:stepId', async (c) => {
       },
     });
 
+    await logAudit({
+      projectId: batch.projectId,
+      userId: user.userId,
+      action: 'update',
+      entityType: 'batch_step',
+      entityId: step.id,
+      previousValue: existing,
+      newValue: step,
+    });
+
     // Dispatch webhook if deviation flagged
     if (step.deviation && !existing.deviation && user.orgId) {
-      const batch = await prisma.batchRecord.findUnique({ where: { id } });
       dispatchWebhook(user.orgId, 'batch.deviation_flagged', { batch, step });
     }
 
@@ -262,16 +324,13 @@ batches.put('/:id/steps/:stepId', async (c) => {
 });
 
 // Release batch (requires e-signature: check user password)
-batches.put('/:id/release', async (c) => {
+batches.put('/:id/release', requirePermission('canApprove'), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();
     const body = await c.req.json();
 
-    const existing = await prisma.batchRecord.findUnique({
-      where: { id },
-      include: { steps: true },
-    });
+    const existing = await findAccessibleBatchWithSteps(id, user.orgId);
     if (!existing) {
       return c.json({ message: 'Batch record not found' }, 404);
     }

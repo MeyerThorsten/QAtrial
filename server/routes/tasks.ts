@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
-import { prisma } from '../index.js';
-import { authMiddleware, getUser } from '../middleware/auth.js';
+import { prisma } from '../lib/prisma.js';
+import { findAccessibleProject, listAccessibleProjectIds } from '../lib/projectAccess.js';
+import { authMiddleware, getUser, requirePermission, roleHasPermission } from '../middleware/auth.js';
 import { createNotification } from './notifications.js';
 
 const tasks = new Hono();
@@ -10,12 +11,23 @@ tasks.use('*', authMiddleware);
 // GET / — list tasks (filter by projectId, assigneeId, status)
 tasks.get('/', async (c) => {
   try {
+    const user = getUser(c);
     const projectId = c.req.query('projectId');
     const assigneeId = c.req.query('assigneeId');
     const status = c.req.query('status');
 
     const where: any = {};
-    if (projectId) where.projectId = projectId;
+    if (projectId) {
+      const project = await findAccessibleProject(projectId, user.orgId);
+      if (!project) return c.json({ message: 'Project not found' }, 404);
+      where.projectId = projectId;
+    } else {
+      const accessibleProjectIds = await listAccessibleProjectIds(user.orgId);
+      if (accessibleProjectIds.length === 0) {
+        return c.json({ tasks: [] });
+      }
+      where.projectId = { in: accessibleProjectIds };
+    }
     if (assigneeId) where.assigneeId = assigneeId;
     if (status) where.status = status;
 
@@ -35,8 +47,16 @@ tasks.get('/', async (c) => {
 tasks.get('/my-tasks', async (c) => {
   try {
     const user = getUser(c);
+    const accessibleProjectIds = await listAccessibleProjectIds(user.orgId);
+    if (accessibleProjectIds.length === 0) {
+      return c.json({ tasks: [] });
+    }
+
     const items = await prisma.qTask.findMany({
-      where: { assigneeId: user.userId },
+      where: {
+        assigneeId: user.userId,
+        projectId: { in: accessibleProjectIds },
+      },
       orderBy: { createdAt: 'desc' },
     });
     return c.json({ tasks: items });
@@ -49,8 +69,15 @@ tasks.get('/my-tasks', async (c) => {
 // GET /overdue — overdue tasks (dueDate < now, status != completed)
 tasks.get('/overdue', async (c) => {
   try {
+    const user = getUser(c);
+    const accessibleProjectIds = await listAccessibleProjectIds(user.orgId);
+    if (accessibleProjectIds.length === 0) {
+      return c.json({ tasks: [] });
+    }
+
     const items = await prisma.qTask.findMany({
       where: {
+        projectId: { in: accessibleProjectIds },
         dueDate: { lt: new Date() },
         status: { not: 'completed' },
       },
@@ -64,7 +91,7 @@ tasks.get('/overdue', async (c) => {
 });
 
 // POST / — create task
-tasks.post('/', async (c) => {
+tasks.post('/', requirePermission('canEdit'), async (c) => {
   try {
     const user = getUser(c);
     const body = await c.req.json();
@@ -73,6 +100,9 @@ tasks.post('/', async (c) => {
     if (!projectId || !title || !assigneeId) {
       return c.json({ message: 'projectId, title, and assigneeId are required' }, 400);
     }
+
+    const project = await findAccessibleProject(projectId, user.orgId);
+    if (!project) return c.json({ message: 'Project not found' }, 404);
 
     const task = await prisma.qTask.create({
       data: {
@@ -113,11 +143,23 @@ tasks.post('/', async (c) => {
 // PUT /:id — update task
 tasks.put('/:id', async (c) => {
   try {
+    const user = getUser(c);
     const { id } = c.req.param();
     const body = await c.req.json();
 
     const existing = await prisma.qTask.findUnique({ where: { id } });
     if (!existing) return c.json({ message: 'Task not found' }, 404);
+    const project = await findAccessibleProject(existing.projectId, user.orgId);
+    if (!project) return c.json({ message: 'Task not found' }, 404);
+
+    const changedKeys = Object.keys(body).filter((key) => body[key] !== undefined);
+    const statusOnlyUpdate = changedKeys.length > 0 && changedKeys.every((key) => key === 'status');
+    const canEditTask = roleHasPermission(user.role, 'canEdit');
+    const isAssignee = existing.assigneeId === user.userId;
+
+    if (!canEditTask && !(statusOnlyUpdate && isAssignee)) {
+      return c.json({ message: 'Not authorized to update this task' }, 403);
+    }
 
     const data: any = {};
     if (body.title !== undefined) data.title = body.title;
@@ -129,13 +171,13 @@ tasks.put('/:id', async (c) => {
     if (body.status !== undefined) {
       data.status = body.status;
       if (body.status === 'completed') data.completedAt = new Date();
+      if (body.status !== 'completed') data.completedAt = null;
     }
 
     const updated = await prisma.qTask.update({ where: { id }, data });
 
     // Notify on reassignment
     if (body.assigneeId && body.assigneeId !== existing.assigneeId) {
-      const user = getUser(c);
       await createNotification(
         body.assigneeId,
         'approval_needed',
@@ -155,11 +197,14 @@ tasks.put('/:id', async (c) => {
 });
 
 // DELETE /:id
-tasks.delete('/:id', async (c) => {
+tasks.delete('/:id', requirePermission('canDelete'), async (c) => {
   try {
+    const user = getUser(c);
     const { id } = c.req.param();
     const existing = await prisma.qTask.findUnique({ where: { id } });
     if (!existing) return c.json({ message: 'Task not found' }, 404);
+    const project = await findAccessibleProject(existing.projectId, user.orgId);
+    if (!project) return c.json({ message: 'Task not found' }, 404);
     await prisma.qTask.delete({ where: { id } });
     return c.json({ message: 'Task deleted' });
   } catch (error: any) {
@@ -171,9 +216,15 @@ tasks.delete('/:id', async (c) => {
 // PUT /:id/complete — mark completed
 tasks.put('/:id/complete', async (c) => {
   try {
+    const user = getUser(c);
     const { id } = c.req.param();
     const existing = await prisma.qTask.findUnique({ where: { id } });
     if (!existing) return c.json({ message: 'Task not found' }, 404);
+    const project = await findAccessibleProject(existing.projectId, user.orgId);
+    if (!project) return c.json({ message: 'Task not found' }, 404);
+    if (!roleHasPermission(user.role, 'canEdit') && existing.assigneeId !== user.userId) {
+      return c.json({ message: 'Not authorized to complete this task' }, 403);
+    }
 
     const updated = await prisma.qTask.update({
       where: { id },

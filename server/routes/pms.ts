@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
-import { prisma } from '../index.js';
-import { authMiddleware, getUser } from '../middleware/auth.js';
+import { findAccessibleProject } from '../lib/projectAccess.js';
+import { prisma } from '../lib/prisma.js';
+import { authMiddleware, getUser, requirePermission } from '../middleware/auth.js';
 import { logAudit } from '../services/audit.service.js';
 import { dispatchWebhook } from '../services/webhook.service.js';
 
@@ -11,8 +12,13 @@ pms.use('*', authMiddleware);
 // List PMS entries
 pms.get('/:projectId/entries', async (c) => {
   try {
+    const user = getUser(c);
     const { projectId } = c.req.param();
     const entryType = c.req.query('entryType');
+    const project = await findAccessibleProject(projectId, user.orgId);
+    if (!project) {
+      return c.json({ message: 'Project not found' }, 404);
+    }
 
     const where: any = { projectId };
     if (entryType) where.entryType = entryType;
@@ -32,7 +38,12 @@ pms.get('/:projectId/entries', async (c) => {
 // PMS summary
 pms.get('/:projectId/summary', async (c) => {
   try {
+    const user = getUser(c);
     const { projectId } = c.req.param();
+    const project = await findAccessibleProject(projectId, user.orgId);
+    if (!project) {
+      return c.json({ message: 'Project not found' }, 404);
+    }
 
     const entries = await prisma.pMSEntry.findMany({ where: { projectId } });
 
@@ -72,9 +83,14 @@ pms.get('/:projectId/summary', async (c) => {
 // PSUR data
 pms.get('/:projectId/psur-data', async (c) => {
   try {
+    const user = getUser(c);
     const { projectId } = c.req.param();
     const from = c.req.query('from');
     const to = c.req.query('to');
+    const project = await findAccessibleProject(projectId, user.orgId);
+    if (!project) {
+      return c.json({ message: 'Project not found' }, 404);
+    }
 
     const dateFilter: any = {};
     if (from) dateFilter.gte = new Date(from);
@@ -121,11 +137,15 @@ pms.get('/:projectId/psur-data', async (c) => {
 });
 
 // Create PMS entry
-pms.post('/:projectId/entries', async (c) => {
+pms.post('/:projectId/entries', requirePermission('canEdit'), async (c) => {
   try {
     const user = getUser(c);
     const { projectId } = c.req.param();
     const body = await c.req.json();
+    const project = await findAccessibleProject(projectId, user.orgId);
+    if (!project) {
+      return c.json({ message: 'Project not found' }, 404);
+    }
 
     if (!body.entryType || !body.title) {
       return c.json({ message: 'entryType and title are required' }, 400);

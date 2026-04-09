@@ -2,9 +2,7 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../hooks/useAuth';
 import { Eye, EyeOff, Loader2, Shield } from 'lucide-react';
-import { apiFetch } from '../../lib/apiClient';
-
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+import { apiFetch, getApiBase } from '../../lib/apiClient';
 
 export function LoginPage() {
   const { t } = useTranslation();
@@ -26,7 +24,7 @@ export function LoginPage() {
 
   // Check SSO config on mount
   useEffect(() => {
-    fetch(`${API_BASE}/auth/sso/config`)
+    fetch(`${getApiBase()}/auth/sso/config`)
       .then((res) => res.json())
       .then((data: { enabled: boolean }) => {
         setSsoEnabled(data.enabled);
@@ -109,7 +107,7 @@ export function LoginPage() {
   };
 
   const handleSsoLogin = () => {
-    window.location.href = `${API_BASE}/auth/sso/login`;
+    window.location.href = `${getApiBase()}/auth/sso/login`;
   };
 
   const toggleMode = () => {

@@ -6,22 +6,46 @@ interface ServerProject extends ProjectMeta {
   id: string;
 }
 
-export function useApiProjects() {
+type ProjectListResponse = ServerProject[] | { projects: ServerProject[] };
+type ProjectResponse = ServerProject | { project: ServerProject };
+
+function unwrapProjects(data: ProjectListResponse): ServerProject[] {
+  return Array.isArray(data) ? data : data.projects ?? [];
+}
+
+function unwrapProject(data: ProjectResponse): ServerProject {
+  return 'project' in data ? data.project : data;
+}
+
+export function useApiProjects(enabled = true) {
   const [projects, setProjects] = useState<ServerProject[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeProject, setActiveProject] = useState<ServerProject | null>(null);
   const mountedRef = useRef(true);
+  const activeProjectRef = useRef<ServerProject | null>(null);
+
+  useEffect(() => {
+    activeProjectRef.current = activeProject;
+  }, [activeProject]);
 
   const fetchAll = useCallback(async () => {
+    if (!enabled) {
+      if (mountedRef.current) {
+        setProjects([]);
+        setActiveProject(null);
+        setLoading(false);
+      }
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
-      const data = await apiFetch<ServerProject[]>('/projects');
+      const data = unwrapProjects(await apiFetch<ProjectListResponse>('/projects'));
       if (mountedRef.current) {
         setProjects(data);
         // Auto-select first project if none selected
-        if (!activeProject && data.length > 0) {
+        if (!activeProjectRef.current && data.length > 0) {
           setActiveProject(data[0]);
         }
       }
@@ -35,7 +59,7 @@ export function useApiProjects() {
     } finally {
       if (mountedRef.current) setLoading(false);
     }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [enabled]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     mountedRef.current = true;
@@ -46,10 +70,10 @@ export function useApiProjects() {
   const create = useCallback(async (data: Partial<ProjectMeta>) => {
     setError(null);
     try {
-      const created = await apiFetch<ServerProject>('/projects', {
+      const created = unwrapProject(await apiFetch<ProjectResponse>('/projects', {
         method: 'POST',
         body: JSON.stringify(data),
-      });
+      }));
       await fetchAll();
       setActiveProject(created);
       return created;
@@ -62,7 +86,7 @@ export function useApiProjects() {
   const update = useCallback(async (id: string, data: Partial<ProjectMeta>) => {
     setError(null);
     try {
-      await apiFetch<ServerProject>(`/projects/${id}`, {
+      await apiFetch<ProjectResponse>(`/projects/${id}`, {
         method: 'PUT',
         body: JSON.stringify(data),
       });

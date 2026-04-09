@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
-import { prisma } from '../index.js';
-import { authMiddleware, getUser } from '../middleware/auth.js';
+import { findAccessibleProject } from '../lib/projectAccess.js';
+import { prisma } from '../lib/prisma.js';
+import { authMiddleware, getUser, requirePermission } from '../middleware/auth.js';
 import { logAudit } from '../services/audit.service.js';
 import { dispatchWebhook } from '../services/webhook.service.js';
 
@@ -11,9 +12,14 @@ udi.use('*', authMiddleware);
 // GUDID export (must be before /:id)
 udi.get('/gudid-export', async (c) => {
   try {
+    const user = getUser(c);
     const projectId = c.req.query('projectId');
     if (!projectId) {
       return c.json({ message: 'projectId query parameter is required' }, 400);
+    }
+    const project = await findAccessibleProject(projectId, user.orgId);
+    if (!project) {
+      return c.json({ message: 'Project not found' }, 404);
     }
 
     const items = await prisma.uDI.findMany({ where: { projectId } });
@@ -40,9 +46,14 @@ udi.get('/gudid-export', async (c) => {
 // EUDAMED export
 udi.get('/eudamed-export', async (c) => {
   try {
+    const user = getUser(c);
     const projectId = c.req.query('projectId');
     if (!projectId) {
       return c.json({ message: 'projectId query parameter is required' }, 400);
+    }
+    const project = await findAccessibleProject(projectId, user.orgId);
+    if (!project) {
+      return c.json({ message: 'Project not found' }, 404);
     }
 
     const items = await prisma.uDI.findMany({ where: { projectId } });
@@ -69,9 +80,14 @@ udi.get('/eudamed-export', async (c) => {
 // List UDIs by projectId
 udi.get('/', async (c) => {
   try {
+    const user = getUser(c);
     const projectId = c.req.query('projectId');
     if (!projectId) {
       return c.json({ message: 'projectId query parameter is required' }, 400);
+    }
+    const project = await findAccessibleProject(projectId, user.orgId);
+    if (!project) {
+      return c.json({ message: 'Project not found' }, 404);
     }
 
     const items = await prisma.uDI.findMany({
@@ -87,13 +103,17 @@ udi.get('/', async (c) => {
 });
 
 // Create UDI
-udi.post('/', async (c) => {
+udi.post('/', requirePermission('canEdit'), async (c) => {
   try {
     const user = getUser(c);
     const body = await c.req.json();
 
     if (!body.projectId || !body.deviceIdentifier || !body.productName) {
       return c.json({ message: 'projectId, deviceIdentifier, and productName are required' }, 400);
+    }
+    const project = await findAccessibleProject(body.projectId, user.orgId);
+    if (!project) {
+      return c.json({ message: 'Project not found' }, 404);
     }
 
     const item = await prisma.uDI.create({
@@ -135,10 +155,15 @@ udi.post('/', async (c) => {
 // Get single UDI
 udi.get('/:id', async (c) => {
   try {
+    const user = getUser(c);
     const { id } = c.req.param();
     const item = await prisma.uDI.findUnique({ where: { id } });
 
     if (!item) {
+      return c.json({ message: 'UDI not found' }, 404);
+    }
+    const project = await findAccessibleProject(item.projectId, user.orgId);
+    if (!project) {
       return c.json({ message: 'UDI not found' }, 404);
     }
 
@@ -150,7 +175,7 @@ udi.get('/:id', async (c) => {
 });
 
 // Update UDI
-udi.put('/:id', async (c) => {
+udi.put('/:id', requirePermission('canEdit'), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();
@@ -158,6 +183,10 @@ udi.put('/:id', async (c) => {
 
     const existing = await prisma.uDI.findUnique({ where: { id } });
     if (!existing) {
+      return c.json({ message: 'UDI not found' }, 404);
+    }
+    const project = await findAccessibleProject(existing.projectId, user.orgId);
+    if (!project) {
       return c.json({ message: 'UDI not found' }, 404);
     }
 
@@ -195,13 +224,17 @@ udi.put('/:id', async (c) => {
 });
 
 // Delete UDI
-udi.delete('/:id', async (c) => {
+udi.delete('/:id', requirePermission('canDelete'), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();
 
     const existing = await prisma.uDI.findUnique({ where: { id } });
     if (!existing) {
+      return c.json({ message: 'UDI not found' }, 404);
+    }
+    const project = await findAccessibleProject(existing.projectId, user.orgId);
+    if (!project) {
       return c.json({ message: 'UDI not found' }, 404);
     }
 

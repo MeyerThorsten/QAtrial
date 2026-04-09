@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Save, Eye } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
+import { apiFetch } from '../../lib/apiClient';
+import { roleHasPermission } from '../../lib/permissions';
 import { KPIWidgetCard } from './KPIWidgetCard';
 
 interface MetricsCatalog {
@@ -33,8 +35,7 @@ interface Props {
 
 export function KPIBuilder({ dashboardId, widgetId, existingWidget, onSaved, onCancel }: Props) {
   const { t } = useTranslation();
-  const { token } = useAuth();
-  const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+  const { token, user } = useAuth();
 
   const [catalog, setCatalog] = useState<MetricsCatalog[]>([]);
   const [step, setStep] = useState(1);
@@ -64,17 +65,16 @@ export function KPIBuilder({ dashboardId, widgetId, existingWidget, onSaved, onC
       size: 'medium',
     };
   });
+  const canEdit = roleHasPermission(user?.role, 'canEdit');
 
   // Fetch catalog
   useEffect(() => {
     if (!token) return;
-    fetch(`${apiBase}/api/kpi/metrics/available`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((r) => r.json())
+    apiFetch<{ catalog: MetricsCatalog[] }>('/kpi/metrics/available')
+      .then((data) => data)
       .then((data) => setCatalog(data.catalog || []))
       .catch(() => {});
-  }, [token, apiBase]);
+  }, [token]);
 
   const currentSource = catalog.find((c) => c.dataSource === widget.dataSource);
   const metricsForSource = currentSource?.metrics || [];
@@ -91,6 +91,10 @@ export function KPIBuilder({ dashboardId, widgetId, existingWidget, onSaved, onC
   };
 
   const handleSave = async () => {
+    if (!canEdit) {
+      setError('Insufficient permissions: requires canEdit');
+      return;
+    }
     if (!widget.title.trim()) {
       setError(t('kpi.titleRequired'));
       return;
@@ -104,8 +108,8 @@ export function KPIBuilder({ dashboardId, widgetId, existingWidget, onSaved, onC
 
     try {
       const url = widgetId
-        ? `${apiBase}/api/kpi/dashboards/${dashboardId}/widgets/${widgetId}`
-        : `${apiBase}/api/kpi/dashboards/${dashboardId}/widgets`;
+        ? `/kpi/dashboards/${dashboardId}/widgets/${widgetId}`
+        : `/kpi/dashboards/${dashboardId}/widgets`;
       const method = widgetId ? 'PUT' : 'POST';
 
       const payload = {
@@ -118,21 +122,14 @@ export function KPIBuilder({ dashboardId, widgetId, existingWidget, onSaved, onC
         size: widget.size,
       };
 
-      const res = await fetch(url, {
+      await apiFetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify(payload),
       });
 
-      if (!res.ok) {
-        const data = await res.json();
-        setError(data.message || 'Failed to save');
-        return;
-      }
-
       onSaved?.();
-    } catch {
-      setError('Network error');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to save widget');
     } finally {
       setSaving(false);
     }
@@ -184,6 +181,7 @@ export function KPIBuilder({ dashboardId, widgetId, existingWidget, onSaved, onC
                     ? 'border-accent bg-accent-subtle text-accent'
                     : 'border-border bg-surface text-text-secondary hover:bg-surface-hover'
                 }`}
+                disabled={!canEdit}
               >
                 {c.dataSource.replace(/_/g, ' ')}
               </button>
@@ -209,6 +207,7 @@ export function KPIBuilder({ dashboardId, widgetId, existingWidget, onSaved, onC
                     ? 'border-accent bg-accent-subtle text-accent'
                     : 'border-border bg-surface text-text-secondary hover:bg-surface-hover'
                 }`}
+                disabled={!canEdit}
               >
                 {m.replace(/_/g, ' ')}
               </button>
@@ -237,6 +236,7 @@ export function KPIBuilder({ dashboardId, widgetId, existingWidget, onSaved, onC
                     ? 'border-accent bg-accent-subtle text-accent'
                     : 'border-border bg-surface text-text-secondary hover:bg-surface-hover'
                 }`}
+                disabled={!canEdit}
               >
                 {ct}
               </button>
@@ -260,6 +260,7 @@ export function KPIBuilder({ dashboardId, widgetId, existingWidget, onSaved, onC
                   ? 'border-accent bg-accent-subtle text-accent'
                   : 'border-border bg-surface text-text-secondary hover:bg-surface-hover'
               }`}
+              disabled={!canEdit}
             >
               {t('kpi.noGrouping')}
             </button>
@@ -275,6 +276,7 @@ export function KPIBuilder({ dashboardId, widgetId, existingWidget, onSaved, onC
                     ? 'border-accent bg-accent-subtle text-accent'
                     : 'border-border bg-surface text-text-secondary hover:bg-surface-hover'
                 }`}
+                disabled={!canEdit}
               >
                 {g.replace(/_/g, ' ')}
               </button>

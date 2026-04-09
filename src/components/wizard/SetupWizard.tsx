@@ -14,6 +14,9 @@ import { useProjectStore } from '../../store/useProjectStore';
 import { useRequirementsStore } from '../../store/useRequirementsStore';
 import { useTestsStore } from '../../store/useTestsStore';
 import { useAuditStore } from '../../store/useAuditStore';
+import { useAppMode } from '../../hooks/useAppMode';
+import { apiFetch } from '../../lib/apiClient';
+import { useProjectData } from '../../context/ProjectDataContext';
 import { generateId } from '../../lib/idGenerator';
 import type { IndustryVertical } from '../../types';
 import type { DemoProject } from '../../lib/demoProjects';
@@ -30,6 +33,8 @@ interface MetaData {
 
 export function SetupWizard({ onComplete }: { onComplete: () => void }) {
   const { t } = useTranslation();
+  const { mode } = useAppMode();
+  const { refetchProjects, setActiveProject } = useProjectData();
 
   const [step, setStep] = useState(0);
   const [country, setCountry] = useState<string | null>(null);
@@ -40,6 +45,8 @@ export function SetupWizard({ onComplete }: { onComplete: () => void }) {
   const [composedTemplate, setComposedTemplate] = useState<ComposeResult | null>(null);
   const [selectedReqs, setSelectedReqs] = useState<boolean[]>([]);
   const [selectedTests, setSelectedTests] = useState<boolean[]>([]);
+  const [creating, setCreating] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const handleToggleModule = useCallback((id: string) => {
     setSelectedModules((prev) =>
@@ -98,111 +105,222 @@ export function SetupWizard({ onComplete }: { onComplete: () => void }) {
     setStep(6);
   }, [country, vertical, projectType, selectedModules]);
 
-  const handleCreate = useCallback(() => {
+  const handleCreate = useCallback(async () => {
     const setProject = useProjectStore.getState().setProject;
     const setReqState = useRequirementsStore.getState().setRequirements;
     const setTestState = useTestsStore.getState().setTests;
     const auditLog = useAuditStore.getState().log;
-
-    // Clear existing data
-    setReqState([], 1);
-    setTestState([], 1);
-
-    // Set project metadata
-    setProject({
-      name: meta.name,
-      description: meta.description,
-      owner: meta.owner,
-      version: meta.version,
-      type: projectType as 'software' | 'embedded' | 'compliance' | 'empty',
-      createdAt: new Date().toISOString(),
-      country: country ?? undefined,
-      vertical: (vertical as IndustryVertical) ?? undefined,
-      modules: selectedModules.length > 0 ? selectedModules : undefined,
-    });
-
-    if (!composedTemplate || (composedTemplate.requirements.length === 0 && composedTemplate.tests.length === 0)) {
-      auditLog('create', 'project', meta.name, undefined, meta.name, 'Project created via wizard');
-      onComplete();
-      return;
-    }
-
-    // Create selected requirements
     const now = new Date().toISOString();
-    const reqIdMap: Record<number, string> = {};
-    let reqCounter = 1;
 
-    const reqs = composedTemplate.requirements
-      .map((req, index) => {
-        if (!selectedReqs[index]) return null;
-        const id = generateId('REQ', reqCounter);
-        reqIdMap[index] = id;
-        reqCounter++;
-        return {
-          id,
-          title: `[${req.category}] ${req.title}`,
-          description: req.description,
-          status: 'Draft' as const,
-          createdAt: now,
-          updatedAt: now,
+    setCreating(true);
+    setSaveError(null);
+
+    try {
+      if (mode === 'server') {
+        const projectResponse = await apiFetch<{
+          project: {
+            id: string;
+            name: string;
+            description: string;
+            owner: string;
+            version: string;
+            type: 'software' | 'embedded' | 'compliance' | 'empty';
+            createdAt?: string;
+            country?: string;
+            vertical?: IndustryVertical | null;
+            modules?: string[];
+          };
+        }>('/projects', {
+          method: 'POST',
+          body: JSON.stringify({
+            name: meta.name,
+            description: meta.description,
+            owner: meta.owner,
+            version: meta.version,
+            type: projectType,
+            country: country ?? undefined,
+            vertical: vertical ?? undefined,
+            modules: selectedModules,
+          }),
+        });
+
+        const createdProject = {
+          ...projectResponse.project,
+          createdAt: projectResponse.project.createdAt ?? now,
+          vertical: projectResponse.project.vertical ?? undefined,
         };
-      })
-      .filter(Boolean) as Array<{
-        id: string; title: string; description: string;
-        status: 'Draft'; createdAt: string; updatedAt: string;
-      }>;
 
-    setReqState(reqs, reqCounter);
+        const requirementIdMap: Record<number, string> = {};
 
-    // Create selected tests with tag-based linking
-    const tests = composedTemplate.tests
-      .map((test, index) => {
-        if (!selectedTests[index]) return null;
-        // Link tests to requirements by matching tags
-        const linkedIds = composedTemplate.requirements
-          .map((req, ri) => {
-            if (!selectedReqs[ri]) return null;
-            const hasMatch = test.linkedReqTags.some((tag) => req.tags.includes(tag));
-            return hasMatch ? reqIdMap[ri] : null;
-          })
-          .filter(Boolean) as string[];
-        return {
-          id: generateId('TST', index + 1),
-          title: `[${test.category}] ${test.title}`,
-          description: test.description,
-          status: 'Not Run' as const,
-          linkedRequirementIds: linkedIds,
-          createdAt: now,
-          updatedAt: now,
-        };
-      })
-      .filter(Boolean) as Array<{
-        id: string; title: string; description: string;
-        status: 'Not Run'; linkedRequirementIds: string[];
-        createdAt: string; updatedAt: string;
-      }>;
+        if (composedTemplate) {
+          for (const [index, req] of composedTemplate.requirements.entries()) {
+            if (!selectedReqs[index]) continue;
 
-    // Renumber test IDs to be sequential
-    let testCounter = 1;
-    const finalTests = tests.map((tst) => ({
-      ...tst,
-      id: generateId('TST', testCounter++),
-    }));
+            const result = await apiFetch<{ requirement: { id: string } }>('/requirements', {
+              method: 'POST',
+              body: JSON.stringify({
+                projectId: createdProject.id,
+                title: `[${req.category}] ${req.title}`,
+                description: req.description,
+                status: 'Draft',
+                tags: req.tags,
+                regulatoryRef: req.regulatoryRef,
+              }),
+            });
 
-    setTestState(finalTests, testCounter);
+            requirementIdMap[index] = result.requirement.id;
+          }
 
-    // Audit entry
-    auditLog(
-      'create',
-      'project',
-      meta.name,
-      undefined,
-      JSON.stringify({ country, vertical, modules: selectedModules, reqs: reqs.length, tests: finalTests.length }),
-      'Project created via wizard',
-    );
+          for (const [index, test] of composedTemplate.tests.entries()) {
+            if (!selectedTests[index]) continue;
 
-    onComplete();
-  }, [meta, projectType, country, vertical, selectedModules, composedTemplate, selectedReqs, selectedTests, onComplete]);
+            const linkedRequirementIds = composedTemplate.requirements
+              .map((req, reqIndex) => {
+                if (!selectedReqs[reqIndex]) return null;
+                const hasTagMatch = test.linkedReqTags.some((tag) => req.tags.includes(tag));
+                return hasTagMatch ? requirementIdMap[reqIndex] ?? null : null;
+              })
+              .filter((value): value is string => Boolean(value));
+
+            await apiFetch('/tests', {
+              method: 'POST',
+              body: JSON.stringify({
+                projectId: createdProject.id,
+                title: `[${test.category}] ${test.title}`,
+                description: test.description,
+                status: 'Not Run',
+                linkedRequirementIds,
+              }),
+            });
+          }
+        }
+
+        setProject(createdProject);
+        setReqState([], 1);
+        setTestState([], 1);
+        useAuditStore.setState({ entries: [] });
+        setActiveProject(createdProject);
+        await refetchProjects();
+        onComplete();
+        return;
+      }
+
+      // Clear existing data
+      setReqState([], 1);
+      setTestState([], 1);
+
+      // Set project metadata
+      setProject({
+        name: meta.name,
+        description: meta.description,
+        owner: meta.owner,
+        version: meta.version,
+        type: projectType as 'software' | 'embedded' | 'compliance' | 'empty',
+        createdAt: now,
+        country: country ?? undefined,
+        vertical: (vertical as IndustryVertical) ?? undefined,
+        modules: selectedModules.length > 0 ? selectedModules : undefined,
+      });
+
+      if (!composedTemplate || (composedTemplate.requirements.length === 0 && composedTemplate.tests.length === 0)) {
+        auditLog('create', 'project', meta.name, undefined, meta.name, 'Project created via wizard');
+        onComplete();
+        return;
+      }
+
+      // Create selected requirements
+      const reqIdMap: Record<number, string> = {};
+      let reqCounter = 1;
+
+      const reqs = composedTemplate.requirements
+        .map((req, index) => {
+          if (!selectedReqs[index]) return null;
+          const id = generateId('REQ', reqCounter);
+          reqIdMap[index] = id;
+          reqCounter++;
+          return {
+            id,
+            title: `[${req.category}] ${req.title}`,
+            description: req.description,
+            status: 'Draft' as const,
+            createdAt: now,
+            updatedAt: now,
+          };
+        })
+        .filter(Boolean) as Array<{
+          id: string; title: string; description: string;
+          status: 'Draft'; createdAt: string; updatedAt: string;
+        }>;
+
+      setReqState(reqs, reqCounter);
+
+      // Create selected tests with tag-based linking
+      const tests = composedTemplate.tests
+        .map((test, index) => {
+          if (!selectedTests[index]) return null;
+          // Link tests to requirements by matching tags
+          const linkedIds = composedTemplate.requirements
+            .map((req, ri) => {
+              if (!selectedReqs[ri]) return null;
+              const hasMatch = test.linkedReqTags.some((tag) => req.tags.includes(tag));
+              return hasMatch ? reqIdMap[ri] : null;
+            })
+            .filter(Boolean) as string[];
+          return {
+            id: generateId('TST', index + 1),
+            title: `[${test.category}] ${test.title}`,
+            description: test.description,
+            status: 'Not Run' as const,
+            linkedRequirementIds: linkedIds,
+            createdAt: now,
+            updatedAt: now,
+          };
+        })
+        .filter(Boolean) as Array<{
+          id: string; title: string; description: string;
+          status: 'Not Run'; linkedRequirementIds: string[];
+          createdAt: string; updatedAt: string;
+        }>;
+
+      // Renumber test IDs to be sequential
+      let testCounter = 1;
+      const finalTests = tests.map((tst) => ({
+        ...tst,
+        id: generateId('TST', testCounter++),
+      }));
+
+      setTestState(finalTests, testCounter);
+
+      // Audit entry
+      auditLog(
+        'create',
+        'project',
+        meta.name,
+        undefined,
+        JSON.stringify({ country, vertical, modules: selectedModules, reqs: reqs.length, tests: finalTests.length }),
+        'Project created via wizard',
+      );
+
+      onComplete();
+    } catch (error) {
+      setSaveError(error instanceof Error ? error.message : 'Failed to create project');
+    } finally {
+      setCreating(false);
+    }
+  }, [
+    composedTemplate,
+    country,
+    meta,
+    mode,
+    onComplete,
+    projectType,
+    refetchProjects,
+    selectedModules,
+    selectedReqs,
+    selectedTests,
+    setActiveProject,
+    vertical,
+  ]);
 
   // Display step is 1-indexed for the progress bar; internal step is 0-indexed
   const displayStep = step + 1;
@@ -300,6 +418,8 @@ export function SetupWizard({ onComplete }: { onComplete: () => void }) {
               onToggleTest={(i) => setSelectedTests((prev) => prev.map((v, j) => (j === i ? !v : v)))}
               onBack={() => setStep(5)}
               onCreate={handleCreate}
+              creating={creating}
+              errorMessage={saveError}
             />
           )}
         </div>

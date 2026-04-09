@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Plus, BarChart3, Lock, Globe, Trash2, Users } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
+import { apiFetch } from '../../lib/apiClient';
+import { roleHasPermission } from '../../lib/permissions';
 import { KPIDashboardView } from './KPIDashboardView';
 
 interface DashboardSummary {
@@ -18,7 +20,6 @@ interface DashboardSummary {
 export function KPIDashboardManager() {
   const { t } = useTranslation();
   const { token, user } = useAuth();
-  const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
   const [dashboards, setDashboards] = useState<DashboardSummary[]>([]);
   const [loading, setLoading] = useState(true);
@@ -30,61 +31,60 @@ export function KPIDashboardManager() {
   const [newDesc, setNewDesc] = useState('');
   const [newPublic, setNewPublic] = useState(true);
   const [error, setError] = useState('');
+  const canEdit = roleHasPermission(user?.role, 'canEdit');
+  const canAdmin = roleHasPermission(user?.role, 'canAdmin');
 
   const fetchDashboards = async () => {
     if (!token) return;
     try {
-      const res = await fetch(`${apiBase}/api/kpi/dashboards`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json();
+      const data = await apiFetch<{ dashboards: DashboardSummary[] }>('/kpi/dashboards');
       setDashboards(data.dashboards || []);
-    } catch { /* ignore */ }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load dashboards');
+    }
     setLoading(false);
   };
 
   useEffect(() => {
     fetchDashboards();
-  }, [token, apiBase]);
+  }, [token]);
 
   const handleCreate = async () => {
+    if (!canEdit) {
+      setError('Insufficient permissions: requires canEdit');
+      return;
+    }
     if (!newName.trim()) {
       setError(t('kpi.nameRequired'));
       return;
     }
     setError('');
     try {
-      const res = await fetch(`${apiBase}/api/kpi/dashboards`, {
+      const data = await apiFetch<{ dashboard: { id: string } }>('/kpi/dashboards', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ name: newName, description: newDesc, isPublic: newPublic }),
       });
-      if (!res.ok) {
-        const data = await res.json();
-        setError(data.message || 'Failed to create');
-        return;
-      }
-      const data = await res.json();
       setCreating(false);
       setNewName('');
       setNewDesc('');
       setNewPublic(true);
       await fetchDashboards();
       setSelectedDashboardId(data.dashboard.id);
-    } catch {
-      setError('Network error');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to create dashboard');
     }
   };
 
   const handleDelete = async (id: string) => {
     if (!token) return;
     try {
-      await fetch(`${apiBase}/api/kpi/dashboards/${id}`, {
+      await apiFetch(`/kpi/dashboards/${id}`, {
         method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
       });
       await fetchDashboards();
-    } catch { /* ignore */ }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete dashboard');
+    }
   };
 
   // If a dashboard is selected, show the dashboard view
@@ -107,14 +107,22 @@ export function KPIDashboardManager() {
           <h2 className="text-xl font-bold text-text-primary">{t('kpi.title')}</h2>
           <p className="text-sm text-text-secondary">{t('kpi.subtitle')}</p>
         </div>
-        <button
-          onClick={() => setCreating(true)}
-          className="inline-flex items-center gap-1.5 px-4 py-2 text-sm text-white bg-accent rounded-lg hover:bg-accent/90 transition-colors font-medium"
-        >
-          <Plus className="w-4 h-4" />
-          {t('kpi.createDashboard')}
-        </button>
+        {canEdit && (
+          <button
+            onClick={() => setCreating(true)}
+            className="inline-flex items-center gap-1.5 px-4 py-2 text-sm text-white bg-accent rounded-lg hover:bg-accent/90 transition-colors font-medium"
+          >
+            <Plus className="w-4 h-4" />
+            {t('kpi.createDashboard')}
+          </button>
+        )}
       </div>
+
+      {error && (
+        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {error}
+        </div>
+      )}
 
       {/* Create Form */}
       {creating && (
@@ -217,7 +225,7 @@ export function KPIDashboardManager() {
               </div>
 
               {/* Delete button — only visible on hover */}
-              {(dash.createdBy === user?.id || user?.role === 'admin') && (
+              {(dash.createdBy === user?.id || canAdmin) && (
                 <button
                   onClick={(e) => { e.stopPropagation(); handleDelete(dash.id); }}
                   className="absolute top-2 right-2 p-1 rounded opacity-0 group-hover:opacity-100 text-text-tertiary hover:text-red-500 transition-all"

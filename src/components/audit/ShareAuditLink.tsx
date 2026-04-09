@@ -4,6 +4,7 @@ import { Eye, X, Copy, Check, AlertTriangle, Link2 } from 'lucide-react';
 import { apiFetch } from '../../lib/apiClient';
 import { useProjectStore } from '../../store/useProjectStore';
 import { useAuth } from '../../hooks/useAuth';
+import { getProjectId } from '../../lib/projectUtils';
 
 type ExpiryOption = '24h' | '72h' | '7d';
 
@@ -35,7 +36,7 @@ export function ShareAuditLink() {
         {
           method: 'POST',
           body: JSON.stringify({
-            projectId: (project as any).id || project.name,
+            projectId: getProjectId(project),
             expiresIn: expiry,
           }),
         },

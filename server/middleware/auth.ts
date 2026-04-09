@@ -12,20 +12,20 @@ export interface JwtPayload {
 
 // ── Role → Permission Matrix ────────────────────────────────────────────────
 
-export type Permission = 'canView' | 'canEdit' | 'canApprove' | 'canAdmin';
+export type Permission = 'canView' | 'canEdit' | 'canApprove' | 'canAdmin' | 'canDelete' | 'canSign' | 'canExport';
 
 export const VALID_ROLES = ['admin', 'qa_manager', 'qa_engineer', 'auditor', 'reviewer'] as const;
 export type UserRole = (typeof VALID_ROLES)[number];
 
 const ROLE_PERMISSIONS: Record<string, Record<Permission, boolean>> = {
-  admin:       { canView: true,  canEdit: true,  canApprove: true,  canAdmin: true  },
-  qa_manager:  { canView: true,  canEdit: true,  canApprove: true,  canAdmin: false },
-  qa_engineer: { canView: true,  canEdit: true,  canApprove: false, canAdmin: false },
-  auditor:     { canView: true,  canEdit: false, canApprove: false, canAdmin: false },
-  reviewer:    { canView: true,  canEdit: false, canApprove: true,  canAdmin: false },
+  admin:       { canView: true,  canEdit: true,  canApprove: true,  canAdmin: true,  canDelete: true,  canSign: true,  canExport: true  },
+  qa_manager:  { canView: true,  canEdit: true,  canApprove: true,  canAdmin: false, canDelete: true,  canSign: true,  canExport: true  },
+  qa_engineer: { canView: true,  canEdit: true,  canApprove: false, canAdmin: false, canDelete: false, canSign: true,  canExport: true  },
+  auditor:     { canView: true,  canEdit: false, canApprove: false, canAdmin: false, canDelete: false, canSign: false, canExport: true  },
+  reviewer:    { canView: true,  canEdit: false, canApprove: true,  canAdmin: false, canDelete: false, canSign: true,  canExport: false },
   // Legacy roles mapped for backward compatibility
-  editor:      { canView: true,  canEdit: true,  canApprove: false, canAdmin: false },
-  viewer:      { canView: true,  canEdit: false, canApprove: false, canAdmin: false },
+  editor:      { canView: true,  canEdit: true,  canApprove: false, canAdmin: false, canDelete: true,  canSign: true,  canExport: true  },
+  viewer:      { canView: true,  canEdit: false, canApprove: false, canAdmin: false, canDelete: false, canSign: false, canExport: false },
 };
 
 /**

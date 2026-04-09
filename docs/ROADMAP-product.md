@@ -1,362 +1,679 @@
-# QAtrial — 12-18 Month Roadmap: Prototype → Product → Revenue
+# QAtrial — Concrete 3-Phase Roadmap: Converge -> Audit-Ready -> Expand
 
-## Context
+## Executive Summary
 
-QAtrial v3.0 has extensive frontend features (AI co-pilot, ISO 13485, design control, 20 stores, 42 components, 8 verticals, 14 countries, 12 languages). But it runs entirely on **localStorage** — no backend, no database, no multi-user, no shared workspaces. This blocks ALL serious usage.
+QAtrial already has broad product surface area: a strong React frontend, many domain modules, templates, AI prompt flows, and a Hono/Prisma backend foundation. The main delivery risk is no longer "missing ideas". It is platform convergence.
 
-**Guiding rule: Build depth (compliance + workflows), not breadth (more features).**
+Today the codebase still operates as two partially overlapping systems:
 
-**Position: "The system that makes audits pass — without Excel chaos."** Not competing with Jira or TestRail.
+- a mature client-side app centered on persisted Zustand stores
+- a newer server-backed path with partial parity gaps between schema, routes, and frontend contracts
 
----
+This roadmap turns the current direction into a concrete 3-phase execution plan:
 
-## What Already Exists (can be reused/migrated)
+1. **Phase 1 — Platform Convergence**: repair contracts, finish server-backed core flows, and put the backend inside the quality gate
+2. **Phase 2 — Audit-Ready Product Core**: make approvals, evidence, audit trail, exports, dashboards, and workflow-heavy modules dependable enough for real teams
+3. **Phase 3 — Vertical, Enterprise, and AI Expansion**: develop the full planned feature set in a controlled order after the platform is trustworthy
 
-| Layer | Status | Can Reuse |
-|-------|--------|-----------|
-| TypeScript types (50+) | ✅ Complete | Yes — same types become backend entities |
-| Zustand stores (20) | ✅ Client-only | Migrate to API calls — store logic becomes server services |
-| React components (42) | ✅ Complete | Yes — swap store hooks for API hooks |
-| AI prompts (8) | ✅ Complete | Yes — move API key handling to server |
-| Templates (8 verticals, 14 countries) | ✅ Complete | Yes — serve from backend |
-| i18n (12 languages, 425+ keys) | ✅ Complete | Yes — stays client-side |
-| Theme system | ✅ Complete | Yes — stays client-side |
+The rule for the next releases is simple:
+
+**Do not add new major feature families until the existing platform contracts are aligned.**
 
 ---
 
-## Phase 1 — From Prototype → Real System (Months 0–3)
+## Planning Principles
 
-**Goal**: Turn QAtrial from a local demo into a real multi-user system.
-
-### 1.1 Backend (simple but solid)
-
-**Stack**: Node.js + Express/Hono + PostgreSQL + Prisma ORM
-
-**Database schema** (core tables only — no overengineering):
-
-```
-users (id, email, password_hash, name, role, org_id, created_at)
-organizations (id, name, created_at)
-workspaces (id, name, org_id, created_at)
-projects (id, workspace_id, name, description, owner, version, country, vertical, modules[], type, created_at)
-requirements (id, project_id, title, description, status, tags[], risk_level, regulatory_ref, evidence_hints[], created_by, created_at, updated_at)
-tests (id, project_id, title, description, status, linked_requirement_ids[], created_by, created_at, updated_at)
-risks (id, project_id, requirement_id, severity, likelihood, detectability, risk_score, risk_level, mitigation, classified_by, created_at)
-capa (id, project_id, title, status, root_cause, containment, corrective_action, preventive_action, effectiveness_check, linked_test_id, created_by, created_at, updated_at)
-audit_log (id, project_id, timestamp, user_id, action, entity_type, entity_id, previous_value, new_value, reason)
-```
-
-**NOT building**: microservices, GraphQL, event sourcing, CQRS.
-
-### 1.2 Authentication
-
-- Email + password registration/login
-- JWT sessions (access token + refresh token)
-- Basic RBAC: **Admin**, **Editor**, **Viewer**
-- Password hashing with bcrypt/argon2
-
-### 1.3 Replace localStorage
-
-- Create REST API endpoints for all CRUD operations
-- New React hooks: `useApiRequirements()`, `useApiTests()`, etc. that call API instead of Zustand+localStorage
-- **Migration path**: "Import from browser data" button that reads existing localStorage and POSTs to backend
-- Zustand stores become thin API wrappers (cache + optimistic updates)
-
-### 1.4 Multi-user workspaces
-
-- Create organization → invite users by email
-- Assign roles per workspace (Admin/Editor/Viewer)
-- Shared projects visible to all workspace members
-- Project-level permissions (who can edit vs view)
-
-### 1.5 Server-side audit log
-
-- **Append-only** PostgreSQL table (no UPDATE, no DELETE)
-- Every API mutation creates an audit_log entry
-- Fields: timestamp, user_id, action, entity_type, entity_id, previous_value (JSONB), new_value (JSONB), reason
-- API endpoint: `GET /api/audit?project_id=X&entity_id=Y&from=&to=`
-
-### Phase 1 Output
-
-A real product. Usable by teams. Not just a demo.
-
-**Key files to create**:
-```
-server/
-  index.ts                    # Express/Hono entry point
-  prisma/schema.prisma        # Database schema
-  routes/
-    auth.ts                   # Register, login, refresh
-    requirements.ts           # CRUD
-    tests.ts                  # CRUD  
-    capa.ts                   # CRUD + lifecycle
-    risks.ts                  # CRUD
-    projects.ts               # CRUD + workspace membership
-    audit.ts                  # Read-only, append-only
-    users.ts                  # Invite, role management
-  middleware/
-    auth.ts                   # JWT verification
-    rbac.ts                   # Role-based access
-  services/
-    audit.service.ts          # Append-only logging
-src/
-  hooks/
-    useApi.ts                 # Generic API hook (fetch wrapper)
-    useApiRequirements.ts     # Replaces useRequirementsStore for API mode
-    useApiTests.ts            # Replaces useTestsStore for API mode
-  lib/
-    apiClient.ts              # Authenticated fetch wrapper
-```
+- **One source of truth**: in multi-user mode the server is authoritative. Client stores become cache/UI state, not the system of record.
+- **Depth before breadth**: audit-ready workflows matter more than adding another country, connector, or AI feature.
+- **Commercial wedge before full expansion**: build one vertical deeply first, then sequence the rest.
+- **Quality gates must cover the backend**: frontend-only build/test success is not sufficient.
+- **Develop all major planned themes, but in order**: no feature family is dropped, but not all should start at once.
 
 ---
 
-## Phase 2 — Make It Valuable (Months 3–6)
+## Current Delivery Risks
 
-**Goal**: Turn QAtrial into something teams actually depend on.
+These are the issues Phase 1 must explicitly address:
 
-### 2.1 Traceability (core differentiator)
-
-- Link chain: **Requirement → Test → Result → Evidence → Risk**
-- UI: table view + simple graph view showing link chains
-- **"Missing links" detection**: requirements without tests, tests without evidence, risks without mitigation
-- This is what QAtrial already shows in the traceability matrix — now backed by real database with multi-user visibility
-
-### 2.2 Evidence system (critical for audits)
-
-- File uploads (PDF, DOCX, images, screenshots)
-- Link evidence to: tests, requirements, CAPA records
-- Metadata per file: uploader, timestamp, version, description
-- Storage: S3-compatible (MinIO for self-hosted, AWS S3 for cloud)
-- Evidence completeness dashboard (already exists in frontend — now backed by real data)
-
-### 2.3 Approval workflows (real, not simulated)
-
-- Status chain: **Draft → In Review → Approved**
-- Role-based approvals: only Editors/Admins can approve
-- Mandatory approval gates for: requirements, tests, CAPA records
-- Approval creates audit log entry + optional e-signature
-- Blocked actions: can't link unapproved requirement to a test
-
-### 2.4 Electronic signatures (basic version)
-
-- Password re-confirmation at time of signing
-- Captures: user identity, timestamp, meaning (authored/reviewed/approved), reason
-- Immutable record in audit log
-- NOT biometric or certificate-based yet — that's Phase 5
-
-### 2.5 Audit export (huge win for early adoption)
-
-- One-click export of entire project:
-  - Requirements + linked tests + traceability matrix
-  - Evidence files (zipped)
-  - Audit trail (CSV + PDF)
-  - Risk assessments
-  - CAPA records
-- Format: **PDF report + ZIP bundle**
-- This is the feature that makes QA managers say "I need this"
-
-### Phase 2 Output
-
-Audit-ready workflows. Something auditors and QA managers understand. Strong differentiation vs Jira/TestRail.
+- Frontend server mode still depends heavily on local Zustand state for core entities.
+- API hooks and route payloads are not fully aligned.
+- Some backend routes no longer match the Prisma schema or naming conventions.
+- Team/workspace, approval, and audit-mode flows are not fully end-to-end consistent.
+- Current typecheck and test coverage focus mainly on `src/` and do not validate the backend surface in the same way.
+- Documentation and feature breadth are ahead of the currently validated execution path.
 
 ---
 
-## Phase 3 — First SaaS Version (Months 6–9)
+## Current Execution Position
 
-**Goal**: Start generating revenue.
+Based on the implemented work in [IMPLEMENTATION-STATUS.md](/Users/thorstenmeyer/Dev/QAtrial/docs/IMPLEMENTATION-STATUS.md), the roadmap should now be read from the current codebase position, not from zero.
 
-### 3.1 Hosted version (QAtrial Cloud)
-
-- Deploy on AWS/Vercel/Railway
-- Multi-tenant architecture (org isolation via workspace_id)
-- Managed PostgreSQL (Neon/Supabase/RDS)
-- S3 for evidence files
-- Custom domain support for enterprise
-
-### 3.2 Billing (Stripe)
-
-| Plan | Price | Limits |
-|------|-------|--------|
-| Free | $0 | 1 project, 3 users, 50 requirements |
-| Team | $49/month | 5 projects, 10 users, unlimited requirements |
-| Pro | $149/month | Unlimited projects, 25 users, AI features, priority support |
-
-### 3.3 AI (focused, not flashy)
-
-Only keep high-value AI that's already built:
-- **Gap analysis**: "What's missing for audit readiness?" ✅ (already built)
-- **Test suggestions**: auto-generate from requirements ✅ (already built)
-- **Requirement quality check**: flag vague/untestable requirements (new, small)
-
-**NOT building**: chat, generic generation, AI agents. These don't drive revenue.
-
-Move AI API calls to server-side (API keys in server env, not client localStorage).
-
-### 3.4 Excel importer (massive adoption unlock)
-
-- Upload Excel/CSV
-- Column mapping UI: "Which column is the requirement title?"
-- Preview before import
-- Auto-structure into requirements/tests
-- Handle duplicates (skip/overwrite/create new)
-
-### Phase 3 Output
-
-Paying customers. Real usage. Feedback loop.
+- **Phase 1** is substantially complete.
+  Core contract convergence, server-backed project/requirements/tests flows, backend typecheck, app bootstrap, team/workspace parity, and the main schema/route repairs are already in place.
+- **Phase 2** is partially complete.
+  Approvals/signatures, export/report hardening, workflow RBAC, audit-facing server parity, and several secondary operational modules have already been pushed onto the shared server-backed path.
+- **Phase 2** still has meaningful unfinished work.
+  The largest remaining gaps are the last non-core module convergence cluster, deeper evidence/export bundle hardening, hosted-ready operational baseline work, and notification/reporting maturity.
+- **Phase 3** should be treated as largely unstarted as a coordinated delivery program.
+  Some enabling work exists in the codebase, but the medical device, enterprise, pharma, AI, clinical, and geography waves have not yet been delivered as complete product programs.
 
 ---
 
-## Phase 4 — Product-Market Fit (Months 9–12)
+## Remaining Development Phases and Sprint Plan
 
-**Goal**: Become essential for ONE specific niche.
+The remaining plan assumes **2-week sprints**. The goal is to turn the unfinished roadmap into an executable sequence from the current state of the codebase.
 
-### Pick ONE vertical first
+### Remaining Phase A — Finish Phase 2 Audit-Ready Core (Sprints 1-4)
 
-**Best options**: Regulated Software (GAMP/CSV) or MedTech.
+**Goal**
+- close the last server-convergence gaps
+- complete the audit/export lifecycle
+- make the product reliable enough for repeatable pilot use
 
-**Do NOT do everything.** Deep in one vertical beats shallow in ten.
+#### Sprint 1 — Supplier and Training Convergence
 
-### 4.1 Compliance packs
+**Primary epics**
+- Epic 8 remainder
 
-Example packs:
-- "FDA Software Validation Starter Pack" (GAMP 5, Part 11, CSV)
-- "EU MDR Medical Device Pack" (ISO 13485, ISO 14971, IEC 62304)
-- "GDPR + Quality Assurance Pack"
+**Scope**
+- move supplier scorecard, supplier portal admin flows, share-link flows, and supplier CRUD callers to the shared API client
+- enforce org-scoped access and permission checks on supplier, supplier-portal, and training routes
+- converge training plans, courses, records, compliance, and matrix screens on server-backed flows
+- add backend contract tests for supplier/training visibility and mutation boundaries
 
-Each includes: templates, workflows, checklists, report templates, pre-configured approval chains.
+**Exit criteria**
+- supplier and training screens no longer rely on direct env-based `fetch()` paths
+- org isolation is enforced consistently on supplier and training routes
+- supplier/training contract coverage exists in the backend suite
 
-### 4.2 Audit Mode UI
+#### Sprint 2 — Pharma and Environmental Module Convergence
 
-Dedicated read-only mode for auditors:
-- Timeline view of all activity
-- Evidence browser with search
-- Traceability view (requirement → test → evidence chain)
-- Cannot modify anything — pure inspection view
-- Shareable link with time-limited access
+**Primary epics**
+- Epic 8 remainder
 
-### 4.3 Advanced roles & permissions
+**Scope**
+- converge batch records, stability studies, environmental monitoring, periodic review helpers, and remaining pharma dashboards onto the shared API client
+- enforce project/org scoping and edit/delete rules across batch, stability, and envmon routes
+- align analytics/reporting consumers with the server-backed project ID model end to end
+- add contract tests for batch/stability/envmon access and mutation paths
 
-- QA Manager (full edit + approve)
-- QA Engineer (edit, cannot approve)
-- Auditor (read-only audit mode)
-- Approver (can only review + approve, not edit)
-- Custom role builder
+**Exit criteria**
+- pharma/environmental modules use server-backed project IDs consistently
+- project access is enforced on all related backend routes
+- remaining direct module-local server-mode fetch paths are materially reduced
 
-### 4.4 Reporting dashboards
+#### Sprint 3 — Evidence, Export Bundle, and Multipart Hardening
 
-- Audit readiness score (already exists in frontend — now with real data)
-- Missing evidence report
-- Approval status overview (pending/approved/rejected by entity)
-- Risk overview (matrix + trends)
-- CAPA aging report (open CAPAs by age)
+**Primary epics**
+- Epic 7 remainder
 
-### Phase 4 Output
+**Scope**
+- complete multipart upload coverage for evidence and supplier uploads
+- implement full ZIP-style audit export bundles with linked evidence metadata
+- harden evidence completeness/reporting logic for missing files, orphaned records, and broken links
+- add server tests for upload, download, export-bundle, and failure cases
 
-Clear niche. Strong positioning. Higher willingness to pay.
+**Exit criteria**
+- evidence upload/download/export paths are fully contract-tested
+- audit bundles include linked evidence and coherent metadata
+- evidence completeness reporting is backed by validated server behavior
+
+#### Sprint 4 — Notifications, Reporting, and Pilot Readiness
+
+**Primary epics**
+- Epic 8 remainder
+- Epic 10 remainder
+
+**Scope**
+- finish notification center convergence and server-backed inbox behavior
+- harden report generation, cross-module summaries, and dashboard visibility for pilot users
+- close remaining high-value workflow/reporting gaps surfaced by internal QA
+- run a pilot readiness checklist across auth, approvals, evidence, exports, notifications, dashboards, and onboarding
+
+**Exit criteria**
+- the product supports a single-team pilot without major local-only fallback behavior
+- reporting and notification paths are server-backed and permission-aware
+- a written pilot checklist exists with pass/fail status
+
+### Remaining Phase B — Hosted-Ready Baseline and Medical Device Wedge (Sprints 5-8)
+
+**Goal**
+- turn the audit-ready core into a deployable product baseline
+- deliver the first commercially deep medical-device workflow wave
+
+#### Sprint 5 — Hosted-Ready Platform Baseline
+
+**Primary epics**
+- Epic 9
+
+**Scope**
+- add environment validation, startup readiness checks, storage configuration validation, and operational config docs
+- formalize local vs S3-compatible upload storage behavior
+- publish API documentation for the supported server surface
+- add deployment bootstrap scripts or docs for customer-hosted pilots
+
+**Exit criteria**
+- deployment prerequisites are explicit and validated at startup
+- API surface is documented enough for pilot integrations
+- upload storage behavior is predictable across local and hosted setups
+
+#### Sprint 6 — Self-Host and Customer Pilot Hardening
+
+**Primary epics**
+- Epic 9
+- Epic 10 remainder
+
+**Scope**
+- package Docker/self-host deployment paths
+- document backup, restore, migration, and seed/bootstrap flows
+- add operational health/readiness endpoints and failure diagnostics
+- run a customer-pilot dry run from clean environment to usable workspace
+
+**Exit criteria**
+- a customer can stand up a pilot environment with documented steps
+- readiness/health paths cover database, storage, and critical services
+- backup/restore and migration behavior is documented and tested to a reasonable level
+
+#### Sprint 7 — Medical Device Depth I
+
+**Primary epics**
+- Epic 11
+
+**Scope**
+- implement DHF/DMR/DHR structure on top of the converged project/document/evidence model
+- gate design-control progression with real approval/workflow transitions
+- connect requirements, tests, risks, approvals, and evidence into the design-control path
+
+**Exit criteria**
+- medical-device projects can move through a gated design-control workflow
+- DHF/DMR/DHR artifacts are represented as durable server-backed records
+- audit/export views reflect the medical-device control structure
+
+#### Sprint 8 — Medical Device Depth II and QMSR Readiness
+
+**Primary epics**
+- Epic 11
+
+**Scope**
+- deepen UDI, PMS, complaints, supplier, and post-market links into the medical-device workflow
+- implement QMSR gap-assessment and transition reporting based on real records
+- ship a coherent medical-device starter pack and demo/pilot flow
+
+**Exit criteria**
+- QAtrial has a credible first commercial wedge for medical-device teams
+- QMSR reporting is tied to real evidence and workflow state
+- the starter pack creates a usable medical-device project path
+
+### Remaining Phase C — Enterprise, Pharma, AI, Clinical, and Expansion Waves (Sprints 9-16)
+
+**Goal**
+- expand breadth only after the product is stable, deployable, and commercially focused
+
+#### Sprint 9 — Enterprise Operations I
+
+**Primary epics**
+- Epic 12
+
+**Scope**
+- harden workflow SLAs, escalations, and routing behavior
+- mature the notification center around overdue work, approvals, comments, and exceptions
+- improve supplier portal workflow depth and operational visibility
+
+**Exit criteria**
+- workflow timing/escalation behavior is usable in multi-user environments
+- operational notifications are dependable and actionable
+
+#### Sprint 10 — Enterprise Operations II
+
+**Primary epics**
+- Epic 12
+
+**Scope**
+- complete SSO hardening
+- package self-hosted and air-gapped deployment options further
+- close enterprise access-control, tenancy, and operational visibility gaps
+
+**Exit criteria**
+- enterprise buyers can evaluate SSO and hosted/self-host deployment credibly
+- multi-user operational behavior is stable under enterprise access patterns
+
+#### Sprint 11 — Pharma and Biotech I
+
+**Primary epics**
+- Epic 13
+
+**Scope**
+- harden electronic batch records and stability workflows
+- tie batch/stability modules into evidence, approvals, exports, and audit views
+- improve training/document-control links for GMP-style operation
+
+**Exit criteria**
+- pharma modules are not standalone islands; they participate in the audited workflow model
+- batch and stability flows are pilot-capable
+
+#### Sprint 12 — Pharma and Biotech II
+
+**Primary epics**
+- Epic 13
+
+**Scope**
+- add process validation lifecycle depth
+- add cleaning validation and related supporting workflows
+- expand training/document-control depth for pharma operations
+
+**Exit criteria**
+- pharma starter pack reaches a coherent second vertical baseline
+
+#### Sprint 13 — AI Differentiation I
+
+**Primary epics**
+- Epic 14
+
+**Scope**
+- implement AI audit preparation assistant
+- implement AI requirements extraction against the server-backed data model
+- add logging, attribution, and review trails for AI-generated outputs
+
+**Exit criteria**
+- AI outputs are reviewable, attributable, and visible inside audited workflows
+- AI features are not bypassing the core permission/audit model
+
+#### Sprint 14 — AI Differentiation II
+
+**Primary epics**
+- Epic 14
+
+**Scope**
+- implement change impact predictor
+- implement duplicate/conflict detection
+- implement regulatory change monitoring foundations
+
+**Exit criteria**
+- AI features support real quality workflows instead of remaining standalone demos
+
+#### Sprint 15 — CRO and Clinical Wave
+
+**Primary epics**
+- Epic 15
+
+**Scope**
+- implement eTMF, eConsent, protocol deviation tracking, and site management foundations
+- align clinical workflows with audit, evidence, export, and approval layers
+
+**Exit criteria**
+- clinical capabilities are delivered as a separate coherent wave, not mixed into core stabilization work
+
+#### Sprint 16 — Geography and Additional Vertical Expansion
+
+**Primary epics**
+- Epic 16
+
+**Scope**
+- add country packs and regulated vertical expansions in demand-driven order
+- add multi-region, offline/PWA, scheduled reports, advanced search, and document generation where justified
+
+**Exit criteria**
+- expansion is sequenced by support capacity and commercial demand, not by backlog accumulation
+
+### Remaining Sprint Dependencies
+
+- Do not start **Sprint 5** before Sprints 1-4 have closed the audit-ready core gaps.
+- Do not start **Sprint 7** before the hosted-ready baseline from Sprints 5-6 is credible enough for pilots.
+- Do not start **Sprint 13** before the audit/evidence/export model is stable enough to contain AI outputs safely.
+- Clinical and geography waves should not begin until the medical-device and enterprise waves have named ownership and support capacity.
 
 ---
 
-## Phase 5 — Enterprise Layer (Months 12–18)
+## Phase 1 — Platform Convergence (Weeks 0-8)
 
-**Goal**: Unlock high-ticket customers ($5K-50K/year contracts).
+**Goal**: make QAtrial operate as one coherent product rather than a client-first app with a partial server overlay.
 
-### 5.1 SSO (SAML/OIDC)
+### Epic 1 — Core Contract Convergence
+**Order:** 1  
+**Estimate:** 1-2 weeks
 
-- Enterprise requirement — no SSO = no enterprise deal
-- SAML 2.0 for legacy enterprise (Okta, Azure AD, OneLogin)
-- OIDC for modern stack (Auth0, Keycloak)
+**Scope**
+- Define canonical DTOs and response shapes for projects, requirements, tests, risks, CAPA, audit, evidence, approvals, signatures, notifications, and dashboards.
+- Standardize status enums and lifecycle names across frontend, backend, and database.
+- Decide where normalized relations are required versus array-based fields are acceptable.
 
-### 5.2 Private deployments
+**Milestones**
+- Response contract documented for every core endpoint.
+- Shared naming and status map agreed for requirement, test, approval, signature, and change-control flows.
+- Route naming inconsistencies removed or explicitly shimmed for backward compatibility.
 
-- Docker Compose for self-hosted (PostgreSQL + Node + MinIO)
-- Helm chart for Kubernetes
-- Optional on-prem with air-gapped support (critical for pharma/defense)
-- Configuration: environment variables, no cloud dependencies
+### Epic 2 — Server-Backed Core CRUD
+**Order:** 2  
+**Estimate:** 2-3 weeks
 
-### 5.3 Validation package
+**Scope**
+- Make projects, requirements, tests, risks, CAPA, audit, approvals, evidence, and signatures load/save through the backend in server mode.
+- Move setup wizard, import/export, and active project selection onto server-backed entities.
+- Reclassify standalone mode as demo/import/offline seed mode instead of the primary product path.
 
-- System validation documentation (IQ/OQ/PQ for QAtrial itself)
-- Exportable validation reports
-- Statement of compliance (Part 11, Annex 11)
-- This is what regulated companies need before they can USE the tool in production
+**Milestones**
+- Setup wizard creates a real server project and lands the user in that project.
+- Requirements/tests CRUD round-trip through the API in server mode.
+- Local import into server projects works repeatedly without duplication or silent corruption.
 
-### 5.4 API + integrations (targeted, not broad)
+### Epic 3 — Auth, Workspace, and Team Parity
+**Order:** 3  
+**Estimate:** 1 week
 
-Only build integrations customers ask for:
-- Jira (bidirectional sync for requirement ↔ issue)
-- GitHub (test results from CI/CD)
-- Webhooks (generic event notification)
+**Scope**
+- Complete organization/workspace/team endpoints required by the UI.
+- Align invite flows, role changes, and current-user workspace access.
+- Make RBAC behavior consistent across frontend affordances and backend enforcement.
 
-**NOT building**: marketplace, plugin system, dozens of connectors.
+**Milestones**
+- Team view loads real members, org name, and role data.
+- Invite flow creates usable accounts or invitations.
+- Role changes and workspace visibility behave consistently.
 
-### 5.5 SLA + support
+### Epic 4 — Schema/Route Drift Repair
+**Order:** 4  
+**Estimate:** 1-2 weeks
 
-- Response time commitments
-- Onboarding support (setup, import, configuration)
-- Dedicated Slack channel for Pro/Enterprise
+**Scope**
+- Remove drift between Prisma schema and server routes.
+- Fix dashboard, audit-mode, traceability, approvals, evidence, and export assumptions.
+- Choose and implement the traceability model explicitly:
+  either normalized `Requirement <-> Test` join records, or a supported array-based approach with all downstream routes updated.
 
-### Phase 5 Output
+**Milestones**
+- Dashboard routes compile against the actual schema and return valid data.
+- Audit-mode works from real evidence, audit log, signature, and traceability data.
+- Approval and signature routes align with mounted server paths and database models.
 
-Enterprise readiness. High-value deals.
+### Epic 5 — Backend Quality Gate and DevEx
+**Order:** 5  
+**Estimate:** 1 week
+
+**Scope**
+- Add a real TypeScript config for `server/`.
+- Add backend tests for auth, projects, requirements, tests, approvals, evidence, audit, and dashboard contracts.
+- Add Prisma migration validation, seed/bootstrap flow, and local dev instructions.
+
+**Milestones**
+- CI/typecheck covers frontend and backend.
+- Route tests exist for all core entities.
+- Local developer bootstrap can stand up the stack reliably.
+
+### Phase 1 Exit Criteria
+
+- Server mode is the default supported product mode for team use.
+- Core CRUD flows do not fall back to local-only behavior.
+- Backend typecheck and tests run in CI.
+- Team/workspace, approvals, evidence, audit-mode, and dashboards are contract-consistent.
+- Local browser data can be migrated into a real project with a clear result report.
+
+### Phase 1 Major Milestones
+
+- **M1** Contract freeze for core entities
+- **M2** Server-backed beta for core CRUD
+- **M3** Backend included in the quality gate
 
 ---
 
-## What NOT to Build (Yet)
+## Phase 2 — Audit-Ready Product Core (Weeks 8-18)
 
-| Don't Build | Why |
-|-------------|-----|
-| Too many integrations early | Doesn't drive revenue, high maintenance |
-| Complex plugin systems | Over-engineering for current stage |
-| Marketplace | No ecosystem to support it yet |
-| Advanced AI agents | Flashy but doesn't solve the core problem |
-| Mobile apps | Desktop/browser is fine for QA work |
-| Perfect UI polish | Good enough is fine until PMF |
-| More verticals before PMF | Deep in one beats shallow in ten |
-| eCTD submission builder | Too niche for early revenue |
-| eTMF/eConsent | Clinical trial features are Phase 5+ |
-| Data residency | Only needed for enterprise contracts |
+**Goal**: turn QAtrial from a converged platform into a dependable, audit-facing product for real teams.
+
+### Epic 6 — Approval Workflows and Electronic Signatures
+**Order:** 6  
+**Estimate:** 1-2 weeks
+
+**Scope**
+- Formalize Draft -> In Review -> Approved -> Rejected lifecycle behavior.
+- Enforce reviewer/requester separation, approval permissions, and signature capture.
+- Make e-signature records immutable and server-authoritative.
+
+**Milestones**
+- Request, approve, reject, revoke flows work end-to-end.
+- Approval state is reflected in entities, audit trail, and dashboards.
+- Signature meaning, user, role, timestamp, and reason are stored consistently.
+
+### Epic 7 — Evidence System, Traceability, and Audit Exports
+**Order:** 7  
+**Estimate:** 2-3 weeks
+
+**Scope**
+- Harden file upload/download/versioning and evidence metadata.
+- Build dependable requirement -> test -> result -> evidence -> risk traceability.
+- Ship full audit export bundles: CSV, PDF, ZIP, and audit-mode parity.
+
+**Milestones**
+- Evidence completeness and missing-link dashboards run off real database state.
+- Audit export packages include linked records and files.
+- Audit-mode is usable for external auditors with stable read-only behavior.
+
+### Epic 8 — Operational Workflow Modules on Real Data
+**Order:** 8  
+**Estimate:** 2-3 weeks
+
+**Scope**
+- Move change control, deviations, tasks, notifications, dashboards, and comments onto dependable backend flows.
+- Ensure workflow-heavy modules do not bypass audit logging or approval state.
+- Make report generation use the server-backed data model.
+
+**Milestones**
+- Change control and deviation flows create durable records and audit entries.
+- Notification inbox uses server events instead of client-only assumptions.
+- Cross-module links are visible in dashboards and exports.
+
+### Epic 9 — Hosted-Ready Platform Baseline
+**Order:** 9  
+**Estimate:** 1-2 weeks
+
+**Scope**
+- Production configuration, secrets handling, upload storage abstraction, backups, and environment validation.
+- OpenAPI or equivalent API documentation.
+- Monitoring, health checks, and failure visibility for AI, uploads, and database access.
+
+**Milestones**
+- Cloud deployment baseline exists and is documented.
+- Upload storage can run locally and on S3-compatible backends.
+- API surface is documented enough for external integration.
+
+### Epic 10 — Onboarding, Starter Packs, and Migration UX
+**Order:** 10  
+**Estimate:** 1 week
+
+**Scope**
+- Improve setup wizard, starter packs, demo projects, and migration tooling.
+- Make first-run project creation, import, and initial dashboard experience coherent.
+- Keep standalone mode useful as a trial/demo path without fragmenting the product model.
+
+**Milestones**
+- New user can reach a working project with starter data quickly.
+- Existing standalone data can be imported into a live team project.
+- Starter packs generate real server-backed records.
+
+### Phase 2 Exit Criteria
+
+- QAtrial can support a single-site team using the product end-to-end.
+- Approval, signature, evidence, traceability, audit export, and audit-mode flows are trustworthy.
+- Dashboard metrics are sourced from stable backend relations.
+- Cloud/self-host setup is documented well enough for customer pilots.
+
+### Phase 2 Major Milestones
+
+- **M4** Audit-ready core release
+- **M5** Hosted/customer pilot release
 
 ---
 
-## Revenue Timeline (Realistic)
+## Phase 3 — Vertical, Enterprise, and AI Expansion (Weeks 18-36+)
 
-| Period | Revenue | Focus |
-|--------|---------|-------|
-| Months 0–6 | $0–$1K/month | Building the product |
-| Months 6–9 | $1K–$5K/month | Early SaaS + services |
-| Months 9–12 | $5K–$20K/month | Niche adoption |
-| Months 12–18 | $20K–$100K+/month | Enterprise + compliance packs |
+**Goal**: develop the full planned expansion backlog in a staged order after the product core is stable.
+
+This phase deliberately contains multiple waves. The order matters.
+
+### Epic 11 — Medical Device Wave
+**Order:** 11  
+**Estimate:** 2-4 weeks
+
+**Scope**
+- DHF/DMR/DHR management
+- Design control workflow with approval gates
+- QMSR-focused gap assessment and transition packs
+- PMS, complaint, supplier, and UDI hardening
+
+**Milestones**
+- Medical device starter pack becomes the first commercial wedge.
+- Design-control gates enforce real workflow transitions.
+- QMSR readiness reporting uses actual evidence and workflow state.
+
+### Epic 12 — Enterprise Operations Wave
+**Order:** 12  
+**Estimate:** 2-4 weeks
+
+**Scope**
+- Configurable workflow engine hardening
+- Notification center maturity
+- Supplier portal completion
+- SSO hardening
+- Self-hosted and air-gapped deployment packaging
+
+**Milestones**
+- Enterprise customers can use SSO, supplier workflows, and configurable approval routing.
+- Workflow SLAs, escalation hooks, and operational visibility are available.
+
+### Epic 13 — Pharmaceutical and Biotech Wave
+**Order:** 13  
+**Estimate:** 2-4 weeks
+
+**Scope**
+- Electronic batch records
+- Stability studies
+- Process validation lifecycle
+- Training and document-control depth
+- Cleaning validation and related pharma workflows
+
+**Milestones**
+- Pharma starter pack reaches pilot quality.
+- Batch, stability, and training modules are tied into audit/evidence/export flows.
+
+### Epic 14 — AI Differentiation Wave
+**Order:** 14  
+**Estimate:** 2-4 weeks
+
+**Scope**
+- AI audit preparation assistant
+- AI requirements extraction
+- Change impact predictor
+- Regulatory change monitor
+- Duplicate/conflict detection
+
+**Milestones**
+- AI features are server-backed, observable, and auditable.
+- AI outputs become useful inside real audit and change-control workflows.
+
+### Epic 15 — CRO and Clinical Wave
+**Order:** 15  
+**Estimate:** 2-4 weeks
+
+**Scope**
+- eTMF
+- eConsent
+- Protocol deviation tracker
+- Site management and monitoring
+- Decentralized trial support
+
+**Milestones**
+- Clinical workflows become a separate expansion wave instead of mixing with core platform delivery.
+
+### Epic 16 — Geography and Additional Vertical Expansion Wave
+**Order:** 16  
+**Estimate:** ongoing after previous waves
+
+**Scope**
+- Country packs for Brazil, Australia/NZ, Saudi Arabia, Switzerland, Singapore, Israel, India, UAE/GCC
+- Additional verticals such as IVD, combination products, ATMP, SaMD, automotive safety, food safety
+- Data residency, multi-region, offline/PWA, scheduled reports, advanced search, document generation
+
+**Milestones**
+- Expansion is driven by paying demand and validated operating capacity.
+- No geography or vertical wave begins before the prior wave has product ownership and support capacity.
+
+### Phase 3 Exit Criteria
+
+- One vertical is commercially deep and repeatable.
+- Enterprise buyers can deploy, authenticate, audit, and integrate with confidence.
+- The broader strategic backlog is being developed in planned waves rather than as opportunistic feature accumulation.
+
+### Phase 3 Major Milestones
+
+- **M6** Medical device GA / first repeatable wedge
+- **M7** Enterprise release
+- **M8** Expansion wave program established
 
 ---
 
-## Verification
+## Full Implementation Order
+
+1. Core contract convergence
+2. Server-backed core CRUD
+3. Auth, workspace, and team parity
+4. Schema/route drift repair
+5. Backend quality gate and developer bootstrap
+6. Approval workflows and electronic signatures
+7. Evidence system, traceability, and audit exports
+8. Operational workflow modules on real data
+9. Hosted-ready platform baseline
+10. Onboarding, starter packs, and migration UX
+11. Medical device wave
+12. Enterprise operations wave
+13. Pharmaceutical and biotech wave
+14. AI differentiation wave
+15. CRO and clinical wave
+16. Geography and additional vertical expansion wave
+
+---
+
+## What Not To Start Before Phase 2 Exit
+
+- Real-time collaboration and live-presence editing
+- Predictive ML analytics
+- Large country-pack expansion
+- New vertical families beyond the first wedge
+- Advanced AI assistants that are not embedded in audited workflows
+- Marketplace/plugin-style extensibility
+- Broad connector sprawl beyond Jira, GitHub, and webhooks
+
+These are not rejected. They are intentionally sequenced behind the platform and audit core.
+
+---
+
+## Verification Plan
 
 ### Phase 1
-- `npm run build` — frontend clean
-- `npm run server` — backend starts, connects to PostgreSQL
-- Register user → login → create workspace → invite teammate → both see shared project
-- Create requirement via API (`curl POST /api/requirements`) → appears in frontend
-- All mutations logged in audit_log table (verify with `SELECT * FROM audit_log`)
-- Import localStorage data → all existing data migrated to database
+
+- Frontend typecheck/build passes.
+- Backend typecheck passes.
+- Core route tests pass for auth, projects, requirements, tests, approvals, evidence, audit, and dashboard contracts.
+- User can register, log in, create/select a project, invite a teammate, and both users see the same project state.
+- Core CRUD does not require local-only fallback in server mode.
 
 ### Phase 2
-- Upload evidence file → linked to test → appears in evidence dashboard
-- Approve requirement → status changes → audit log entry created → e-signature recorded
-- Export project → PDF report + ZIP with evidence files + audit trail CSV
-- Traceability view shows: requirement → test → result → evidence chain
+
+- Requirement/test approval request and review flows complete end-to-end.
+- Signature records are immutable and visible in audit outputs.
+- Evidence files upload, download, version, and export correctly.
+- Audit-mode exposes coherent project, traceability, evidence, audit trail, and signatures views.
+- Export bundles are usable by QA managers and auditors.
 
 ### Phase 3
-- Deploy to cloud → accessible via URL
-- Register → select Free plan → create project → hit limit → upgrade prompt
-- Stripe checkout → payment → plan upgraded → limits raised
-- Excel import: upload file → map columns → preview → import → requirements created
 
-### Phase 4
-- Select "FDA CSV Starter Pack" → pre-configured project with requirements, tests, workflows
-- Share audit link → auditor sees read-only view with traceability + evidence
-- CAPA aging report shows open CAPAs older than 30 days
+- Medical device workflows enforce gated design-control progression.
+- Enterprise deployment supports SSO and customer-hosted operation.
+- Vertical modules integrate with audit, evidence, export, and approval layers.
+- AI outputs are logged, attributable, and reviewable.
 
-### Phase 5
-- SSO login via Okta/Azure AD → user lands in workspace
-- Docker Compose: `docker-compose up` → full stack running locally
-- Validation package: download IQ/OQ/PQ docs for QAtrial itself
+---
+
+## Recommended Commercial Positioning During Delivery
+
+- **Phase 1 message**: "QAtrial is becoming the server-backed quality workspace, not just a local demo."
+- **Phase 2 message**: "QAtrial helps teams pass audits without spreadsheet sprawl."
+- **Phase 3 message**: "QAtrial adds deep regulated workflows starting with medical device, then enterprise operations, then broader vertical expansion."

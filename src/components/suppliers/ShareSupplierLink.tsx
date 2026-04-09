@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Link2, X, Copy, Check, AlertTriangle } from 'lucide-react';
 import { apiFetch } from '../../lib/apiClient';
 import { useAuth } from '../../hooks/useAuth';
+import { roleHasPermission } from '../../lib/permissions';
 
 interface SupplierOption {
   id: string;
@@ -14,6 +15,7 @@ type ExpiryOption = 30 | 90 | 365;
 export function ShareSupplierLink() {
   const { t } = useTranslation();
   const { user, token } = useAuth();
+  const canEdit = roleHasPermission(user?.role, 'canEdit');
 
   const [open, setOpen] = useState(false);
   const [suppliers, setSuppliers] = useState<SupplierOption[]>([]);
@@ -25,23 +27,16 @@ export function ShareSupplierLink() {
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3001';
-
-  // Only show for admin users
-  if (!user || user.role !== 'admin') return null;
+  if (!user || !canEdit) return null;
 
   const fetchSuppliers = async () => {
     if (!token) return;
+    setError(null);
     try {
-      const res = await fetch(`${apiBase}/api/suppliers`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setSuppliers((data.suppliers || []).map((s: any) => ({ id: s.id, name: s.name })));
-      }
-    } catch (err) {
-      console.error('Failed to fetch suppliers:', err);
+      const data = await apiFetch<{ suppliers: any[] }>('/suppliers');
+      setSuppliers((data.suppliers || []).map((s: any) => ({ id: s.id, name: s.name })));
+    } catch (err: any) {
+      setError(err.message || 'Failed to fetch suppliers');
     }
   };
 

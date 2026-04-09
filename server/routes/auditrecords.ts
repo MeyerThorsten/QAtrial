@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
-import { prisma } from '../index.js';
-import { authMiddleware, getUser } from '../middleware/auth.js';
+import { prisma } from '../lib/prisma.js';
+import { findAccessibleProject } from '../lib/projectAccess.js';
+import { authMiddleware, getUser, requirePermission } from '../middleware/auth.js';
 import { logAudit } from '../services/audit.service.js';
 import { dispatchWebhook } from '../services/webhook.service.js';
 
@@ -11,10 +12,14 @@ auditrecords.use('*', authMiddleware);
 // Upcoming audit schedule (must be before /:id)
 auditrecords.get('/schedule', async (c) => {
   try {
+    const user = getUser(c);
     const projectId = c.req.query('projectId');
     if (!projectId) {
       return c.json({ message: 'projectId query parameter is required' }, 400);
     }
+
+    const project = await findAccessibleProject(projectId, user.orgId);
+    if (!project) return c.json({ message: 'Project not found' }, 404);
 
     const now = new Date();
     const items = await prisma.auditRecord.findMany({
@@ -47,10 +52,14 @@ auditrecords.get('/schedule', async (c) => {
 // List audits by projectId
 auditrecords.get('/', async (c) => {
   try {
+    const user = getUser(c);
     const projectId = c.req.query('projectId');
     if (!projectId) {
       return c.json({ message: 'projectId query parameter is required' }, 400);
     }
+
+    const project = await findAccessibleProject(projectId, user.orgId);
+    if (!project) return c.json({ message: 'Project not found' }, 404);
 
     const items = await prisma.auditRecord.findMany({
       where: { projectId },
@@ -66,7 +75,7 @@ auditrecords.get('/', async (c) => {
 });
 
 // Schedule audit
-auditrecords.post('/', async (c) => {
+auditrecords.post('/', requirePermission('canEdit'), async (c) => {
   try {
     const user = getUser(c);
     const body = await c.req.json();
@@ -74,6 +83,9 @@ auditrecords.post('/', async (c) => {
     if (!body.projectId || !body.title || !body.scheduledDate || !body.leadAuditor) {
       return c.json({ message: 'projectId, title, scheduledDate, and leadAuditor are required' }, 400);
     }
+
+    const project = await findAccessibleProject(body.projectId, user.orgId);
+    if (!project) return c.json({ message: 'Project not found' }, 404);
 
     const item = await prisma.auditRecord.create({
       data: {
@@ -110,6 +122,7 @@ auditrecords.post('/', async (c) => {
 // Get audit with findings
 auditrecords.get('/:id', async (c) => {
   try {
+    const user = getUser(c);
     const { id } = c.req.param();
     const item = await prisma.auditRecord.findUnique({
       where: { id },
@@ -119,6 +132,8 @@ auditrecords.get('/:id', async (c) => {
     if (!item) {
       return c.json({ message: 'Audit not found' }, 404);
     }
+    const project = await findAccessibleProject(item.projectId, user.orgId);
+    if (!project) return c.json({ message: 'Audit not found' }, 404);
 
     return c.json({ audit: item });
   } catch (error: any) {
@@ -128,7 +143,7 @@ auditrecords.get('/:id', async (c) => {
 });
 
 // Update audit
-auditrecords.put('/:id', async (c) => {
+auditrecords.put('/:id', requirePermission('canEdit'), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();
@@ -138,6 +153,8 @@ auditrecords.put('/:id', async (c) => {
     if (!existing) {
       return c.json({ message: 'Audit not found' }, 404);
     }
+    const project = await findAccessibleProject(existing.projectId, user.orgId);
+    if (!project) return c.json({ message: 'Audit not found' }, 404);
 
     const item = await prisma.auditRecord.update({
       where: { id },
@@ -171,7 +188,7 @@ auditrecords.put('/:id', async (c) => {
 });
 
 // Delete audit
-auditrecords.delete('/:id', async (c) => {
+auditrecords.delete('/:id', requirePermission('canDelete'), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();
@@ -180,6 +197,8 @@ auditrecords.delete('/:id', async (c) => {
     if (!existing) {
       return c.json({ message: 'Audit not found' }, 404);
     }
+    const project = await findAccessibleProject(existing.projectId, user.orgId);
+    if (!project) return c.json({ message: 'Audit not found' }, 404);
 
     await prisma.auditRecord.delete({ where: { id } });
 
@@ -200,7 +219,7 @@ auditrecords.delete('/:id', async (c) => {
 });
 
 // Add finding
-auditrecords.post('/:id/findings', async (c) => {
+auditrecords.post('/:id/findings', requirePermission('canEdit'), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();
@@ -210,6 +229,8 @@ auditrecords.post('/:id/findings', async (c) => {
     if (!audit) {
       return c.json({ message: 'Audit not found' }, 404);
     }
+    const project = await findAccessibleProject(audit.projectId, user.orgId);
+    if (!project) return c.json({ message: 'Audit not found' }, 404);
 
     if (!body.classification || !body.area || !body.description) {
       return c.json({ message: 'classification, area, and description are required' }, 400);
@@ -254,7 +275,7 @@ auditrecords.post('/:id/findings', async (c) => {
 });
 
 // Update finding
-auditrecords.put('/:id/findings/:findingId', async (c) => {
+auditrecords.put('/:id/findings/:findingId', requirePermission('canEdit'), async (c) => {
   try {
     const user = getUser(c);
     const { id, findingId } = c.req.param();
@@ -266,6 +287,9 @@ auditrecords.put('/:id/findings/:findingId', async (c) => {
     }
 
     const audit = await prisma.auditRecord.findUnique({ where: { id } });
+    if (!audit) return c.json({ message: 'Audit not found' }, 404);
+    const project = await findAccessibleProject(audit.projectId, user.orgId);
+    if (!project) return c.json({ message: 'Audit not found' }, 404);
 
     const finding = await prisma.auditFinding.update({
       where: { id: findingId },
@@ -301,7 +325,7 @@ auditrecords.put('/:id/findings/:findingId', async (c) => {
 });
 
 // Complete audit with report summary
-auditrecords.put('/:id/complete', async (c) => {
+auditrecords.put('/:id/complete', requirePermission('canEdit'), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();
@@ -311,6 +335,8 @@ auditrecords.put('/:id/complete', async (c) => {
     if (!existing) {
       return c.json({ message: 'Audit not found' }, 404);
     }
+    const project = await findAccessibleProject(existing.projectId, user.orgId);
+    if (!project) return c.json({ message: 'Audit not found' }, 404);
 
     const item = await prisma.auditRecord.update({
       where: { id },

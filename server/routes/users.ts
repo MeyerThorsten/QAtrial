@@ -1,11 +1,50 @@
 import { Hono } from 'hono';
 import * as bcrypt from 'bcryptjs';
-import { prisma } from '../index.js';
+import { prisma } from '../lib/prisma.js';
 import { authMiddleware, requireRole, requirePermission, getUser, VALID_ROLES } from '../middleware/auth.js';
 
 const users = new Hono();
 
 users.use('*', authMiddleware);
+
+function deriveDisplayName(email: string): string {
+  const localPart = email.split('@')[0] || 'User';
+  return localPart
+    .split(/[._-]+/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ') || 'User';
+}
+
+users.get('/team', async (c) => {
+  try {
+    const user = getUser(c);
+
+    if (!user.orgId) {
+      return c.json({ orgName: 'Organization', members: [] });
+    }
+
+    const [org, members] = await Promise.all([
+      prisma.organization.findUnique({
+        where: { id: user.orgId },
+        select: { name: true },
+      }),
+      prisma.user.findMany({
+        where: { orgId: user.orgId },
+        select: { id: true, email: true, name: true, role: true, createdAt: true },
+        orderBy: { createdAt: 'asc' },
+      }),
+    ]);
+
+    return c.json({
+      orgName: org?.name ?? 'Organization',
+      members,
+    });
+  } catch (error: any) {
+    console.error('Load team error:', error);
+    return c.json({ message: 'Failed to load team' }, 500);
+  }
+});
 
 users.get('/', async (c) => {
   try {
@@ -36,8 +75,8 @@ users.post('/invite', requirePermission('canAdmin'), async (c) => {
     const currentUser = getUser(c);
     const body = await c.req.json();
 
-    if (!body.email || !body.name) {
-      return c.json({ message: 'Email and name are required' }, 400);
+    if (!body.email) {
+      return c.json({ message: 'Email is required' }, 400);
     }
 
     const requestedRole = body.role ?? 'qa_engineer';
@@ -56,11 +95,15 @@ users.post('/invite', requirePermission('canAdmin'), async (c) => {
     const tempPassword = crypto.randomUUID().slice(0, 12);
     const passwordHash = await bcrypt.hash(tempPassword, 12);
 
+    const inviteeName = typeof body.name === 'string' && body.name.trim().length > 0
+      ? body.name.trim()
+      : deriveDisplayName(body.email);
+
     const newUser = await prisma.user.create({
       data: {
         email: body.email,
         passwordHash,
-        name: body.name,
+        name: inviteeName,
         role: requestedRole,
         orgId: currentUser.orgId,
       },

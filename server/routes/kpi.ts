@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
-import { prisma } from '../index.js';
-import { authMiddleware, getUser } from '../middleware/auth.js';
+import { listAccessibleProjectIds } from '../lib/projectAccess.js';
+import { prisma } from '../lib/prisma.js';
+import { authMiddleware, getUser, requirePermission, roleHasPermission, type JwtPayload } from '../middleware/auth.js';
 
 const kpi = new Hono();
 
@@ -47,6 +48,26 @@ const METRICS_CATALOG: Record<string, { metrics: string[]; groupByOptions: strin
   },
 };
 
+function canViewDashboard(dashboard: { createdBy: string; isPublic: boolean }, user: JwtPayload): boolean {
+  return dashboard.isPublic || dashboard.createdBy === user.userId || roleHasPermission(user.role, 'canAdmin');
+}
+
+function canManageDashboard(dashboard: { createdBy: string }, user: JwtPayload): boolean {
+  return dashboard.createdBy === user.userId || roleHasPermission(user.role, 'canAdmin');
+}
+
+function applyProjectScope(where: Record<string, any>, projectId: string | undefined, accessibleProjectIds: string[]) {
+  if (projectId) {
+    if (!accessibleProjectIds.includes(projectId)) {
+      throw new Error('Project not found');
+    }
+    where.projectId = projectId;
+    return;
+  }
+
+  where.projectId = { in: accessibleProjectIds };
+}
+
 // GET /metrics/available — return catalog of available data sources and metrics
 kpi.get('/metrics/available', async (c) => {
   const catalog = Object.entries(METRICS_CATALOG).map(([source, config]) => ({
@@ -67,7 +88,9 @@ kpi.get('/dashboards', async (c) => {
     const dashboards = await prisma.customDashboard.findMany({
       where: {
         orgId,
-        OR: [{ isPublic: true }, { createdBy: user.userId }],
+        ...(roleHasPermission(user.role, 'canAdmin')
+          ? {}
+          : { OR: [{ isPublic: true }, { createdBy: user.userId }] }),
       },
       include: { widgets: { select: { id: true } } },
       orderBy: { updatedAt: 'desc' },
@@ -85,7 +108,7 @@ kpi.get('/dashboards', async (c) => {
 });
 
 // POST /dashboards — create dashboard
-kpi.post('/dashboards', async (c) => {
+kpi.post('/dashboards', requirePermission('canEdit'), async (c) => {
   try {
     const user = getUser(c);
     const body = await c.req.json();
@@ -114,12 +137,16 @@ kpi.post('/dashboards', async (c) => {
 // GET /dashboards/:id — get with widgets
 kpi.get('/dashboards/:id', async (c) => {
   try {
+    const user = getUser(c);
     const { id } = c.req.param();
-    const dashboard = await prisma.customDashboard.findUnique({
-      where: { id },
+    const dashboard = await prisma.customDashboard.findFirst({
+      where: { id, orgId: user.orgId || '' },
       include: { widgets: { orderBy: { position: 'asc' } } },
     });
     if (!dashboard) return c.json({ message: 'Dashboard not found' }, 404);
+    if (!canViewDashboard(dashboard, user)) {
+      return c.json({ message: 'Dashboard not found' }, 404);
+    }
     return c.json({ dashboard });
   } catch (error: any) {
     console.error('Get dashboard error:', error);
@@ -128,14 +155,18 @@ kpi.get('/dashboards/:id', async (c) => {
 });
 
 // PUT /dashboards/:id — update name/description/public
-kpi.put('/dashboards/:id', async (c) => {
+kpi.put('/dashboards/:id', requirePermission('canEdit'), async (c) => {
   try {
+    const user = getUser(c);
     const { id } = c.req.param();
     const body = await c.req.json();
     const { name, description, isPublic } = body;
 
-    const existing = await prisma.customDashboard.findUnique({ where: { id } });
+    const existing = await prisma.customDashboard.findFirst({ where: { id, orgId: user.orgId || '' } });
     if (!existing) return c.json({ message: 'Dashboard not found' }, 404);
+    if (!canManageDashboard(existing, user)) {
+      return c.json({ message: 'Only the creator or an admin can update this dashboard' }, 403);
+    }
 
     const dashboard = await prisma.customDashboard.update({
       where: { id },
@@ -160,9 +191,9 @@ kpi.delete('/dashboards/:id', async (c) => {
     const user = getUser(c);
     const { id } = c.req.param();
 
-    const existing = await prisma.customDashboard.findUnique({ where: { id } });
+    const existing = await prisma.customDashboard.findFirst({ where: { id, orgId: user.orgId || '' } });
     if (!existing) return c.json({ message: 'Dashboard not found' }, 404);
-    if (existing.createdBy !== user.userId && user.role !== 'admin') {
+    if (!canManageDashboard(existing, user)) {
       return c.json({ message: 'Only the creator or an admin can delete this dashboard' }, 403);
     }
 
@@ -177,14 +208,18 @@ kpi.delete('/dashboards/:id', async (c) => {
 // ── Widget CRUD ─────────────────────────────────────────────────────────────
 
 // POST /dashboards/:id/widgets — add widget
-kpi.post('/dashboards/:id/widgets', async (c) => {
+kpi.post('/dashboards/:id/widgets', requirePermission('canEdit'), async (c) => {
   try {
+    const user = getUser(c);
     const { id } = c.req.param();
     const body = await c.req.json();
     const { type, title, dataSource, metric, groupBy, filters, position, size } = body;
 
-    const dashboard = await prisma.customDashboard.findUnique({ where: { id } });
+    const dashboard = await prisma.customDashboard.findFirst({ where: { id, orgId: user.orgId || '' } });
     if (!dashboard) return c.json({ message: 'Dashboard not found' }, 404);
+    if (!canManageDashboard(dashboard, user)) {
+      return c.json({ message: 'Only the creator or an admin can update this dashboard' }, 403);
+    }
 
     if (!type || !title || !dataSource || !metric) {
       return c.json({ message: 'type, title, dataSource, and metric are required' }, 400);
@@ -219,14 +254,21 @@ kpi.post('/dashboards/:id/widgets', async (c) => {
 });
 
 // PUT /dashboards/:id/widgets/:widgetId — update widget config
-kpi.put('/dashboards/:id/widgets/:widgetId', async (c) => {
+kpi.put('/dashboards/:id/widgets/:widgetId', requirePermission('canEdit'), async (c) => {
   try {
+    const user = getUser(c);
     const { widgetId } = c.req.param();
     const body = await c.req.json();
     const { type, title, dataSource, metric, groupBy, filters, size } = body;
 
-    const existing = await prisma.dashboardWidget.findUnique({ where: { id: widgetId } });
+    const existing = await prisma.dashboardWidget.findUnique({
+      where: { id: widgetId },
+      include: { dashboard: true },
+    });
     if (!existing) return c.json({ message: 'Widget not found' }, 404);
+    if (existing.dashboard.orgId !== (user.orgId || '') || !canManageDashboard(existing.dashboard, user)) {
+      return c.json({ message: 'Widget not found' }, 404);
+    }
 
     const widget = await prisma.dashboardWidget.update({
       where: { id: widgetId },
@@ -249,9 +291,18 @@ kpi.put('/dashboards/:id/widgets/:widgetId', async (c) => {
 });
 
 // DELETE /dashboards/:id/widgets/:widgetId — remove widget
-kpi.delete('/dashboards/:id/widgets/:widgetId', async (c) => {
+kpi.delete('/dashboards/:id/widgets/:widgetId', requirePermission('canEdit'), async (c) => {
   try {
+    const user = getUser(c);
     const { widgetId } = c.req.param();
+    const existing = await prisma.dashboardWidget.findUnique({
+      where: { id: widgetId },
+      include: { dashboard: true },
+    });
+    if (!existing) return c.json({ message: 'Widget not found' }, 404);
+    if (existing.dashboard.orgId !== (user.orgId || '') || !canManageDashboard(existing.dashboard, user)) {
+      return c.json({ message: 'Widget not found' }, 404);
+    }
     await prisma.dashboardWidget.delete({ where: { id: widgetId } });
     return c.json({ message: 'Widget deleted' });
   } catch (error: any) {
@@ -261,14 +312,20 @@ kpi.delete('/dashboards/:id/widgets/:widgetId', async (c) => {
 });
 
 // PUT /dashboards/:id/reorder — reorder widgets
-kpi.put('/dashboards/:id/reorder', async (c) => {
+kpi.put('/dashboards/:id/reorder', requirePermission('canEdit'), async (c) => {
   try {
+    const user = getUser(c);
     const { id } = c.req.param();
     const body = await c.req.json();
     const { widgetIds } = body;
 
     if (!Array.isArray(widgetIds)) {
       return c.json({ message: 'widgetIds array is required' }, 400);
+    }
+    const dashboardForUser = await prisma.customDashboard.findFirst({ where: { id, orgId: user.orgId || '' } });
+    if (!dashboardForUser) return c.json({ message: 'Dashboard not found' }, 404);
+    if (!canManageDashboard(dashboardForUser, user)) {
+      return c.json({ message: 'Only the creator or an admin can update this dashboard' }, 403);
     }
 
     // Update positions
@@ -298,17 +355,25 @@ kpi.put('/dashboards/:id/reorder', async (c) => {
 // GET /dashboards/:id/data — execute all widgets and return computed data
 kpi.get('/dashboards/:id/data', async (c) => {
   try {
+    const user = getUser(c);
     const { id } = c.req.param();
-    const dashboard = await prisma.customDashboard.findUnique({
-      where: { id },
+    const dashboard = await prisma.customDashboard.findFirst({
+      where: { id, orgId: user.orgId || '' },
       include: { widgets: { orderBy: { position: 'asc' } } },
     });
     if (!dashboard) return c.json({ message: 'Dashboard not found' }, 404);
+    if (!canViewDashboard(dashboard, user)) {
+      return c.json({ message: 'Dashboard not found' }, 404);
+    }
+    const accessibleProjectIds = await listAccessibleProjectIds(user.orgId);
 
     const widgetResults = await Promise.all(
       dashboard.widgets.map(async (widget) => {
         try {
-          const data = await executeWidgetQuery(widget);
+          const data = await executeWidgetQuery(widget, {
+            accessibleProjectIds,
+            orgId: user.orgId,
+          });
           return { widgetId: widget.id, data };
         } catch (err: any) {
           console.error(`Widget ${widget.id} query error:`, err);
@@ -326,9 +391,18 @@ kpi.get('/dashboards/:id/data', async (c) => {
 
 // ── Widget Query Executor ───────────────────────────────────────────────────
 
-async function executeWidgetQuery(widget: any): Promise<{ labels: string[]; values: number[]; total?: number }> {
+async function executeWidgetQuery(
+  widget: any,
+  {
+    accessibleProjectIds,
+    orgId,
+  }: {
+    accessibleProjectIds: string[];
+    orgId: string | null;
+  },
+): Promise<{ labels: string[]; values: number[]; total?: number }> {
   const filters = (widget.filters || {}) as any;
-  const projectId = filters.projectId;
+  const projectId = filters.projectId as string | undefined;
   const dateRange = filters.dateRange;
 
   // Build date filter
@@ -342,7 +416,7 @@ async function executeWidgetQuery(widget: any): Promise<{ labels: string[]; valu
   switch (widget.dataSource) {
     case 'requirements': {
       const where: any = {};
-      if (projectId) where.projectId = projectId;
+      applyProjectScope(where, projectId, accessibleProjectIds);
       if (hasDateFilter) where.createdAt = dateFilter;
 
       if (widget.metric === 'count' && widget.groupBy) {
@@ -361,7 +435,7 @@ async function executeWidgetQuery(widget: any): Promise<{ labels: string[]; valu
 
     case 'tests': {
       const where: any = {};
-      if (projectId) where.projectId = projectId;
+      applyProjectScope(where, projectId, accessibleProjectIds);
       if (hasDateFilter) where.createdAt = dateFilter;
 
       if (widget.metric === 'pass_rate') {
@@ -386,7 +460,7 @@ async function executeWidgetQuery(widget: any): Promise<{ labels: string[]; valu
 
     case 'capa': {
       const where: any = {};
-      if (projectId) where.projectId = projectId;
+      applyProjectScope(where, projectId, accessibleProjectIds);
       if (hasDateFilter) where.createdAt = dateFilter;
 
       if (widget.metric === 'overdue_count') {
@@ -416,7 +490,7 @@ async function executeWidgetQuery(widget: any): Promise<{ labels: string[]; valu
 
     case 'deviations': {
       const where: any = {};
-      if (projectId) where.projectId = projectId;
+      applyProjectScope(where, projectId, accessibleProjectIds);
       if (hasDateFilter) where.createdAt = dateFilter;
 
       if (widget.metric === 'count' && widget.groupBy) {
@@ -435,7 +509,7 @@ async function executeWidgetQuery(widget: any): Promise<{ labels: string[]; valu
 
     case 'complaints': {
       const where: any = {};
-      if (projectId) where.projectId = projectId;
+      applyProjectScope(where, projectId, accessibleProjectIds);
       if (hasDateFilter) where.createdAt = dateFilter;
 
       if (widget.metric === 'count' && widget.groupBy === 'severity') {
@@ -456,6 +530,7 @@ async function executeWidgetQuery(widget: any): Promise<{ labels: string[]; valu
 
     case 'training': {
       const where: any = {};
+      if (orgId) where.course = { orgId };
       if (hasDateFilter) where.assignedAt = dateFilter;
 
       if (widget.metric === 'compliance_pct') {
@@ -475,7 +550,7 @@ async function executeWidgetQuery(widget: any): Promise<{ labels: string[]; valu
     }
 
     case 'suppliers': {
-      const where: any = {};
+      const where: any = orgId ? { orgId } : { orgId: '__no-access__' };
 
       if (widget.metric === 'avg_score') {
         const result = await prisma.supplier.aggregate({
@@ -498,7 +573,7 @@ async function executeWidgetQuery(widget: any): Promise<{ labels: string[]; valu
 
     case 'batches': {
       const where: any = {};
-      if (projectId) where.projectId = projectId;
+      applyProjectScope(where, projectId, accessibleProjectIds);
       if (hasDateFilter) where.createdAt = dateFilter;
 
       if (widget.metric === 'yield_avg') {
@@ -528,11 +603,14 @@ async function executeWidgetQuery(widget: any): Promise<{ labels: string[]; valu
 
     case 'stability': {
       const where: any = {};
-      if (projectId) where.projectId = projectId;
+      applyProjectScope(where, projectId, accessibleProjectIds);
 
       if (widget.metric === 'oos_count') {
         const oosCount = await prisma.stabilitySample.count({
-          where: { oosFlag: true },
+          where: {
+            oosFlag: true,
+            study: { projectId: where.projectId },
+          },
         });
         return { labels: ['OOS Count'], values: [oosCount], total: oosCount };
       }

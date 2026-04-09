@@ -1,12 +1,21 @@
 import { Hono } from 'hono';
-import { prisma } from '../index.js';
-import { authMiddleware, getUser } from '../middleware/auth.js';
-import { logAudit } from '../services/audit.service.js';
+import { prisma } from '../lib/prisma.js';
+import { authMiddleware, getUser, requirePermission } from '../middleware/auth.js';
 import { dispatchWebhook } from '../services/webhook.service.js';
 
 const training = new Hono();
 
 training.use('*', authMiddleware);
+
+async function findAccessibleCourse(id: string, orgId: string | null) {
+  if (!orgId) {
+    return null;
+  }
+
+  return prisma.course.findFirst({
+    where: { id, orgId },
+  });
+}
 
 // ── Training Plans ──────────────────────────────────────────────────────────
 
@@ -14,7 +23,7 @@ training.use('*', authMiddleware);
 training.get('/plans', async (c) => {
   try {
     const user = getUser(c);
-    const orgId = c.req.query('orgId') || user.orgId;
+    const orgId = user.orgId;
     if (!orgId) {
       return c.json({ message: 'orgId is required' }, 400);
     }
@@ -32,12 +41,12 @@ training.get('/plans', async (c) => {
 });
 
 // Create training plan
-training.post('/plans', async (c) => {
+training.post('/plans', requirePermission('canEdit'), async (c) => {
   try {
     const user = getUser(c);
     const body = await c.req.json();
 
-    const orgId = body.orgId || user.orgId;
+    const orgId = user.orgId;
     if (!orgId || !body.name || !body.role) {
       return c.json({ message: 'orgId, name, and role are required' }, 400);
     }
@@ -69,7 +78,7 @@ training.post('/plans', async (c) => {
 training.get('/courses', async (c) => {
   try {
     const user = getUser(c);
-    const orgId = c.req.query('orgId') || user.orgId;
+    const orgId = user.orgId;
     if (!orgId) {
       return c.json({ message: 'orgId is required' }, 400);
     }
@@ -87,12 +96,12 @@ training.get('/courses', async (c) => {
 });
 
 // Create course
-training.post('/courses', async (c) => {
+training.post('/courses', requirePermission('canEdit'), async (c) => {
   try {
     const user = getUser(c);
     const body = await c.req.json();
 
-    const orgId = body.orgId || user.orgId;
+    const orgId = user.orgId;
     if (!orgId || !body.title) {
       return c.json({ message: 'orgId and title are required' }, 400);
     }
@@ -124,11 +133,18 @@ training.post('/courses', async (c) => {
 // List training records with filters
 training.get('/records', async (c) => {
   try {
+    const user = getUser(c);
+    if (!user.orgId) {
+      return c.json({ records: [] });
+    }
+
     const userId = c.req.query('userId');
     const courseId = c.req.query('courseId');
     const status = c.req.query('status');
 
-    const where: any = {};
+    const where: any = {
+      course: { orgId: user.orgId },
+    };
     if (userId) where.userId = userId;
     if (courseId) where.courseId = courseId;
     if (status) where.status = status;
@@ -147,13 +163,18 @@ training.get('/records', async (c) => {
 });
 
 // Assign training (create record)
-training.post('/records', async (c) => {
+training.post('/records', requirePermission('canEdit'), async (c) => {
   try {
     const user = getUser(c);
     const body = await c.req.json();
 
     if (!body.userId || !body.courseId) {
       return c.json({ message: 'userId and courseId are required' }, 400);
+    }
+
+    const course = await findAccessibleCourse(body.courseId, user.orgId);
+    if (!course) {
+      return c.json({ message: 'Course not found' }, 404);
     }
 
     const item = await prisma.trainingRecord.create({
@@ -177,14 +198,20 @@ training.post('/records', async (c) => {
 });
 
 // Update training record (complete with score, expire)
-training.put('/records/:id', async (c) => {
+training.put('/records/:id', requirePermission('canEdit'), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();
     const body = await c.req.json();
 
-    const existing = await prisma.trainingRecord.findUnique({ where: { id } });
+    const existing = await prisma.trainingRecord.findUnique({
+      where: { id },
+      include: { course: true },
+    });
     if (!existing) {
+      return c.json({ message: 'Training record not found' }, 404);
+    }
+    if (existing.course.orgId !== user.orgId) {
       return c.json({ message: 'Training record not found' }, 404);
     }
 
@@ -221,7 +248,7 @@ training.put('/records/:id', async (c) => {
 training.get('/matrix', async (c) => {
   try {
     const user = getUser(c);
-    const orgId = c.req.query('orgId') || user.orgId;
+    const orgId = user.orgId;
     if (!orgId) {
       return c.json({ message: 'orgId is required' }, 400);
     }
@@ -229,6 +256,7 @@ training.get('/matrix', async (c) => {
     const plans = await prisma.trainingPlan.findMany({ where: { orgId } });
     const courses = await prisma.course.findMany({ where: { orgId } });
     const records = await prisma.trainingRecord.findMany({
+      where: { course: { orgId } },
       include: { course: true },
     });
 
@@ -271,13 +299,14 @@ training.get('/matrix', async (c) => {
 training.get('/compliance', async (c) => {
   try {
     const user = getUser(c);
-    const orgId = c.req.query('orgId') || user.orgId;
+    const orgId = user.orgId;
     if (!orgId) {
       return c.json({ message: 'orgId is required' }, 400);
     }
 
     const plans = await prisma.trainingPlan.findMany({ where: { orgId } });
     const records = await prisma.trainingRecord.findMany({
+      where: { course: { orgId } },
       include: { course: true },
     });
 

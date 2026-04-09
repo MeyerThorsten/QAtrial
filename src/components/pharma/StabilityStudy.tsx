@@ -6,6 +6,9 @@ import {
 import { TestTube2, Plus, ChevronDown, ChevronUp, AlertTriangle } from 'lucide-react';
 import { useProjectStore } from '../../store/useProjectStore';
 import { useAuth } from '../../hooks/useAuth';
+import { apiFetch } from '../../lib/apiClient';
+import { roleHasPermission } from '../../lib/permissions';
+import { getProjectId } from '../../lib/projectUtils';
 
 interface Study {
   id: string;
@@ -46,29 +49,27 @@ const STATUS_COLORS: Record<string, string> = {
 export function StabilityStudy() {
   const { t } = useTranslation();
   const project = useProjectStore((s) => s.project);
-  const { token } = useAuth();
+  const { token, user } = useAuth();
   const [studies, setStudies] = useState<Study[]>([]);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [showSampleForm, setShowSampleForm] = useState<string | null>(null);
   const [trending, setTrending] = useState<Record<string, any[]> | null>(null);
-
-  const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+  const [error, setError] = useState('');
+  const projectId = getProjectId(project);
+  const canEdit = roleHasPermission(user?.role, 'canEdit');
 
   const fetchStudies = async () => {
-    if (!project?.name || !token) return;
+    if (!projectId || !token) return;
     setLoading(true);
+    setError('');
     try {
-      const res = await fetch(`${apiBase}/api/stability?projectId=${project?.name ?? ""}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setStudies(data.studies || []);
-      }
+      const data = await apiFetch<{ studies: Study[] }>(`/stability?projectId=${projectId}`);
+      setStudies(data.studies || []);
     } catch (err) {
       console.error('Failed to fetch studies:', err);
+      setError(err instanceof Error ? err.message : 'Failed to fetch studies');
     } finally {
       setLoading(false);
     }
@@ -76,7 +77,16 @@ export function StabilityStudy() {
 
   useEffect(() => {
     fetchStudies();
-  }, [project?.name, token]);
+  }, [projectId, token]);
+
+  const loadStudyData = async (id: string) => {
+    const [detailData, trendData] = await Promise.all([
+      apiFetch<{ study: Study }>(`/stability/${id}`),
+      apiFetch<{ trending: Record<string, any[]> }>(`/stability/${id}/trending`),
+    ]);
+    setStudies((prev) => prev.map((s) => (s.id === id ? { ...s, samples: detailData.study.samples } : s)));
+    setTrending(trendData.trending);
+  };
 
   const handleExpand = async (id: string) => {
     if (expanded === id) {
@@ -87,54 +97,51 @@ export function StabilityStudy() {
     setExpanded(id);
     if (!token) return;
     try {
-      const [detailRes, trendRes] = await Promise.all([
-        fetch(`${apiBase}/api/stability/${id}`, { headers: { Authorization: `Bearer ${token}` } }),
-        fetch(`${apiBase}/api/stability/${id}/trending`, { headers: { Authorization: `Bearer ${token}` } }),
-      ]);
-      if (detailRes.ok) {
-        const data = await detailRes.json();
-        setStudies((prev) => prev.map((s) => (s.id === id ? { ...s, samples: data.study.samples } : s)));
-      }
-      if (trendRes.ok) {
-        const data = await trendRes.json();
-        setTrending(data.trending);
-      }
+      await loadStudyData(id);
     } catch (err) {
       console.error('Failed to fetch study details:', err);
+      setError(err instanceof Error ? err.message : 'Failed to fetch study details');
     }
   };
 
   const handleCreate = async (formData: any) => {
-    if (!project?.name || !token) return;
+    if (!projectId || !token) return;
+    if (!canEdit) {
+      setError('Insufficient permissions: requires canEdit');
+      return;
+    }
     try {
-      const res = await fetch(`${apiBase}/api/stability`, {
+      await apiFetch('/stability', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ ...formData, projectId: project?.name ?? "" }),
+        body: JSON.stringify({ ...formData, projectId }),
       });
-      if (res.ok) {
-        setShowForm(false);
-        fetchStudies();
-      }
+      setShowForm(false);
+      setError('');
+      fetchStudies();
     } catch (err) {
       console.error('Failed to create study:', err);
+      setError(err instanceof Error ? err.message : 'Failed to create study');
     }
   };
 
   const handleAddSample = async (studyId: string, sampleData: any) => {
     if (!token) return;
+    if (!canEdit) {
+      setError('Insufficient permissions: requires canEdit');
+      return;
+    }
     try {
-      const res = await fetch(`${apiBase}/api/stability/${studyId}/samples`, {
+      await apiFetch(`/stability/${studyId}/samples`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify(sampleData),
       });
-      if (res.ok) {
-        setShowSampleForm(null);
-        handleExpand(studyId);
-      }
+      setShowSampleForm(null);
+      setError('');
+      setExpanded(studyId);
+      await loadStudyData(studyId);
     } catch (err) {
       console.error('Failed to add sample:', err);
+      setError(err instanceof Error ? err.message : 'Failed to add sample');
     }
   };
 
@@ -153,14 +160,22 @@ export function StabilityStudy() {
           <TestTube2 className="w-5 h-5 text-accent" />
           <h2 className="text-lg font-semibold text-text-primary">{t('stability.title')}</h2>
         </div>
-        <button
-          onClick={() => setShowForm(true)}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white bg-accent rounded-lg hover:bg-accent/90 transition-colors"
-        >
-          <Plus className="w-4 h-4" />
-          {t('stability.addStudy')}
-        </button>
+        {canEdit && (
+          <button
+            onClick={() => setShowForm(true)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white bg-accent rounded-lg hover:bg-accent/90 transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            {t('stability.addStudy')}
+          </button>
+        )}
       </div>
+
+      {error && (
+        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {error}
+        </div>
+      )}
 
       {studies.length === 0 ? (
         <div className="text-center py-12 text-text-tertiary">{t('stability.noStudies')}</div>
@@ -197,13 +212,15 @@ export function StabilityStudy() {
                   {/* Sample Results Table */}
                   <div className="flex items-center justify-between">
                     <h4 className="text-sm font-medium text-text-primary">{t('stability.samples')}</h4>
-                    <button
-                      onClick={() => setShowSampleForm(study.id)}
-                      className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-accent border border-accent rounded-lg hover:bg-accent/10"
-                    >
-                      <Plus className="w-3 h-3" />
-                      {t('stability.addSample')}
-                    </button>
+                    {canEdit && (
+                      <button
+                        onClick={() => setShowSampleForm(study.id)}
+                        className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-accent border border-accent rounded-lg hover:bg-accent/10"
+                      >
+                        <Plus className="w-3 h-3" />
+                        {t('stability.addSample')}
+                      </button>
+                    )}
                   </div>
 
                   {study.samples && study.samples.length > 0 ? (
@@ -289,10 +306,10 @@ export function StabilityStudy() {
       )}
 
       {/* Create Study Modal */}
-      {showForm && <StudyForm onSave={handleCreate} onCancel={() => setShowForm(false)} />}
+      {canEdit && showForm && <StudyForm onSave={handleCreate} onCancel={() => setShowForm(false)} />}
 
       {/* Add Sample Modal */}
-      {showSampleForm && (
+      {canEdit && showSampleForm && (
         <SampleForm
           onSave={(data) => handleAddSample(showSampleForm, data)}
           onCancel={() => setShowSampleForm(null)}

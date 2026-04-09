@@ -3,6 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { GraduationCap, Plus, AlertCircle, CheckCircle2, Clock } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
+import { apiFetch } from '../../lib/apiClient';
+import { roleHasPermission } from '../../lib/permissions';
 
 interface ComplianceData {
   planId: string;
@@ -31,7 +33,7 @@ interface MatrixEntry {
 
 export function TrainingDashboard() {
   const { t } = useTranslation();
-  const { token } = useAuth();
+  const { token, user } = useAuth();
   const [compliance, setCompliance] = useState<ComplianceData[]>([]);
   const [overallCompliance, setOverallCompliance] = useState(0);
   const [totalOverdue, setTotalOverdue] = useState(0);
@@ -39,37 +41,31 @@ export function TrainingDashboard() {
   const [loading, setLoading] = useState(true);
   const [showAssignForm, setShowAssignForm] = useState(false);
   const [courses, setCourses] = useState<any[]>([]);
-  const [_users, _setUsers] = useState<any[]>([]);
+  const [users, setUsers] = useState<any[]>([]);
   const [assignData, setAssignData] = useState({ userId: '', courseId: '' });
-
-  const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+  const [error, setError] = useState('');
+  const canEdit = roleHasPermission(user?.role, 'canEdit');
 
   const fetchData = async () => {
     if (!token) return;
     setLoading(true);
+    setError('');
     try {
-      const [compRes, matrixRes, coursesRes] = await Promise.all([
-        fetch(`${apiBase}/api/training/compliance`, { headers: { Authorization: `Bearer ${token}` } }),
-        fetch(`${apiBase}/api/training/matrix`, { headers: { Authorization: `Bearer ${token}` } }),
-        fetch(`${apiBase}/api/training/courses`, { headers: { Authorization: `Bearer ${token}` } }),
+      const [compData, matrixData, coursesData, usersData] = await Promise.all([
+        apiFetch<{ compliance: ComplianceData[]; overallCompliance: number; totalOverdue: number }>('/training/compliance'),
+        apiFetch<{ matrix: MatrixEntry[] }>('/training/matrix'),
+        apiFetch<{ courses: any[] }>('/training/courses'),
+        apiFetch<{ users: any[] }>('/users'),
       ]);
-
-      if (compRes.ok) {
-        const data = await compRes.json();
-        setCompliance(data.compliance || []);
-        setOverallCompliance(data.overallCompliance || 0);
-        setTotalOverdue(data.totalOverdue || 0);
-      }
-      if (matrixRes.ok) {
-        const data = await matrixRes.json();
-        setMatrix(data.matrix || []);
-      }
-      if (coursesRes.ok) {
-        const data = await coursesRes.json();
-        setCourses(data.courses || []);
-      }
+      setCompliance(compData.compliance || []);
+      setOverallCompliance(compData.overallCompliance || 0);
+      setTotalOverdue(compData.totalOverdue || 0);
+      setMatrix(matrixData.matrix || []);
+      setCourses(coursesData.courses || []);
+      setUsers(usersData.users || []);
     } catch (err) {
       console.error('Failed to fetch training data:', err);
+      setError(err instanceof Error ? err.message : 'Failed to fetch training data');
     } finally {
       setLoading(false);
     }
@@ -81,19 +77,21 @@ export function TrainingDashboard() {
 
   const handleAssign = async () => {
     if (!token || !assignData.userId || !assignData.courseId) return;
+    if (!canEdit) {
+      setError('Insufficient permissions: requires canEdit');
+      return;
+    }
     try {
-      const res = await fetch(`${apiBase}/api/training/records`, {
+      await apiFetch('/training/records', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify(assignData),
       });
-      if (res.ok) {
-        setShowAssignForm(false);
-        setAssignData({ userId: '', courseId: '' });
-        fetchData();
-      }
+      setShowAssignForm(false);
+      setAssignData({ userId: '', courseId: '' });
+      fetchData();
     } catch (err) {
       console.error('Failed to assign training:', err);
+      setError(err instanceof Error ? err.message : 'Failed to assign training');
     }
   };
 
@@ -119,14 +117,22 @@ export function TrainingDashboard() {
           <GraduationCap className="w-5 h-5 text-accent" />
           <h2 className="text-lg font-semibold text-text-primary">{t('training.title')}</h2>
         </div>
-        <button
-          onClick={() => setShowAssignForm(true)}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white bg-accent rounded-lg hover:bg-accent/90 transition-colors"
-        >
-          <Plus className="w-4 h-4" />
-          {t('training.assignTraining')}
-        </button>
+        {canEdit && (
+          <button
+            onClick={() => setShowAssignForm(true)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white bg-accent rounded-lg hover:bg-accent/90 transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            {t('training.assignTraining')}
+          </button>
+        )}
       </div>
+
+      {error && (
+        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {error}
+        </div>
+      )}
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -265,13 +271,18 @@ export function TrainingDashboard() {
             <div className="space-y-3">
               <div>
                 <label className="block text-sm font-medium text-text-secondary mb-1">{t('training.userId')}</label>
-                <input
-                  type="text"
+                <select
                   value={assignData.userId}
                   onChange={(e) => setAssignData({ ...assignData, userId: e.target.value })}
-                  placeholder={t('training.userIdPlaceholder')}
                   className="w-full px-3 py-2 rounded-lg border border-border bg-surface text-text-primary text-sm focus:outline-none focus:ring-2 focus:ring-accent/50"
-                />
+                >
+                  <option value="">{t('training.userIdPlaceholder')}</option>
+                  {users.map((u) => (
+                    <option key={u.id} value={u.id}>
+                      {u.name || u.email}
+                    </option>
+                  ))}
+                </select>
               </div>
               <div>
                 <label className="block text-sm font-medium text-text-secondary mb-1">{t('training.course')}</label>

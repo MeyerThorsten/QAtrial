@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
-import { prisma } from '../index.js';
-import { authMiddleware } from '../middleware/auth.js';
+import { prisma } from '../lib/prisma.js';
+import { authMiddleware, getUser, requirePermission } from '../middleware/auth.js';
+import { findAccessibleProject } from '../lib/projectAccess.js';
 
 const audit = new Hono();
 
@@ -8,6 +9,7 @@ audit.use('*', authMiddleware);
 
 audit.get('/', async (c) => {
   try {
+    const user = getUser(c);
     const projectId = c.req.query('projectId');
     const entityId = c.req.query('entityId');
     const from = c.req.query('from');
@@ -15,9 +17,17 @@ audit.get('/', async (c) => {
     const limit = parseInt(c.req.query('limit') || '100', 10);
     const offset = parseInt(c.req.query('offset') || '0', 10);
 
-    const where: any = {};
+    if (!projectId) {
+      return c.json({ message: 'projectId query parameter is required' }, 400);
+    }
 
-    if (projectId) where.projectId = projectId;
+    const projectAccess = await findAccessibleProject(projectId, user.orgId);
+    if (!projectAccess) {
+      return c.json({ message: 'Project not found' }, 404);
+    }
+
+    const where: any = { projectId };
+
     if (entityId) where.entityId = entityId;
     if (from || to) {
       where.timestamp = {};
@@ -42,11 +52,17 @@ audit.get('/', async (c) => {
   }
 });
 
-audit.get('/export', async (c) => {
+audit.get('/export', requirePermission('canExport'), async (c) => {
   try {
+    const user = getUser(c);
     const projectId = c.req.query('projectId');
     if (!projectId) {
       return c.json({ message: 'projectId query parameter is required' }, 400);
+    }
+
+    const projectAccess = await findAccessibleProject(projectId, user.orgId);
+    if (!projectAccess) {
+      return c.json({ message: 'Project not found' }, 404);
     }
 
     const format = c.req.query('format') || 'csv';

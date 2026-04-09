@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
-import { prisma } from '../index.js';
-import { authMiddleware, getUser, JwtPayload } from '../middleware/auth.js';
+import { prisma } from '../lib/prisma.js';
+import { authMiddleware, getUser } from '../middleware/auth.js';
 import { logAudit } from '../services/audit.service.js';
 
 const risks = new Hono();

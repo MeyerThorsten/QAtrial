@@ -3,6 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { Activity, AlertTriangle, TrendingDown, BarChart3, Building2, CheckCircle, RefreshCw } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { useProjectStore } from '../../store/useProjectStore';
+import { apiFetch } from '../../lib/apiClient';
+import { getProjectId } from '../../lib/projectUtils';
 import { AnomalyCard } from './AnomalyCard';
 
 interface Anomaly {
@@ -27,28 +29,28 @@ export function AnomalyDashboard() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<AnomalyFilter>('all');
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
+  const [error, setError] = useState('');
 
-  const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3001';
-  const projectId = (project as any)?.id || 'default';
+  const projectId = getProjectId(project);
 
   const fetchAnomalies = useCallback(async () => {
-    if (!token) return;
+    if (!token || !projectId) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
+    setError('');
     try {
-      const res = await fetch(`${apiBase}/api/analytics/${projectId}/anomalies`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setAnomalies(data.anomalies || []);
-      }
+      const data = await apiFetch<{ anomalies: Anomaly[] }>(`/analytics/${projectId}/anomalies`);
+      setAnomalies(data.anomalies || []);
     } catch (err) {
       console.error('Failed to fetch anomalies:', err);
+      setError(err instanceof Error ? err.message : 'Failed to fetch anomalies');
     } finally {
       setLoading(false);
       setLastRefresh(new Date());
     }
-  }, [token, apiBase, projectId]);
+  }, [token, projectId]);
 
   useEffect(() => {
     fetchAnomalies();
@@ -93,6 +95,12 @@ export function AnomalyDashboard() {
 
   return (
     <div className="space-y-6">
+      {error && (
+        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {error}
+        </div>
+      )}
+
       {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="bg-surface rounded-xl border border-border p-4 flex items-center gap-3">

@@ -1,25 +1,35 @@
 import { Hono } from 'hono';
-import { prisma } from '../index.js';
-import { authMiddleware, getUser } from '../middleware/auth.js';
-import { logAudit } from '../services/audit.service.js';
+import { prisma } from '../lib/prisma.js';
+import { authMiddleware, getUser, requirePermission } from '../middleware/auth.js';
 import { dispatchWebhook } from '../services/webhook.service.js';
 
 const suppliers = new Hono();
 
 suppliers.use('*', authMiddleware);
 
+async function findAccessibleSupplier(id: string, orgId: string | null) {
+  if (!orgId) {
+    return null;
+  }
+
+  return prisma.supplier.findFirst({
+    where: { id, orgId },
+    include: { audits: { orderBy: { auditDate: 'desc' }, take: 5 } },
+  });
+}
+
 // List suppliers by orgId
 suppliers.get('/', async (c) => {
   try {
     const user = getUser(c);
-    const orgId = c.req.query('orgId') || user.orgId;
+    const orgId = user.orgId;
     if (!orgId) {
       return c.json({ message: 'orgId is required' }, 400);
     }
 
     const items = await prisma.supplier.findMany({
       where: { orgId },
-      include: { audits: { orderBy: { auditDate: 'desc' }, take: 1 } },
+      include: { audits: { orderBy: { auditDate: 'desc' }, take: 5 } },
       orderBy: { name: 'asc' },
     });
 
@@ -33,11 +43,9 @@ suppliers.get('/', async (c) => {
 // Get single supplier with audits
 suppliers.get('/:id', async (c) => {
   try {
+    const user = getUser(c);
     const { id } = c.req.param();
-    const item = await prisma.supplier.findUnique({
-      where: { id },
-      include: { audits: { orderBy: { auditDate: 'desc' } } },
-    });
+    const item = await findAccessibleSupplier(id, user.orgId);
 
     if (!item) {
       return c.json({ message: 'Supplier not found' }, 404);
@@ -53,11 +61,9 @@ suppliers.get('/:id', async (c) => {
 // Get supplier scorecard
 suppliers.get('/:id/scorecard', async (c) => {
   try {
+    const user = getUser(c);
     const { id } = c.req.param();
-    const item = await prisma.supplier.findUnique({
-      where: { id },
-      include: { audits: { orderBy: { auditDate: 'desc' } } },
-    });
+    const item = await findAccessibleSupplier(id, user.orgId);
 
     if (!item) {
       return c.json({ message: 'Supplier not found' }, 404);
@@ -92,12 +98,12 @@ suppliers.get('/:id/scorecard', async (c) => {
 });
 
 // Create supplier
-suppliers.post('/', async (c) => {
+suppliers.post('/', requirePermission('canEdit'), async (c) => {
   try {
     const user = getUser(c);
     const body = await c.req.json();
 
-    const orgId = body.orgId || user.orgId;
+    const orgId = user.orgId;
     if (!orgId || !body.name) {
       return c.json({ message: 'orgId and name are required' }, 400);
     }
@@ -129,14 +135,14 @@ suppliers.post('/', async (c) => {
 });
 
 // Update supplier (auto-calculate overallScore, auto-requalification)
-suppliers.put('/:id', async (c) => {
+suppliers.put('/:id', requirePermission('canEdit'), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();
     const body = await c.req.json();
 
-    const existing = await prisma.supplier.findUnique({
-      where: { id },
+    const existing = await prisma.supplier.findFirst({
+      where: { id, orgId: user.orgId || '' },
       include: { audits: { where: { status: 'completed' }, orderBy: { auditDate: 'desc' }, take: 5 } },
     });
     if (!existing) {
@@ -204,11 +210,12 @@ suppliers.put('/:id', async (c) => {
 });
 
 // Delete supplier
-suppliers.delete('/:id', async (c) => {
+suppliers.delete('/:id', requirePermission('canDelete'), async (c) => {
   try {
+    const user = getUser(c);
     const { id } = c.req.param();
 
-    const existing = await prisma.supplier.findUnique({ where: { id } });
+    const existing = await findAccessibleSupplier(id, user.orgId);
     if (!existing) {
       return c.json({ message: 'Supplier not found' }, 404);
     }
@@ -223,13 +230,13 @@ suppliers.delete('/:id', async (c) => {
 });
 
 // Create supplier audit
-suppliers.post('/:id/audits', async (c) => {
+suppliers.post('/:id/audits', requirePermission('canEdit'), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();
     const body = await c.req.json();
 
-    const supplier = await prisma.supplier.findUnique({ where: { id } });
+    const supplier = await findAccessibleSupplier(id, user.orgId);
     if (!supplier) {
       return c.json({ message: 'Supplier not found' }, 404);
     }

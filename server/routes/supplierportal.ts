@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
-import { prisma } from '../index.js';
-import { authMiddleware, getUser } from '../middleware/auth.js';
+import { prisma } from '../lib/prisma.js';
+import { authMiddleware, getUser, requirePermission } from '../middleware/auth.js';
 import { createNotification } from './notifications.js';
 
 const supplierPortal = new Hono();
@@ -27,7 +27,7 @@ async function resolveToken(token: string) {
 // ── Admin endpoints (auth required) ─────────────────────────────────────────
 
 // POST /create — generate a portal link
-supplierPortal.post('/create', authMiddleware, async (c) => {
+supplierPortal.post('/create', authMiddleware, requirePermission('canEdit'), async (c) => {
   try {
     const user = getUser(c);
     const { supplierId, expiresInDays } = await c.req.json();
@@ -36,7 +36,9 @@ supplierPortal.post('/create', authMiddleware, async (c) => {
       return c.json({ message: 'supplierId is required' }, 400);
     }
 
-    const supplier = await prisma.supplier.findUnique({ where: { id: supplierId } });
+    const supplier = await prisma.supplier.findFirst({
+      where: { id: supplierId, orgId: user.orgId || '' },
+    });
     if (!supplier) {
       return c.json({ message: 'Supplier not found' }, 404);
     }
@@ -70,10 +72,18 @@ supplierPortal.post('/create', authMiddleware, async (c) => {
 });
 
 // GET /links — list active portal links
-supplierPortal.get('/links', authMiddleware, async (c) => {
+supplierPortal.get('/links', authMiddleware, requirePermission('canEdit'), async (c) => {
   try {
+    const user = getUser(c);
+    if (!user.orgId) {
+      return c.json({ links: [] });
+    }
+
     const links = await prisma.supplierPortalLink.findMany({
-      where: { expiresAt: { gt: new Date() } },
+      where: {
+        expiresAt: { gt: new Date() },
+        supplier: { orgId: user.orgId },
+      },
       include: { supplier: { select: { id: true, name: true } } },
       orderBy: { createdAt: 'desc' },
     });
@@ -86,11 +96,18 @@ supplierPortal.get('/links', authMiddleware, async (c) => {
 });
 
 // DELETE /links/:id — revoke a portal link
-supplierPortal.delete('/links/:id', authMiddleware, async (c) => {
+supplierPortal.delete('/links/:id', authMiddleware, requirePermission('canDelete'), async (c) => {
   try {
+    const user = getUser(c);
     const { id } = c.req.param();
-    const existing = await prisma.supplierPortalLink.findUnique({ where: { id } });
+    const existing = await prisma.supplierPortalLink.findUnique({
+      where: { id },
+      include: { supplier: { select: { orgId: true } } },
+    });
     if (!existing) {
+      return c.json({ message: 'Link not found' }, 404);
+    }
+    if (existing.supplier.orgId !== user.orgId) {
       return c.json({ message: 'Link not found' }, 404);
     }
     await prisma.supplierPortalLink.delete({ where: { id } });

@@ -1,7 +1,8 @@
 import { Hono } from 'hono';
 import * as bcrypt from 'bcryptjs';
-import { prisma } from '../index.js';
-import { authMiddleware, getUser, signAccessToken, signRefreshToken, verifyRefreshToken, JwtPayload } from '../middleware/auth.js';
+import { prisma } from '../lib/prisma.js';
+import { authMiddleware, getUser, signAccessToken, signRefreshToken, verifyRefreshToken } from '../middleware/auth.js';
+import type { JwtPayload } from '../middleware/auth.js';
 
 const auth = new Hono();
 
@@ -100,6 +101,31 @@ auth.post('/login', async (c) => {
   } catch (error: any) {
     console.error('Login error:', error);
     return c.json({ message: 'Login failed' }, 500);
+  }
+});
+
+auth.post('/verify-password', authMiddleware, async (c) => {
+  try {
+    const { password } = await c.req.json();
+    if (!password) {
+      return c.json({ message: 'Password is required' }, 400);
+    }
+
+    const jwtUser = getUser(c);
+    const user = await prisma.user.findUnique({ where: { id: jwtUser.userId } });
+    if (!user) {
+      return c.json({ message: 'User not found' }, 404);
+    }
+
+    const valid = await bcrypt.compare(password, user.passwordHash);
+    if (!valid) {
+      return c.json({ message: 'Invalid password' }, 403);
+    }
+
+    return c.json({ valid: true });
+  } catch (error: any) {
+    console.error('Verify password error:', error);
+    return c.json({ message: 'Failed to verify password' }, 500);
   }
 });
 

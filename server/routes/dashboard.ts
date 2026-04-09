@@ -1,10 +1,31 @@
 import { Hono } from 'hono';
-import { prisma } from '../index.js';
+import { prisma } from '../lib/prisma.js';
 import { authMiddleware, getUser } from '../middleware/auth.js';
 
 const dashboard = new Hono();
 
 dashboard.use('*', authMiddleware);
+
+function buildTraceabilityLinks(tests: Array<{ id: string; linkedRequirementIds: string[] }>) {
+  return tests.flatMap((test) =>
+    test.linkedRequirementIds.map((requirementId) => ({
+      requirementId,
+      testId: test.id,
+    })),
+  );
+}
+
+async function findProjectForOrg(projectId: string, orgId: string | null) {
+  if (!orgId) return null;
+
+  return prisma.project.findFirst({
+    where: {
+      id: projectId,
+      workspace: { orgId },
+    },
+    select: { id: true },
+  });
+}
 
 // ── Compliance Readiness Score ──────────────────────────────────────────────
 
@@ -13,9 +34,7 @@ dashboard.get('/:projectId/readiness', async (c) => {
     const user = getUser(c);
     const { projectId } = c.req.param();
 
-    const project = await prisma.project.findFirst({
-      where: { id: projectId, orgId: user.orgId },
-    });
+    const project = await findProjectForOrg(projectId, user.orgId);
 
     if (!project) {
       return c.json({ message: 'Project not found' }, 404);
@@ -27,11 +46,10 @@ dashboard.get('/:projectId/readiness', async (c) => {
 
     const tests = await prisma.test.findMany({
       where: { projectId },
+      select: { id: true, status: true, linkedRequirementIds: true },
     });
 
-    const links = await prisma.requirementTestLink.findMany({
-      where: { projectId },
-    });
+    const links = buildTraceabilityLinks(tests);
 
     const signatures = await prisma.signature.findMany({
       where: { projectId },
@@ -114,9 +132,7 @@ dashboard.get('/:projectId/missing-evidence', async (c) => {
     const user = getUser(c);
     const { projectId } = c.req.param();
 
-    const project = await prisma.project.findFirst({
-      where: { id: projectId, orgId: user.orgId },
-    });
+    const project = await findProjectForOrg(projectId, user.orgId);
 
     if (!project) {
       return c.json({ message: 'Project not found' }, 404);
@@ -171,9 +187,7 @@ dashboard.get('/:projectId/approval-status', async (c) => {
     const user = getUser(c);
     const { projectId } = c.req.param();
 
-    const project = await prisma.project.findFirst({
-      where: { id: projectId, orgId: user.orgId },
-    });
+    const project = await findProjectForOrg(projectId, user.orgId);
 
     if (!project) {
       return c.json({ message: 'Project not found' }, 404);
@@ -226,15 +240,13 @@ dashboard.get('/:projectId/capa-aging', async (c) => {
     const user = getUser(c);
     const { projectId } = c.req.param();
 
-    const project = await prisma.project.findFirst({
-      where: { id: projectId, orgId: user.orgId },
-    });
+    const project = await findProjectForOrg(projectId, user.orgId);
 
     if (!project) {
       return c.json({ message: 'Project not found' }, 404);
     }
 
-    const capas = await prisma.capa.findMany({
+    const capas = await prisma.cAPA.findMany({
       where: {
         projectId,
         status: { not: 'resolved' },
@@ -285,17 +297,22 @@ dashboard.get('/:projectId/risk-summary', async (c) => {
     const user = getUser(c);
     const { projectId } = c.req.param();
 
-    const project = await prisma.project.findFirst({
-      where: { id: projectId, orgId: user.orgId },
-    });
+    const project = await findProjectForOrg(projectId, user.orgId);
 
     if (!project) {
       return c.json({ message: 'Project not found' }, 404);
     }
 
-    const requirements = await prisma.requirement.findMany({
+    const risks = await prisma.risk.findMany({
       where: { projectId },
-      select: { id: true, title: true, riskLevel: true, riskScore: true, severity: true, likelihood: true },
+      select: {
+        id: true,
+        requirementId: true,
+        riskLevel: true,
+        riskScore: true,
+        severity: true,
+        likelihood: true,
+      },
     });
 
     const counts: Record<string, number> = {
@@ -308,8 +325,8 @@ dashboard.get('/:projectId/risk-summary', async (c) => {
 
     const matrix: Record<string, any[]> = {};
 
-    for (const req of requirements as any[]) {
-      const level = req.riskLevel?.toLowerCase() || 'unassessed';
+    for (const risk of risks) {
+      const level = risk.riskLevel?.toLowerCase() || 'unassessed';
       if (level in counts) {
         counts[level]++;
       } else {
@@ -317,16 +334,21 @@ dashboard.get('/:projectId/risk-summary', async (c) => {
       }
 
       // Build matrix data (severity x likelihood)
-      if (req.severity != null && req.likelihood != null) {
-        const key = `${req.severity}-${req.likelihood}`;
+      if (risk.severity != null && risk.likelihood != null) {
+        const key = `${risk.severity}-${risk.likelihood}`;
         if (!matrix[key]) matrix[key] = [];
-        matrix[key].push({ id: req.id, title: req.title, riskLevel: req.riskLevel });
+        matrix[key].push({
+          id: risk.id,
+          requirementId: risk.requirementId,
+          riskLevel: risk.riskLevel,
+          riskScore: risk.riskScore,
+        });
       }
     }
 
     return c.json({
       counts,
-      total: requirements.length,
+      total: risks.length,
       matrix,
     });
   } catch (error: any) {

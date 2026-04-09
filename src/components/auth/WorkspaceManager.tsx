@@ -16,12 +16,20 @@ interface WorkspaceManagerProps {
   onClose: () => void;
 }
 
-const ROLE_OPTIONS = ['admin', 'editor', 'viewer'] as const;
+const ROLE_OPTIONS = ['admin', 'qa_manager', 'qa_engineer', 'reviewer', 'auditor'] as const;
 
 function roleBadgeClass(role: string) {
   switch (role) {
     case 'admin':
       return 'bg-red-500/10 text-red-500 border-red-500/20';
+    case 'qa_manager':
+      return 'bg-accent-subtle text-accent-text border-accent/20';
+    case 'qa_engineer':
+      return 'bg-sky-500/10 text-sky-600 border-sky-500/20';
+    case 'reviewer':
+      return 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20';
+    case 'auditor':
+      return 'bg-amber-500/10 text-amber-700 border-amber-500/20';
     case 'editor':
       return 'bg-accent-subtle text-accent-text border-accent/20';
     default:
@@ -33,6 +41,14 @@ function roleIcon(role: string) {
   switch (role) {
     case 'admin':
       return <Shield className="w-3.5 h-3.5" />;
+    case 'qa_manager':
+      return <Shield className="w-3.5 h-3.5" />;
+    case 'qa_engineer':
+      return <Pencil className="w-3.5 h-3.5" />;
+    case 'reviewer':
+      return <Shield className="w-3.5 h-3.5" />;
+    case 'auditor':
+      return <Eye className="w-3.5 h-3.5" />;
     case 'editor':
       return <Pencil className="w-3.5 h-3.5" />;
     default:

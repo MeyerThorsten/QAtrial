@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Server, Plus, RefreshCw, AlertTriangle, Archive } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
+import { apiFetch } from '../../lib/apiClient';
+import { roleHasPermission } from '../../lib/permissions';
 
 interface ComputerizedSystem {
   id: string;
@@ -40,28 +42,25 @@ const RISK_COLORS: Record<string, string> = {
 
 export function SystemInventory() {
   const { t } = useTranslation();
-  const { token } = useAuth();
+  const { token, user } = useAuth();
   const [systems, setSystems] = useState<ComputerizedSystem[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [_selectedSystem, _setSelectedSystem] = useState<ComputerizedSystem | null>(null);
   const [showReviewForm, setShowReviewForm] = useState<string | null>(null);
-
-  const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+  const [error, setError] = useState('');
+  const canEdit = roleHasPermission(user?.role, 'canEdit');
 
   const fetchSystems = async () => {
     if (!token) return;
     setLoading(true);
+    setError('');
     try {
-      const res = await fetch(`${apiBase}/api/systems`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setSystems(data.systems || []);
-      }
+      const data = await apiFetch<{ systems: ComputerizedSystem[] }>('/systems');
+      setSystems(data.systems || []);
     } catch (err) {
       console.error('Failed to fetch systems:', err);
+      setError(err instanceof Error ? err.message : 'Failed to fetch systems');
     } finally {
       setLoading(false);
     }
@@ -73,46 +72,57 @@ export function SystemInventory() {
 
   const handleCreate = async (formData: any) => {
     if (!token) return;
+    if (!canEdit) {
+      setError('Insufficient permissions: requires canEdit');
+      return;
+    }
     try {
-      const res = await fetch(`${apiBase}/api/systems`, {
+      await apiFetch('/systems', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify(formData),
       });
-      if (res.ok) {
-        setShowForm(false);
-        fetchSystems();
-      }
+      setShowForm(false);
+      setError('');
+      fetchSystems();
     } catch (err) {
       console.error('Failed to create system:', err);
+      setError(err instanceof Error ? err.message : 'Failed to create system');
     }
   };
 
   const handleRetire = async (id: string) => {
     if (!token) return;
+    if (!canEdit) {
+      setError('Insufficient permissions: requires canEdit');
+      return;
+    }
     try {
-      await fetch(`${apiBase}/api/systems/${id}/retire`, {
+      await apiFetch(`/systems/${id}/retire`, {
         method: 'PUT',
-        headers: { Authorization: `Bearer ${token}` },
       });
       fetchSystems();
     } catch (err) {
       console.error('Failed to retire system:', err);
+      setError(err instanceof Error ? err.message : 'Failed to retire system');
     }
   };
 
   const handleScheduleReview = async (systemId: string, reviewData: any) => {
     if (!token) return;
+    if (!canEdit) {
+      setError('Insufficient permissions: requires canEdit');
+      return;
+    }
     try {
-      await fetch(`${apiBase}/api/systems/${systemId}/reviews`, {
+      await apiFetch(`/systems/${systemId}/reviews`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify(reviewData),
       });
       setShowReviewForm(null);
       fetchSystems();
     } catch (err) {
       console.error('Failed to schedule review:', err);
+      setError(err instanceof Error ? err.message : 'Failed to schedule review');
     }
   };
 
@@ -136,14 +146,22 @@ export function SystemInventory() {
           <Server className="w-5 h-5 text-accent" />
           <h2 className="text-lg font-semibold text-text-primary">{t('systems.title')}</h2>
         </div>
-        <button
-          onClick={() => setShowForm(true)}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white bg-accent rounded-lg hover:bg-accent/90 transition-colors"
-        >
-          <Plus className="w-4 h-4" />
-          {t('systems.addSystem')}
-        </button>
+        {canEdit && (
+          <button
+            onClick={() => setShowForm(true)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white bg-accent rounded-lg hover:bg-accent/90 transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            {t('systems.addSystem')}
+          </button>
+        )}
       </div>
+
+      {error && (
+        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {error}
+        </div>
+      )}
 
       {systems.length === 0 ? (
         <div className="text-center py-12 text-text-tertiary">{t('systems.noSystems')}</div>
@@ -200,14 +218,16 @@ export function SystemInventory() {
                   </td>
                   <td className="px-4 py-2.5">
                     <div className="flex items-center gap-1">
-                      <button
-                        onClick={() => setShowReviewForm(sys.id)}
-                        className="p-1 rounded hover:bg-surface-hover text-text-tertiary hover:text-accent transition-colors"
-                        title={t('systems.scheduleReview')}
-                      >
-                        <RefreshCw className="w-3.5 h-3.5" />
-                      </button>
-                      {sys.validationStatus !== 'retired' && (
+                      {canEdit && (
+                        <button
+                          onClick={() => setShowReviewForm(sys.id)}
+                          className="p-1 rounded hover:bg-surface-hover text-text-tertiary hover:text-accent transition-colors"
+                          title={t('systems.scheduleReview')}
+                        >
+                          <RefreshCw className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                      {canEdit && sys.validationStatus !== 'retired' && (
                         <button
                           onClick={() => handleRetire(sys.id)}
                           className="p-1 rounded hover:bg-surface-hover text-text-tertiary hover:text-red-500 transition-colors"

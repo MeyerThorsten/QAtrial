@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
-import { prisma } from '../index.js';
-import { authMiddleware, getUser } from '../middleware/auth.js';
+import { prisma } from '../lib/prisma.js';
+import { findAccessibleProject } from '../lib/projectAccess.js';
+import { authMiddleware, getUser, requirePermission, roleHasPermission } from '../middleware/auth.js';
 import { logAudit } from '../services/audit.service.js';
 import { dispatchWebhook } from '../services/webhook.service.js';
 
@@ -25,10 +26,14 @@ function isValidTransition(from: string, to: string): boolean {
 // List documents by projectId
 documents.get('/', async (c) => {
   try {
+    const user = getUser(c);
     const projectId = c.req.query('projectId');
     if (!projectId) {
       return c.json({ message: 'projectId query parameter is required' }, 400);
     }
+
+    const project = await findAccessibleProject(projectId, user.orgId);
+    if (!project) return c.json({ message: 'Project not found' }, 404);
 
     const items = await prisma.document.findMany({
       where: { projectId },
@@ -46,6 +51,7 @@ documents.get('/', async (c) => {
 // Get single document with all versions
 documents.get('/:id', async (c) => {
   try {
+    const user = getUser(c);
     const { id } = c.req.param();
     const item = await prisma.document.findUnique({
       where: { id },
@@ -55,6 +61,8 @@ documents.get('/:id', async (c) => {
     if (!item) {
       return c.json({ message: 'Document not found' }, 404);
     }
+    const project = await findAccessibleProject(item.projectId, user.orgId);
+    if (!project) return c.json({ message: 'Document not found' }, 404);
 
     return c.json({ document: item });
   } catch (error: any) {
@@ -64,7 +72,7 @@ documents.get('/:id', async (c) => {
 });
 
 // Create document
-documents.post('/', async (c) => {
+documents.post('/', requirePermission('canEdit'), async (c) => {
   try {
     const user = getUser(c);
     const body = await c.req.json();
@@ -72,6 +80,9 @@ documents.post('/', async (c) => {
     if (!body.projectId || !body.title) {
       return c.json({ message: 'projectId and title are required' }, 400);
     }
+
+    const project = await findAccessibleProject(body.projectId, user.orgId);
+    if (!project) return c.json({ message: 'Project not found' }, 404);
 
     const doc = await prisma.document.create({
       data: {
@@ -116,7 +127,7 @@ documents.post('/', async (c) => {
 });
 
 // Update document metadata
-documents.put('/:id', async (c) => {
+documents.put('/:id', requirePermission('canEdit'), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();
@@ -126,6 +137,8 @@ documents.put('/:id', async (c) => {
     if (!existing) {
       return c.json({ message: 'Document not found' }, 404);
     }
+    const project = await findAccessibleProject(existing.projectId, user.orgId);
+    if (!project) return c.json({ message: 'Document not found' }, 404);
 
     const doc = await prisma.document.update({
       where: { id },
@@ -153,7 +166,7 @@ documents.put('/:id', async (c) => {
 });
 
 // Delete document
-documents.delete('/:id', async (c) => {
+documents.delete('/:id', requirePermission('canDelete'), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();
@@ -162,6 +175,8 @@ documents.delete('/:id', async (c) => {
     if (!existing) {
       return c.json({ message: 'Document not found' }, 404);
     }
+    const project = await findAccessibleProject(existing.projectId, user.orgId);
+    if (!project) return c.json({ message: 'Document not found' }, 404);
 
     await prisma.document.delete({ where: { id } });
 
@@ -182,7 +197,7 @@ documents.delete('/:id', async (c) => {
 });
 
 // Create new version (changeReason required)
-documents.post('/:id/versions', async (c) => {
+documents.post('/:id/versions', requirePermission('canEdit'), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();
@@ -195,6 +210,8 @@ documents.post('/:id/versions', async (c) => {
     if (!doc) {
       return c.json({ message: 'Document not found' }, 404);
     }
+    const project = await findAccessibleProject(doc.projectId, user.orgId);
+    if (!project) return c.json({ message: 'Document not found' }, 404);
 
     if (!body.changeReason) {
       return c.json({ message: 'changeReason is required for new version' }, 400);
@@ -256,6 +273,8 @@ documents.put('/:id/review', async (c) => {
     if (!doc) {
       return c.json({ message: 'Document not found' }, 404);
     }
+    const project = await findAccessibleProject(doc.projectId, user.orgId);
+    if (!project) return c.json({ message: 'Document not found' }, 404);
 
     const targetStatus = body.status;
     if (!targetStatus) {
@@ -266,6 +285,12 @@ documents.put('/:id/review', async (c) => {
       return c.json({
         message: `Invalid status transition from '${doc.status}' to '${targetStatus}'. Valid next states: ${VALID_TRANSITIONS[doc.status]?.join(', ') || 'none'}`,
       }, 400);
+    }
+
+    const requiredPermission: 'canApprove' | 'canEdit' =
+      ['approved', 'effective'].includes(targetStatus) ? 'canApprove' : 'canEdit';
+    if (!roleHasPermission(user.role, requiredPermission)) {
+      return c.json({ message: `Insufficient permissions: requires ${requiredPermission}` }, 403);
     }
 
     const updateData: any = { status: targetStatus };
@@ -320,7 +345,7 @@ documents.put('/:id/review', async (c) => {
 });
 
 // Supersede document with new version
-documents.put('/:id/supersede', async (c) => {
+documents.put('/:id/supersede', requirePermission('canApprove'), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();
@@ -329,6 +354,8 @@ documents.put('/:id/supersede', async (c) => {
     if (!doc) {
       return c.json({ message: 'Document not found' }, 404);
     }
+    const project = await findAccessibleProject(doc.projectId, user.orgId);
+    if (!project) return c.json({ message: 'Document not found' }, 404);
 
     if (doc.status !== 'effective') {
       return c.json({ message: 'Only effective documents can be superseded' }, 400);
@@ -357,7 +384,7 @@ documents.put('/:id/supersede', async (c) => {
 });
 
 // Retire document
-documents.put('/:id/retire', async (c) => {
+documents.put('/:id/retire', requirePermission('canApprove'), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();
@@ -366,6 +393,8 @@ documents.put('/:id/retire', async (c) => {
     if (!doc) {
       return c.json({ message: 'Document not found' }, 404);
     }
+    const project = await findAccessibleProject(doc.projectId, user.orgId);
+    if (!project) return c.json({ message: 'Document not found' }, 404);
 
     if (doc.status !== 'effective') {
       return c.json({ message: 'Only effective documents can be retired' }, 400);

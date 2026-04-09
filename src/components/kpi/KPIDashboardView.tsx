@@ -2,6 +2,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ArrowLeft, Edit, Plus, Trash2, RefreshCw } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
+import { apiFetch } from '../../lib/apiClient';
+import { roleHasPermission } from '../../lib/permissions';
 import { KPIWidgetCard } from './KPIWidgetCard';
 import { KPIBuilder } from './KPIBuilder';
 
@@ -38,8 +40,7 @@ interface Props {
 
 export function KPIDashboardView({ dashboardId, onBack }: Props) {
   const { t } = useTranslation();
-  const { token } = useAuth();
-  const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+  const { token, user } = useAuth();
 
   const [dashboard, setDashboard] = useState<Dashboard | null>(null);
   const [widgetData, setWidgetData] = useState<WidgetData[]>([]);
@@ -47,29 +48,28 @@ export function KPIDashboardView({ dashboardId, onBack }: Props) {
   const [addingWidget, setAddingWidget] = useState(false);
   const [editingWidgetId, setEditingWidgetId] = useState<string | null>(null);
   const [editMode, setEditMode] = useState(false);
+  const [error, setError] = useState('');
 
   const fetchDashboard = useCallback(async () => {
     if (!token) return;
     try {
-      const res = await fetch(`${apiBase}/api/kpi/dashboards/${dashboardId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json();
+      const data = await apiFetch<{ dashboard: Dashboard }>(`/kpi/dashboards/${dashboardId}`);
       if (data.dashboard) setDashboard(data.dashboard);
-    } catch { /* ignore */ }
-  }, [token, apiBase, dashboardId]);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load dashboard');
+    }
+  }, [token, dashboardId]);
 
   const fetchData = useCallback(async () => {
     if (!token) return;
     try {
-      const res = await fetch(`${apiBase}/api/kpi/dashboards/${dashboardId}/data`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json();
+      const data = await apiFetch<{ widgets: WidgetData[] }>(`/kpi/dashboards/${dashboardId}/data`);
       if (data.widgets) setWidgetData(data.widgets);
-    } catch { /* ignore */ }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load widget data');
+    }
     setLoading(false);
-  }, [token, apiBase, dashboardId]);
+  }, [token, dashboardId]);
 
   useEffect(() => {
     fetchDashboard();
@@ -92,13 +92,14 @@ export function KPIDashboardView({ dashboardId, onBack }: Props) {
   const deleteWidget = async (widgetId: string) => {
     if (!token) return;
     try {
-      await fetch(`${apiBase}/api/kpi/dashboards/${dashboardId}/widgets/${widgetId}`, {
+      await apiFetch(`/kpi/dashboards/${dashboardId}/widgets/${widgetId}`, {
         method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
       });
       await fetchDashboard();
       await fetchData();
-    } catch { /* ignore */ }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete widget');
+    }
   };
 
   const handleWidgetSaved = async () => {
@@ -115,6 +116,10 @@ export function KPIDashboardView({ dashboardId, onBack }: Props) {
       </div>
     );
   }
+
+  const canManage = !!user
+    && roleHasPermission(user.role, 'canEdit')
+    && (dashboard.createdBy === user.id || roleHasPermission(user.role, 'canAdmin'));
 
   return (
     <div className="space-y-6">
@@ -142,18 +147,20 @@ export function KPIDashboardView({ dashboardId, onBack }: Props) {
             <RefreshCw className="w-4 h-4" />
             {t('kpi.refresh')}
           </button>
-          <button
-            onClick={() => setEditMode(!editMode)}
-            className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg transition-colors ${
-              editMode
-                ? 'text-accent bg-accent-subtle'
-                : 'text-text-secondary bg-surface border border-border hover:bg-surface-hover'
-            }`}
-          >
-            <Edit className="w-4 h-4" />
-            {editMode ? t('kpi.doneEditing') : t('kpi.editDashboard')}
-          </button>
-          {editMode && (
+          {canManage && (
+            <button
+              onClick={() => setEditMode(!editMode)}
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg transition-colors ${
+                editMode
+                  ? 'text-accent bg-accent-subtle'
+                  : 'text-text-secondary bg-surface border border-border hover:bg-surface-hover'
+              }`}
+            >
+              <Edit className="w-4 h-4" />
+              {editMode ? t('kpi.doneEditing') : t('kpi.editDashboard')}
+            </button>
+          )}
+          {editMode && canManage && (
             <button
               onClick={() => setAddingWidget(true)}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-white bg-accent rounded-lg hover:bg-accent/90 transition-colors"
@@ -164,6 +171,12 @@ export function KPIDashboardView({ dashboardId, onBack }: Props) {
           )}
         </div>
       </div>
+
+      {error && (
+        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {error}
+        </div>
+      )}
 
       {/* Widget Builder */}
       {addingWidget && (
@@ -192,7 +205,7 @@ export function KPIDashboardView({ dashboardId, onBack }: Props) {
       ) : dashboard.widgets.length === 0 ? (
         <div className="flex flex-col items-center justify-center h-64 text-text-tertiary">
           <p className="text-sm">{t('kpi.noWidgets')}</p>
-          {!addingWidget && (
+          {!addingWidget && canManage && (
             <button
               onClick={() => setAddingWidget(true)}
               className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-accent bg-accent-subtle rounded-lg hover:bg-accent/20 transition-colors"

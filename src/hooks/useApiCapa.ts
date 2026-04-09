@@ -2,6 +2,12 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { apiFetch } from '../lib/apiClient';
 import type { CAPARecord } from '../store/useCAPAStore';
 
+type CapaListResponse = CAPARecord[] | { capas: CAPARecord[] };
+
+function unwrapCapas(data: CapaListResponse): CAPARecord[] {
+  return Array.isArray(data) ? data : data.capas ?? [];
+}
+
 export function useApiCapa(projectId: string) {
   const [records, setRecords] = useState<CAPARecord[]>([]);
   const [loading, setLoading] = useState(true);
@@ -13,8 +19,8 @@ export function useApiCapa(projectId: string) {
     setLoading(true);
     setError(null);
     try {
-      const data = await apiFetch<CAPARecord[]>(`/capa?projectId=${encodeURIComponent(projectId)}`);
-      if (mountedRef.current) setRecords(data);
+      const data = await apiFetch<CapaListResponse>(`/capa?projectId=${encodeURIComponent(projectId)}`);
+      if (mountedRef.current) setRecords(unwrapCapas(data));
     } catch (err: unknown) {
       if (mountedRef.current) {
         const msg = err instanceof Error ? err.message : String(err); if (msg.includes('401')) {

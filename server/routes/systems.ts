@@ -1,11 +1,21 @@
 import { Hono } from 'hono';
-import { prisma } from '../index.js';
-import { authMiddleware, getUser } from '../middleware/auth.js';
+import { prisma } from '../lib/prisma.js';
+import { authMiddleware, getUser, requirePermission } from '../middleware/auth.js';
 import { dispatchWebhook } from '../services/webhook.service.js';
 
 const systems = new Hono();
 
 systems.use('*', authMiddleware);
+
+async function findAccessibleSystem(id: string, orgId: string | null) {
+  if (!orgId) {
+    return null;
+  }
+
+  return prisma.computerizedSystem.findFirst({
+    where: { id, orgId },
+  });
+}
 
 // List overdue systems (must be before /:id)
 systems.get('/overdue', async (c) => {
@@ -54,7 +64,7 @@ systems.get('/', async (c) => {
 });
 
 // Create system
-systems.post('/', async (c) => {
+systems.post('/', requirePermission('canEdit'), async (c) => {
   try {
     const user = getUser(c);
     if (!user.orgId) {
@@ -99,9 +109,14 @@ systems.post('/', async (c) => {
 // Get single system with reviews
 systems.get('/:id', async (c) => {
   try {
+    const user = getUser(c);
     const { id } = c.req.param();
-    const item = await prisma.computerizedSystem.findUnique({
-      where: { id },
+    if (!user.orgId) {
+      return c.json({ message: 'orgId required' }, 400);
+    }
+
+    const item = await prisma.computerizedSystem.findFirst({
+      where: { id, orgId: user.orgId },
       include: { reviews: { orderBy: { reviewDate: 'desc' } } },
     });
 
@@ -117,12 +132,13 @@ systems.get('/:id', async (c) => {
 });
 
 // Update system
-systems.put('/:id', async (c) => {
+systems.put('/:id', requirePermission('canEdit'), async (c) => {
   try {
+    const user = getUser(c);
     const { id } = c.req.param();
     const body = await c.req.json();
 
-    const existing = await prisma.computerizedSystem.findUnique({ where: { id } });
+    const existing = await findAccessibleSystem(id, user.orgId);
     if (!existing) {
       return c.json({ message: 'System not found' }, 404);
     }
@@ -150,11 +166,12 @@ systems.put('/:id', async (c) => {
 });
 
 // Delete system
-systems.delete('/:id', async (c) => {
+systems.delete('/:id', requirePermission('canDelete'), async (c) => {
   try {
+    const user = getUser(c);
     const { id } = c.req.param();
 
-    const existing = await prisma.computerizedSystem.findUnique({ where: { id } });
+    const existing = await findAccessibleSystem(id, user.orgId);
     if (!existing) {
       return c.json({ message: 'System not found' }, 404);
     }
@@ -169,13 +186,13 @@ systems.delete('/:id', async (c) => {
 });
 
 // Create periodic review
-systems.post('/:id/reviews', async (c) => {
+systems.post('/:id/reviews', requirePermission('canEdit'), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();
     const body = await c.req.json();
 
-    const system = await prisma.computerizedSystem.findUnique({ where: { id } });
+    const system = await findAccessibleSystem(id, user.orgId);
     if (!system) {
       return c.json({ message: 'System not found' }, 404);
     }
@@ -198,10 +215,16 @@ systems.post('/:id/reviews', async (c) => {
 });
 
 // Update periodic review
-systems.put('/:id/reviews/:reviewId', async (c) => {
+systems.put('/:id/reviews/:reviewId', requirePermission('canEdit'), async (c) => {
   try {
+    const user = getUser(c);
     const { id, reviewId } = c.req.param();
     const body = await c.req.json();
+
+    const system = await findAccessibleSystem(id, user.orgId);
+    if (!system) {
+      return c.json({ message: 'System not found' }, 404);
+    }
 
     const existing = await prisma.periodicReview.findUnique({ where: { id: reviewId } });
     if (!existing || existing.systemId !== id) {
@@ -241,11 +264,12 @@ systems.put('/:id/reviews/:reviewId', async (c) => {
 });
 
 // Retire system
-systems.put('/:id/retire', async (c) => {
+systems.put('/:id/retire', requirePermission('canEdit'), async (c) => {
   try {
+    const user = getUser(c);
     const { id } = c.req.param();
 
-    const existing = await prisma.computerizedSystem.findUnique({ where: { id } });
+    const existing = await findAccessibleSystem(id, user.orgId);
     if (!existing) {
       return c.json({ message: 'System not found' }, 404);
     }

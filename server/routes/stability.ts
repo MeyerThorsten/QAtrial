@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
-import { prisma } from '../index.js';
-import { authMiddleware, getUser } from '../middleware/auth.js';
+import { findAccessibleProject } from '../lib/projectAccess.js';
+import { prisma } from '../lib/prisma.js';
+import { authMiddleware, getUser, requirePermission } from '../middleware/auth.js';
 import { logAudit } from '../services/audit.service.js';
 import { dispatchWebhook } from '../services/webhook.service.js';
 
@@ -8,12 +9,49 @@ const stability = new Hono();
 
 stability.use('*', authMiddleware);
 
+async function findAccessibleStudy(id: string, orgId: string | null) {
+  const study = await prisma.stabilityStudy.findUnique({ where: { id } });
+  if (!study) {
+    return null;
+  }
+
+  const project = await findAccessibleProject(study.projectId, orgId);
+  if (!project) {
+    return null;
+  }
+
+  return study;
+}
+
+async function findAccessibleStudyWithSamples(id: string, orgId: string | null) {
+  const study = await prisma.stabilityStudy.findUnique({
+    where: { id },
+    include: { samples: { orderBy: { timePointMonths: 'asc' } } },
+  });
+
+  if (!study) {
+    return null;
+  }
+
+  const project = await findAccessibleProject(study.projectId, orgId);
+  if (!project) {
+    return null;
+  }
+
+  return study;
+}
+
 // List studies by projectId
 stability.get('/', async (c) => {
   try {
+    const user = getUser(c);
     const projectId = c.req.query('projectId');
     if (!projectId) {
       return c.json({ message: 'projectId query parameter is required' }, 400);
+    }
+    const project = await findAccessibleProject(projectId, user.orgId);
+    if (!project) {
+      return c.json({ message: 'Project not found' }, 404);
     }
 
     const items = await prisma.stabilityStudy.findMany({
@@ -29,13 +67,17 @@ stability.get('/', async (c) => {
 });
 
 // Create study
-stability.post('/', async (c) => {
+stability.post('/', requirePermission('canEdit'), async (c) => {
   try {
     const user = getUser(c);
     const body = await c.req.json();
 
     if (!body.projectId || !body.productName || !body.conditions || !body.startDate || !body.durationMonths) {
       return c.json({ message: 'projectId, productName, conditions, startDate, and durationMonths are required' }, 400);
+    }
+    const project = await findAccessibleProject(body.projectId, user.orgId);
+    if (!project) {
+      return c.json({ message: 'Project not found' }, 404);
     }
 
     const item = await prisma.stabilityStudy.create({
@@ -74,11 +116,9 @@ stability.post('/', async (c) => {
 // Get study with samples
 stability.get('/:id', async (c) => {
   try {
+    const user = getUser(c);
     const { id } = c.req.param();
-    const item = await prisma.stabilityStudy.findUnique({
-      where: { id },
-      include: { samples: { orderBy: { timePointMonths: 'asc' } } },
-    });
+    const item = await findAccessibleStudyWithSamples(id, user.orgId);
 
     if (!item) {
       return c.json({ message: 'Stability study not found' }, 404);
@@ -92,12 +132,13 @@ stability.get('/:id', async (c) => {
 });
 
 // Update study
-stability.put('/:id', async (c) => {
+stability.put('/:id', requirePermission('canEdit'), async (c) => {
   try {
+    const user = getUser(c);
     const { id } = c.req.param();
     const body = await c.req.json();
 
-    const existing = await prisma.stabilityStudy.findUnique({ where: { id } });
+    const existing = await findAccessibleStudy(id, user.orgId);
     if (!existing) {
       return c.json({ message: 'Stability study not found' }, 404);
     }
@@ -114,6 +155,16 @@ stability.put('/:id', async (c) => {
       },
     });
 
+    await logAudit({
+      projectId: existing.projectId,
+      userId: user.userId,
+      action: 'update',
+      entityType: 'stability_study',
+      entityId: item.id,
+      previousValue: existing,
+      newValue: item,
+    });
+
     return c.json({ study: item });
   } catch (error: any) {
     console.error('Update stability study error:', error);
@@ -122,12 +173,12 @@ stability.put('/:id', async (c) => {
 });
 
 // Delete study
-stability.delete('/:id', async (c) => {
+stability.delete('/:id', requirePermission('canDelete'), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();
 
-    const existing = await prisma.stabilityStudy.findUnique({ where: { id } });
+    const existing = await findAccessibleStudy(id, user.orgId);
     if (!existing) {
       return c.json({ message: 'Stability study not found' }, 404);
     }
@@ -151,13 +202,13 @@ stability.delete('/:id', async (c) => {
 });
 
 // Add sample result
-stability.post('/:id/samples', async (c) => {
+stability.post('/:id/samples', requirePermission('canEdit'), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();
     const body = await c.req.json();
 
-    const study = await prisma.stabilityStudy.findUnique({ where: { id } });
+    const study = await findAccessibleStudy(id, user.orgId);
     if (!study) {
       return c.json({ message: 'Stability study not found' }, 404);
     }
@@ -226,12 +277,10 @@ stability.post('/:id/samples', async (c) => {
 // Trending data for charts
 stability.get('/:id/trending', async (c) => {
   try {
+    const user = getUser(c);
     const { id } = c.req.param();
 
-    const study = await prisma.stabilityStudy.findUnique({
-      where: { id },
-      include: { samples: { orderBy: { timePointMonths: 'asc' } } },
-    });
+    const study = await findAccessibleStudyWithSamples(id, user.orgId);
 
     if (!study) {
       return c.json({ message: 'Stability study not found' }, 404);
@@ -262,7 +311,12 @@ stability.get('/:id/trending', async (c) => {
 // OOS/OOT flagged samples
 stability.get('/:id/oos-oot', async (c) => {
   try {
+    const user = getUser(c);
     const { id } = c.req.param();
+    const study = await findAccessibleStudy(id, user.orgId);
+    if (!study) {
+      return c.json({ message: 'Stability study not found' }, 404);
+    }
 
     const samples = await prisma.stabilitySample.findMany({
       where: {

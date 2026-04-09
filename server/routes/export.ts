@@ -1,10 +1,11 @@
 import { Hono } from 'hono';
-import { prisma } from '../index.js';
-import { authMiddleware, getUser } from '../middleware/auth.js';
+import { prisma } from '../lib/prisma.js';
+import { authMiddleware, getUser, requirePermission } from '../middleware/auth.js';
+import { findAccessibleProject } from '../lib/projectAccess.js';
 
 const exportRoutes = new Hono();
 
-exportRoutes.use('*', authMiddleware);
+exportRoutes.use('*', authMiddleware, requirePermission('canExport'));
 
 /**
  * Gather all project data for export.
@@ -205,7 +206,12 @@ function buildHtmlReport(data: NonNullable<Awaited<ReturnType<typeof gatherProje
 // GET /:projectId — overview with URLs
 exportRoutes.get('/:projectId', async (c) => {
   try {
+    const user = getUser(c);
     const { projectId } = c.req.param();
+    const projectAccess = await findAccessibleProject(projectId, user.orgId);
+    if (!projectAccess) {
+      return c.json({ message: 'Project not found' }, 404);
+    }
 
     const data = await gatherProjectData(projectId);
     if (!data) {
@@ -250,7 +256,12 @@ exportRoutes.get('/:projectId', async (c) => {
 // GET /:projectId/report — HTML report
 exportRoutes.get('/:projectId/report', async (c) => {
   try {
+    const user = getUser(c);
     const { projectId } = c.req.param();
+    const projectAccess = await findAccessibleProject(projectId, user.orgId);
+    if (!projectAccess) {
+      return c.json({ message: 'Project not found' }, 404);
+    }
 
     const data = await gatherProjectData(projectId);
     if (!data) {
@@ -274,7 +285,12 @@ exportRoutes.get('/:projectId/report', async (c) => {
 // GET /:projectId/data — JSON data dump
 exportRoutes.get('/:projectId/data', async (c) => {
   try {
+    const user = getUser(c);
     const { projectId } = c.req.param();
+    const projectAccess = await findAccessibleProject(projectId, user.orgId);
+    if (!projectAccess) {
+      return c.json({ message: 'Project not found' }, 404);
+    }
 
     const data = await gatherProjectData(projectId);
     if (!data) {
@@ -296,7 +312,12 @@ exportRoutes.get('/:projectId/data', async (c) => {
 // GET /:projectId/bundle — combined bundle (JSON with embedded HTML)
 exportRoutes.get('/:projectId/bundle', async (c) => {
   try {
+    const user = getUser(c);
     const { projectId } = c.req.param();
+    const projectAccess = await findAccessibleProject(projectId, user.orgId);
+    if (!projectAccess) {
+      return c.json({ message: 'Project not found' }, 404);
+    }
 
     const data = await gatherProjectData(projectId);
     if (!data) {
@@ -426,8 +447,13 @@ function buildCapaCsv(capas: any[]): string {
 // GET /:projectId/csv — CSV export
 exportRoutes.get('/:projectId/csv', async (c) => {
   try {
+    const user = getUser(c);
     const { projectId } = c.req.param();
     const type = c.req.query('type') ?? 'requirements';
+    const projectAccess = await findAccessibleProject(projectId, user.orgId);
+    if (!projectAccess) {
+      return c.json({ message: 'Project not found' }, 404);
+    }
 
     const data = await gatherProjectData(projectId);
     if (!data) {

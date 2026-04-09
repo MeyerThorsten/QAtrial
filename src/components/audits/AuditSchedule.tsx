@@ -3,6 +3,9 @@ import { useTranslation } from 'react-i18next';
 import { ClipboardCheck, Plus, ChevronDown, ChevronUp, AlertTriangle, CheckCircle2, Clock, XCircle } from 'lucide-react';
 import { useProjectStore } from '../../store/useProjectStore';
 import { useAuth } from '../../hooks/useAuth';
+import { apiFetch } from '../../lib/apiClient';
+import { roleHasPermission } from '../../lib/permissions';
+import { getProjectId } from '../../lib/projectUtils';
 
 interface AuditData {
   id: string;
@@ -47,33 +50,31 @@ const CLASSIFICATION_COLORS: Record<string, string> = {
 export function AuditSchedule() {
   const { t } = useTranslation();
   const project = useProjectStore((s) => s.project);
-  const { token } = useAuth();
+  const { token, user } = useAuth();
   const [audits, setAudits] = useState<AuditData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [expanded, setExpanded] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [showFindingForm, setShowFindingForm] = useState<string | null>(null);
-
-  const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+  const projectId = getProjectId(project);
+  const canEdit = roleHasPermission(user?.role, 'canEdit');
 
   const fetchAudits = async () => {
-    if (!project?.name || !token) return;
+    if (!projectId || !token) return;
     setLoading(true);
     try {
-      const res = await fetch(`${apiBase}/api/audit-records?projectId=${project.name}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (res.ok) {
-        const data = await res.json();
-        const now = new Date();
-        const enriched = (data.audits || []).map((a: AuditData) => ({
-          ...a,
-          overdue: new Date(a.scheduledDate) < now && a.status === 'scheduled',
-        }));
-        setAudits(enriched);
-      }
+      const data = await apiFetch<{ audits: AuditData[] }>(`/audit-records?projectId=${encodeURIComponent(projectId)}`);
+      const now = new Date();
+      const enriched = (data.audits || []).map((a: AuditData) => ({
+        ...a,
+        overdue: new Date(a.scheduledDate) < now && a.status === 'scheduled',
+      }));
+      setAudits(enriched);
+      setError('');
     } catch (err) {
       console.error('Failed to fetch audits:', err);
+      setError(err instanceof Error ? err.message : 'Failed to fetch audits');
     } finally {
       setLoading(false);
     }
@@ -81,55 +82,54 @@ export function AuditSchedule() {
 
   useEffect(() => {
     fetchAudits();
-  }, [project?.name, token]);
+  }, [projectId, token]);
 
   const handleCreate = async (formData: any) => {
-    if (!project?.name || !token) return;
+    if (!projectId || !token || !canEdit) return;
     try {
-      const res = await fetch(`${apiBase}/api/audit-records`, {
+      await apiFetch('/audit-records', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ ...formData, projectId: project.name }),
+        body: JSON.stringify({ ...formData, projectId }),
       });
-      if (res.ok) {
-        setShowForm(false);
-        fetchAudits();
-      }
+      setShowForm(false);
+      setError('');
+      fetchAudits();
     } catch (err) {
       console.error('Failed to schedule audit:', err);
+      setError(err instanceof Error ? err.message : 'Failed to schedule audit');
     }
   };
 
   const handleComplete = async (id: string) => {
-    if (!token) return;
+    if (!token || !canEdit) return;
     const summary = prompt(t('auditRecords.reportSummaryPrompt'));
     if (summary === null) return;
     try {
-      await fetch(`${apiBase}/api/audit-records/${id}/complete`, {
+      await apiFetch(`/audit-records/${id}/complete`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ reportSummary: summary }),
       });
+      setError('');
       fetchAudits();
     } catch (err) {
       console.error('Failed to complete audit:', err);
+      setError(err instanceof Error ? err.message : 'Failed to complete audit');
     }
   };
 
   const handleAddFinding = async (auditId: string, findingData: any) => {
-    if (!token) return;
+    if (!token || !canEdit) return;
     try {
-      const res = await fetch(`${apiBase}/api/audit-records/${auditId}/findings`, {
+      await apiFetch(`/audit-records/${auditId}/findings`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify(findingData),
       });
-      if (res.ok) {
-        setShowFindingForm(null);
-        fetchAudits();
-      }
+      setShowFindingForm(null);
+      setError('');
+      fetchAudits();
     } catch (err) {
       console.error('Failed to add finding:', err);
+      setError(err instanceof Error ? err.message : 'Failed to add finding');
     }
   };
 
@@ -143,18 +143,26 @@ export function AuditSchedule() {
 
   return (
     <div className="space-y-6">
+      {error && (
+        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {error}
+        </div>
+      )}
+
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <ClipboardCheck className="w-5 h-5 text-accent" />
           <h2 className="text-lg font-semibold text-text-primary">{t('auditRecords.title')}</h2>
         </div>
-        <button
-          onClick={() => setShowForm(true)}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white bg-accent rounded-lg hover:bg-accent/90 transition-colors"
-        >
-          <Plus className="w-4 h-4" />
-          {t('auditRecords.scheduleAudit')}
-        </button>
+        {canEdit && (
+          <button
+            onClick={() => setShowForm(true)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white bg-accent rounded-lg hover:bg-accent/90 transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            {t('auditRecords.scheduleAudit')}
+          </button>
+        )}
       </div>
 
       {audits.length === 0 ? (
@@ -220,24 +228,26 @@ export function AuditSchedule() {
                     )}
 
                     {/* Actions */}
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => setShowFindingForm(audit.id)}
-                        className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-accent border border-accent rounded-lg hover:bg-accent/10"
-                      >
-                        <Plus className="w-3 h-3" />
-                        {t('auditRecords.addFinding')}
-                      </button>
-                      {audit.status !== 'completed' && audit.status !== 'cancelled' && (
+                    {canEdit && (
+                      <div className="flex items-center gap-2">
                         <button
-                          onClick={() => handleComplete(audit.id)}
-                          className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-green-700 border border-green-300 rounded-lg hover:bg-green-50"
+                          onClick={() => setShowFindingForm(audit.id)}
+                          className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-accent border border-accent rounded-lg hover:bg-accent/10"
                         >
-                          <CheckCircle2 className="w-3 h-3" />
-                          {t('auditRecords.completeAudit')}
+                          <Plus className="w-3 h-3" />
+                          {t('auditRecords.addFinding')}
                         </button>
-                      )}
-                    </div>
+                        {audit.status !== 'completed' && audit.status !== 'cancelled' && (
+                          <button
+                            onClick={() => handleComplete(audit.id)}
+                            className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-green-700 border border-green-300 rounded-lg hover:bg-green-50"
+                          >
+                            <CheckCircle2 className="w-3 h-3" />
+                            {t('auditRecords.completeAudit')}
+                          </button>
+                        )}
+                      </div>
+                    )}
 
                     {/* Findings List */}
                     {audit.findings.length > 0 && (

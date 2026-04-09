@@ -2,13 +2,33 @@
 
 ## Context
 
-QAtrial v2.0 ships with 14 stores, 10 verticals, 37 countries, 15 modules, 6 AI prompts, 7 dashboards, RBAC, audit trail, e-signatures, connectors, and CAPA. The $12.5B QMS market (growing to $31.5B by 2034) is being reshaped by three forces:
+QAtrial has a broad frontend feature surface, a real backend foundation, and a large strategic backlog. The near-term constraint is not lack of ideas. It is execution convergence: the platform still needs contract alignment across Prisma, server routes, and frontend server mode before more strategic families can be shipped safely.
+
+The $12.5B QMS market (growing to $31.5B by 2034) is being reshaped by three forces:
 
 1. **FDA QMSR** (effective Feb 2, 2026) — replaces 21 CFR 820 QSR with ISO 13485 incorporation
 2. **EU AI Act** (high-risk devices deadline Aug 2, 2027) — requires AI transparency, data governance, bias documentation
 3. **ICH E6(R3)** (adopted 2025) — enables decentralized trials, risk-based quality management
 
-QAtrial's competitive advantage is: open-source transparency (auditors inspect source), AI co-pilot, self-hosted data sovereignty, and composable Country × Vertical × Module architecture. The gap vs. commercial tools (Veeva, MasterControl, Greenlight Guru) is primarily in **vertical-specific workflows**, **multi-site collaboration**, and **enterprise operational features**.
+QAtrial's competitive advantage is: open-source transparency (auditors inspect source), AI co-pilot, self-hosted data sovereignty, and composable Country × Vertical × Module architecture. The gap vs. commercial tools (Veeva, MasterControl, Greenlight Guru) is primarily in **platform convergence**, **audit-ready operational depth**, **vertical-specific workflows**, and **enterprise operational features**.
+
+---
+
+## Execution Gate
+
+Before shipping any major new strategic feature family, QAtrial should complete the following:
+
+1. Align Prisma schema, server routes, and frontend API contracts for core entities.
+2. Make server mode the supported multi-user path for projects, requirements, tests, approvals, evidence, audit, and dashboards.
+3. Add backend typecheck, route tests, and CI coverage.
+4. Stabilize team/workspace, approval, signature, traceability, evidence, export, and audit-mode flows.
+5. Document the supported API contract and deployment baseline.
+
+This strategic roadmap therefore assumes the concrete 3-phase execution plan in `docs/ROADMAP-product.md`:
+
+- **Phase 1**: platform convergence
+- **Phase 2**: audit-ready product core
+- **Phase 3**: vertical, enterprise, and AI expansion
 
 ---
 
@@ -136,41 +156,72 @@ QAtrial's competitive advantage is: open-source transparency (auditors inspect s
 
 ## Recommended Implementation Sequence
 
-### Release 3.0 — "QMSR & Device Ready" (Highest Commercial Impact)
-Focus: Medical device companies preparing for FDA QMSR (Feb 2026)
+### Phase 1 — Platform Convergence
+Focus: fix the current product architecture before strategic expansion
+1. Align core API contracts, route names, and status models
+2. Move projects, requirements, tests, approvals, evidence, audit, and dashboards onto dependable server mode
+3. Repair schema/route drift in dashboard, audit-mode, approvals, traceability, and team/workspace flows
+4. Add backend typecheck, route tests, and CI coverage
+5. Document the supported deployment and API baseline
+
+### Phase 2 — Audit-Ready Product Core
+Focus: ship the dependable operating system for audits and quality teams
+1. Harden approvals, signatures, and audit logging
+2. Complete evidence handling, traceability, and audit export bundles
+3. Move workflow-heavy modules onto real backend relations
+4. Deliver hosted-ready deployment, observability, and onboarding/migration UX
+5. Ship custom fields, notifications, and reporting only where they reinforce the audit-ready core
+
+### Phase 3A — Medical Device Wedge
+Focus: first commercial vertical depth
 1. **A1** DHF/DMR/DHR Management
 2. **A2** Design Control Workflow
-3. **A3** QMSR Gap Assessment (AI-powered)
-4. **E3** AI Requirements Extraction (paste regulation → atomic reqs)
-5. **H3** Custom Fields & Forms
-6. **D2** Workflow Engine (approval routing)
-7. **D3** Notification Center
+3. **A3** QMSR Gap Assessment Tool
+4. **A4** Post-Market Surveillance Dashboard
+5. **A5** UDI Management
+6. **H3** Custom Fields & Forms for device/QMSR use cases
 
-### Release 3.1 — "Enterprise Collaboration"
-Focus: Multi-site pharma/biotech operations
-1. **D1** Real-Time Collaboration
-2. **D4** Multi-Site Dashboard
+### Phase 3B — Enterprise Operations
+Focus: enterprise deployment and operational depth
+1. **D2** Workflow Engine
+2. **D3** Notification Center
 3. **D5** Supplier Quality Portal
-4. **B1** Electronic Batch Records
-5. **H1** REST/GraphQL API
-6. **H2** Webhook & Event Streaming
+4. **D4** Multi-Site Dashboard
+5. **H1** Headless API maturity
+6. **H2** Webhook and event streaming maturity
 
-### Release 3.2 — "Clinical & AI Intelligence"
-Focus: CROs and AI-native features
+### Phase 3C — Pharmaceutical and Biotech Depth
+Focus: second vertical wave
+1. **B1** Electronic Batch Record
+2. **B2** Stability Study Manager
+3. **B3** Process Validation Lifecycle
+4. **B6** Cleaning Validation Manager
+5. **H8** Document generation support for validation and quality records
+
+### Phase 3D — AI Differentiation
+Focus: AI features that reinforce audited workflows
+1. **E1** AI Audit Preparation Assistant
+2. **E3** AI Requirements Extraction
+3. **E5** Change Impact Predictor
+4. **E4** Smart Duplicate and Conflict Detection
+5. **E6** Regulatory Change Monitor
+
+### Phase 3E — CRO and Clinical Expansion
+Focus: clinical operations after the first two wedges
 1. **C1** eTMF Module
 2. **C2** eConsent Workflow
-3. **E1** AI Audit Preparation Assistant
-4. **E2** Predictive Quality Analytics
-5. **E5** Change Impact Predictor
-6. **E6** Regulatory Change Monitor
+3. **C3** Protocol Deviation Tracker
+4. **C4** Site Management and Monitoring
+5. **C5** Decentralized Trial Support
 
-### Release 3.3 — "Global Expansion"
-Focus: New markets and verticals
-1. **F1-F8** Country-specific features (Brazil, Australia, Saudi, etc.)
-2. **G1-G6** New verticals (IVD, SaMD, ATMP, Automotive Safety, Food)
-3. **B4** eCTD Submission Builder
-4. **D6** Data Residency & Multi-Region
-5. **H6** Offline / PWA Mode
+### Phase 3F — Global and Additional Vertical Expansion
+Focus: geography, additional verticals, and enterprise-only deployment requirements
+1. **F1-F8** country-specific feature packs
+2. **G1-G6** new vertical extensions
+3. **D6** Data residency and multi-region deployment
+4. **H5** Scheduled reports
+5. **H6** Offline / PWA mode
+6. **H7** Advanced search
 
 ---
 
@@ -187,12 +238,17 @@ Focus: New markets and verticals
 
 ## Verification
 
-For each release:
-1. `npm run build` — clean
-2. `npm run test` — all suites pass
-3. Feature-specific: QMSR gap tool correctly identifies gaps against ISO 13485 clauses
-4. Workflow engine: multi-step approval completes with audit trail
-5. DHF/DMR/DHR: design control gates enforce approval before progression
-6. API: OpenAPI spec validates, Swagger UI accessible
-7. Collaboration: two browser tabs show real-time updates
-8. Country features: new templates load correctly for new countries
+For each phase:
+1. Frontend and backend typecheck/build/test gates pass
+2. Core API contracts are validated against real route tests
+3. Audit, approval, signature, evidence, and export flows work on real project data
+4. Vertical features only ship after they integrate with audit, evidence, workflow, and export layers
+5. API and deployment docs are updated with every release wave
+
+Additional phase-specific checks:
+
+- **Phase 1**: server mode operates without client-only fallback for core entities
+- **Phase 2**: audit exports, evidence completeness, and approval lifecycles are trustworthy
+- **Phase 3A**: QMSR gap tool and design-control gates work against real evidence and approval state
+- **Phase 3B**: workflow engine, SSO, and enterprise operations behave reliably in multi-user environments
+- **Phase 3C+**: each new vertical module integrates with the common audit-ready core rather than creating a new silo

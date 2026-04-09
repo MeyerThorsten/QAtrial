@@ -3,6 +3,9 @@ import { useTranslation } from 'react-i18next';
 import { Activity, Plus, Download, AlertTriangle, FileText, MessageSquare, Shield } from 'lucide-react';
 import { useProjectStore } from '../../store/useProjectStore';
 import { useAuth } from '../../hooks/useAuth';
+import { apiFetch } from '../../lib/apiClient';
+import { roleHasPermission } from '../../lib/permissions';
+import { getProjectId } from '../../lib/projectUtils';
 
 interface PMSSummary {
   totalEntries: number;
@@ -45,36 +48,30 @@ const TYPE_COLORS: Record<string, string> = {
 export function PMSDashboard() {
   const { t } = useTranslation();
   const project = useProjectStore((s) => s.project);
-  const { token } = useAuth();
+  const { token, user } = useAuth();
   const [summary, setSummary] = useState<PMSSummary | null>(null);
   const [entries, setEntries] = useState<PMSEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
-
-  const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+  const [error, setError] = useState('');
+  const projectId = getProjectId(project);
+  const canEdit = roleHasPermission(user?.role, 'canEdit');
+  const canExport = roleHasPermission(user?.role, 'canExport');
 
   const fetchData = async () => {
-    if (!project?.name || !token) return;
+    if (!projectId || !token) return;
     setLoading(true);
+    setError('');
     try {
-      const [summaryRes, entriesRes] = await Promise.all([
-        fetch(`${apiBase}/api/pms/${project.name}/summary`, {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        fetch(`${apiBase}/api/pms/${project.name}/entries`, {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
+      const [summaryData, entriesData] = await Promise.all([
+        apiFetch<{ summary: PMSSummary }>(`/pms/${projectId}/summary`),
+        apiFetch<{ entries: PMSEntry[] }>(`/pms/${projectId}/entries`),
       ]);
-      if (summaryRes.ok) {
-        const data = await summaryRes.json();
-        setSummary(data.summary);
-      }
-      if (entriesRes.ok) {
-        const data = await entriesRes.json();
-        setEntries(data.entries || []);
-      }
+      setSummary(summaryData.summary);
+      setEntries(entriesData.entries || []);
     } catch (err) {
       console.error('Failed to fetch PMS data:', err);
+      setError(err instanceof Error ? err.message : 'Failed to fetch PMS data');
     } finally {
       setLoading(false);
     }
@@ -82,43 +79,46 @@ export function PMSDashboard() {
 
   useEffect(() => {
     fetchData();
-  }, [project?.name, token]);
+  }, [projectId, token]);
 
   const handleCreateEntry = async (formData: any) => {
-    if (!project?.name || !token) return;
+    if (!projectId || !token) return;
+    if (!canEdit) {
+      setError('Insufficient permissions: requires canEdit');
+      return;
+    }
     try {
-      const res = await fetch(`${apiBase}/api/pms/${project.name}/entries`, {
+      await apiFetch(`/pms/${projectId}/entries`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify(formData),
       });
-      if (res.ok) {
-        setShowForm(false);
-        fetchData();
-      }
+      setShowForm(false);
+      setError('');
+      fetchData();
     } catch (err) {
       console.error('Failed to create PMS entry:', err);
+      setError(err instanceof Error ? err.message : 'Failed to create PMS entry');
     }
   };
 
   const handleExportPSUR = async () => {
-    if (!project?.name || !token) return;
+    if (!projectId || !token) return;
+    if (!canExport) {
+      setError('Insufficient permissions: requires canExport');
+      return;
+    }
     try {
-      const res = await fetch(`${apiBase}/api/pms/${project.name}/psur-data`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (res.ok) {
-        const data = await res.json();
-        const blob = new Blob([JSON.stringify(data.psurData, null, 2)], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `psur-data-${project.name}.json`;
-        a.click();
-        URL.revokeObjectURL(url);
-      }
+      const data = await apiFetch<{ psurData: any }>(`/pms/${projectId}/psur-data`);
+      const blob = new Blob([JSON.stringify(data.psurData, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `psur-data-${projectId}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
     } catch (err) {
       console.error('Failed to export PSUR data:', err);
+      setError(err instanceof Error ? err.message : 'Failed to export PSUR data');
     }
   };
 
@@ -138,22 +138,32 @@ export function PMSDashboard() {
           <h2 className="text-lg font-semibold text-text-primary">{t('pms.title')}</h2>
         </div>
         <div className="flex items-center gap-2">
-          <button
-            onClick={handleExportPSUR}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-text-secondary border border-border rounded-lg hover:bg-surface-hover transition-colors"
-          >
-            <Download className="w-4 h-4" />
-            {t('pms.generatePSUR')}
-          </button>
-          <button
-            onClick={() => setShowForm(true)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white bg-accent rounded-lg hover:bg-accent/90 transition-colors"
-          >
-            <Plus className="w-4 h-4" />
-            {t('pms.addEntry')}
-          </button>
+          {canExport && (
+            <button
+              onClick={handleExportPSUR}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-text-secondary border border-border rounded-lg hover:bg-surface-hover transition-colors"
+            >
+              <Download className="w-4 h-4" />
+              {t('pms.generatePSUR')}
+            </button>
+          )}
+          {canEdit && (
+            <button
+              onClick={() => setShowForm(true)}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white bg-accent rounded-lg hover:bg-accent/90 transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+              {t('pms.addEntry')}
+            </button>
+          )}
         </div>
       </div>
+
+      {error && (
+        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {error}
+        </div>
+      )}
 
       {/* Summary Cards */}
       {summary && (

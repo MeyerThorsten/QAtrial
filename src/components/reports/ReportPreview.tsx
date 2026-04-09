@@ -24,6 +24,7 @@ export function ReportPreview({ config, onBack }: ReportPreviewProps) {
   const reportRef = useRef<HTMLDivElement>(null);
   const [approvedSections, setApprovedSections] = useState<Set<number>>(new Set());
   const [activeTocIndex, setActiveTocIndex] = useState<number | null>(null);
+  const projectLabel = config.projectName || config.projectId;
 
   function toggleApproval(index: number) {
     setApprovedSections((prev) => {
@@ -48,7 +49,7 @@ export function ReportPreview({ config, onBack }: ReportPreviewProps) {
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>${config.type} - ${config.projectId}</title>
+  <title>${config.type} - ${projectLabel}</title>
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 800px; margin: 0 auto; padding: 40px 20px; color: #1a1a1a; line-height: 1.6; }
     h1 { font-size: 24px; border-bottom: 2px solid #2563eb; padding-bottom: 8px; }
@@ -64,7 +65,7 @@ export function ReportPreview({ config, onBack }: ReportPreviewProps) {
 <body>
   <h1>${getReportTitle(config.type)}</h1>
   <div class="meta">
-    <p>Project: ${config.projectId} | Generated: ${new Date(config.generatedAt).toLocaleString()} | By: ${config.generatedBy}</p>
+    <p>Project: ${projectLabel} | Generated: ${new Date(config.generatedAt).toLocaleString()} | By: ${config.generatedBy}</p>
   </div>
   ${config.sections
     .map(
@@ -120,7 +121,7 @@ export function ReportPreview({ config, onBack }: ReportPreviewProps) {
           <button
             onClick={() => exportReportAsPDF(config, {
               title: getReportTitle(config.type),
-              organization: config.projectId,
+              organization: projectLabel,
               pageNumbers: true,
               includeTimestamp: true,
             })}
@@ -200,7 +201,7 @@ export function ReportPreview({ config, onBack }: ReportPreviewProps) {
               {getReportTitle(config.type)}
             </h1>
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2 text-xs text-text-tertiary">
-              <span>Project: {config.projectId}</span>
+              <span>Project: {projectLabel}</span>
               <span>Generated: {new Date(config.generatedAt).toLocaleString()}</span>
               <span>By: {config.generatedBy}</span>
               <span>Format: {config.format.toUpperCase()}</span>

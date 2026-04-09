@@ -9,14 +9,18 @@ import {
   ShieldCheck,
   Inbox,
 } from 'lucide-react';
+import { useAppMode } from '../../hooks/useAppMode';
+import { useProjectStore } from '../../store/useProjectStore';
 import { useAuditStore } from '../../store/useAuditStore';
-import type { AuditEntry, AuditAction } from '../../types';
+import { useApiAudit } from '../../hooks/useApiAudit';
+import { getProjectId } from '../../lib/projectUtils';
+import type { AuditEntry } from '../../types';
 
 interface Props {
   entityId?: string;
 }
 
-const ACTION_COLORS: Record<AuditAction, string> = {
+const ACTION_COLORS: Record<string, string> = {
   create: 'bg-badge-active-bg text-badge-active-text',
   update: 'bg-accent-subtle text-accent',
   delete: 'bg-danger-subtle text-danger',
@@ -35,6 +39,10 @@ const ACTION_COLORS: Record<AuditAction, string> = {
   logout: 'bg-badge-notrun-bg text-badge-notrun-text',
   import: 'bg-badge-draft-bg text-badge-draft-text',
 };
+
+function humanizeAction(action: string): string {
+  return action.replace(/_/g, ' ');
+}
 
 function formatTimestamp(iso: string): string {
   const d = new Date(iso);
@@ -55,7 +63,13 @@ function toDateInputValue(d: Date): string {
 
 export function AuditTrailViewer({ entityId }: Props) {
   const { t } = useTranslation();
+  const { mode } = useAppMode();
+  const isServerMode = mode === 'server';
+  const project = useProjectStore((s) => s.project);
+  const projectId = getProjectId(project);
   const allEntries = useAuditStore((s) => s.entries);
+  const auditApi = useApiAudit(isServerMode ? projectId : '');
+  const sourceEntries = isServerMode && projectId ? auditApi.entries : allEntries;
 
   const now = new Date();
   const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
@@ -66,8 +80,8 @@ export function AuditTrailViewer({ entityId }: Props) {
 
   const filteredEntries = useMemo(() => {
     let entries = entityId
-      ? allEntries.filter((e) => e.entityId === entityId)
-      : allEntries;
+      ? sourceEntries.filter((e) => e.entityId === entityId)
+      : sourceEntries;
 
     const from = new Date(dateFrom + 'T00:00:00').getTime();
     const to = new Date(dateTo + 'T23:59:59').getTime();
@@ -79,7 +93,7 @@ export function AuditTrailViewer({ entityId }: Props) {
 
     // Sort newest first
     return [...entries].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-  }, [allEntries, entityId, dateFrom, dateTo]);
+  }, [dateFrom, dateTo, entityId, sourceEntries]);
 
   const toggleDiff = (id: string) => {
     setExpandedDiffs((prev) => {
@@ -94,6 +108,11 @@ export function AuditTrailViewer({ entityId }: Props) {
   };
 
   const exportCSV = () => {
+    if (isServerMode && projectId) {
+      void auditApi.exportCsv();
+      return;
+    }
+
     const headers = ['Timestamp', 'Action', 'User', 'Entity Type', 'Entity ID', 'Previous Value', 'New Value', 'Reason', 'Signature Meaning', 'Signer'];
     const rows = filteredEntries.map((e) => [
       e.timestamp,
@@ -128,6 +147,11 @@ export function AuditTrailViewer({ entityId }: Props) {
 
   const exportPDF = () => {
     window.print();
+  };
+
+  const getActionLabel = (action: string): string => {
+    const translated = t(`audit.actions.${action}`);
+    return translated === `audit.actions.${action}` ? humanizeAction(action) : translated;
   };
 
   const renderDiff = (entry: AuditEntry) => {
@@ -255,7 +279,7 @@ export function AuditTrailViewer({ entityId }: Props) {
                         ACTION_COLORS[entry.action] ?? 'bg-surface-tertiary text-text-secondary'
                       }`}
                     >
-                      {t(`audit.actions.${entry.action}`)}
+                      {getActionLabel(entry.action)}
                     </span>
 
                     {/* Entity type + ID */}

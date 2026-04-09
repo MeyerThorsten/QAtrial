@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Building2, Plus, Calendar, ChevronDown, ChevronUp } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
+import { apiFetch } from '../../lib/apiClient';
+import { roleHasPermission } from '../../lib/permissions';
 
 interface Supplier {
   id: string;
@@ -19,32 +21,29 @@ interface Supplier {
 
 export function SupplierScorecard() {
   const { t } = useTranslation();
-  const { token } = useAuth();
+  const { token, user } = useAuth();
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [showAuditForm, setShowAuditForm] = useState<string | null>(null);
+  const [error, setError] = useState('');
 
   // Add supplier form state
   const [newSupplier, setNewSupplier] = useState({ name: '', category: 'component', riskLevel: 'medium' });
   const [newAudit, setNewAudit] = useState({ auditDate: '', auditor: '', auditType: 'routine', score: '', findings: '' });
-
-  const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+  const canEdit = roleHasPermission(user?.role, 'canEdit');
 
   const fetchSuppliers = async () => {
     if (!token) return;
     setLoading(true);
+    setError('');
     try {
-      const res = await fetch(`${apiBase}/api/suppliers`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setSuppliers(data.suppliers || []);
-      }
+      const data = await apiFetch<{ suppliers: Supplier[] }>('/suppliers');
+      setSuppliers(data.suppliers || []);
     } catch (err) {
       console.error('Failed to fetch suppliers:', err);
+      setError(err instanceof Error ? err.message : 'Failed to fetch suppliers');
     } finally {
       setLoading(false);
     }
@@ -56,40 +55,44 @@ export function SupplierScorecard() {
 
   const handleAddSupplier = async () => {
     if (!token || !newSupplier.name) return;
+    if (!canEdit) {
+      setError('Insufficient permissions: requires canEdit');
+      return;
+    }
     try {
-      const res = await fetch(`${apiBase}/api/suppliers`, {
+      await apiFetch('/suppliers', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify(newSupplier),
       });
-      if (res.ok) {
-        setShowAddForm(false);
-        setNewSupplier({ name: '', category: 'component', riskLevel: 'medium' });
-        fetchSuppliers();
-      }
+      setShowAddForm(false);
+      setNewSupplier({ name: '', category: 'component', riskLevel: 'medium' });
+      fetchSuppliers();
     } catch (err) {
       console.error('Failed to add supplier:', err);
+      setError(err instanceof Error ? err.message : 'Failed to add supplier');
     }
   };
 
   const handleAddAudit = async (supplierId: string) => {
     if (!token || !newAudit.auditDate || !newAudit.auditor) return;
+    if (!canEdit) {
+      setError('Insufficient permissions: requires canEdit');
+      return;
+    }
     try {
-      const res = await fetch(`${apiBase}/api/suppliers/${supplierId}/audits`, {
+      await apiFetch(`/suppliers/${supplierId}/audits`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({
           ...newAudit,
           score: newAudit.score ? parseInt(newAudit.score) : null,
         }),
       });
-      if (res.ok) {
-        setShowAuditForm(null);
-        setNewAudit({ auditDate: '', auditor: '', auditType: 'routine', score: '', findings: '' });
-        fetchSuppliers();
-      }
+      setShowAuditForm(null);
+      setNewAudit({ auditDate: '', auditor: '', auditType: 'routine', score: '', findings: '' });
+      fetchSuppliers();
     } catch (err) {
       console.error('Failed to add audit:', err);
+      setError(err instanceof Error ? err.message : 'Failed to add audit');
     }
   };
 
@@ -131,14 +134,22 @@ export function SupplierScorecard() {
           <Building2 className="w-5 h-5 text-accent" />
           <h2 className="text-lg font-semibold text-text-primary">{t('suppliers.title')}</h2>
         </div>
-        <button
-          onClick={() => setShowAddForm(true)}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white bg-accent rounded-lg hover:bg-accent/90 transition-colors"
-        >
-          <Plus className="w-4 h-4" />
-          {t('suppliers.addSupplier')}
-        </button>
+        {canEdit && (
+          <button
+            onClick={() => setShowAddForm(true)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white bg-accent rounded-lg hover:bg-accent/90 transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            {t('suppliers.addSupplier')}
+          </button>
+        )}
       </div>
+
+      {error && (
+        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {error}
+        </div>
+      )}
 
       {/* Add Supplier Form */}
       {showAddForm && (
@@ -271,6 +282,7 @@ export function SupplierScorecard() {
                 <button
                   onClick={() => setShowAuditForm(showAuditForm === supplier.id ? null : supplier.id)}
                   className="inline-flex items-center gap-1 text-xs text-accent hover:underline"
+                  disabled={!canEdit}
                 >
                   <Calendar className="w-3 h-3" />
                   {t('suppliers.addAudit')}

@@ -2,6 +2,12 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { apiFetch } from '../lib/apiClient';
 import type { RiskAssessment } from '../types';
 
+type RiskListResponse = RiskAssessment[] | { risks: RiskAssessment[] };
+
+function unwrapRisks(data: RiskListResponse): RiskAssessment[] {
+  return Array.isArray(data) ? data : data.risks ?? [];
+}
+
 export function useApiRisks(projectId: string) {
   const [assessments, setAssessments] = useState<RiskAssessment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -13,8 +19,8 @@ export function useApiRisks(projectId: string) {
     setLoading(true);
     setError(null);
     try {
-      const data = await apiFetch<RiskAssessment[]>(`/risks?projectId=${encodeURIComponent(projectId)}`);
-      if (mountedRef.current) setAssessments(data);
+      const data = await apiFetch<RiskListResponse>(`/risks?projectId=${encodeURIComponent(projectId)}`);
+      if (mountedRef.current) setAssessments(unwrapRisks(data));
     } catch (err: unknown) {
       if (mountedRef.current) {
         const msg = err instanceof Error ? err.message : String(err); if (msg.includes('401')) {

@@ -7,7 +7,10 @@ import {
 import { AlertTriangle, Plus, TrendingUp, Clock } from 'lucide-react';
 import { useProjectStore } from '../../store/useProjectStore';
 import { useAuth } from '../../hooks/useAuth';
+import { apiFetch } from '../../lib/apiClient';
+import { roleHasPermission } from '../../lib/permissions';
 import { ComplaintForm } from './ComplaintForm';
+import { getProjectId } from '../../lib/projectUtils';
 
 const SEVERITY_COLORS: Record<string, string> = {
   minor: '#eab308',
@@ -28,37 +31,30 @@ interface TrendingData {
 export function ComplaintTrending() {
   const { t } = useTranslation();
   const project = useProjectStore((s) => s.project);
-  const { token } = useAuth();
+  const { token, user } = useAuth();
   const [trending, setTrending] = useState<TrendingData | null>(null);
   const [complaints, setComplaints] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingComplaint, setEditingComplaint] = useState<any>(null);
-
-  const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+  const [error, setError] = useState('');
+  const projectId = getProjectId(project);
+  const canEdit = roleHasPermission(user?.role, 'canEdit');
 
   const fetchData = async () => {
-    if (!project?.name || !token) return;
+    if (!projectId || !token) return;
     setLoading(true);
+    setError('');
     try {
-      const [trendRes, listRes] = await Promise.all([
-        fetch(`${apiBase}/api/complaints/trending?projectId=${project.name}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        fetch(`${apiBase}/api/complaints?projectId=${project.name}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
+      const [trendData, listData] = await Promise.all([
+        apiFetch<{ trending: TrendingData }>(`/complaints/trending?projectId=${projectId}`),
+        apiFetch<{ complaints: any[] }>(`/complaints?projectId=${projectId}`),
       ]);
-      if (trendRes.ok) {
-        const data = await trendRes.json();
-        setTrending(data.trending);
-      }
-      if (listRes.ok) {
-        const data = await listRes.json();
-        setComplaints(data.complaints || []);
-      }
+      setTrending(trendData.trending);
+      setComplaints(listData.complaints || []);
     } catch (err) {
       console.error('Failed to fetch complaint data:', err);
+      setError(err instanceof Error ? err.message : 'Failed to fetch complaint data');
     } finally {
       setLoading(false);
     }
@@ -66,29 +62,26 @@ export function ComplaintTrending() {
 
   useEffect(() => {
     fetchData();
-  }, [project?.name, token]);
+  }, [projectId, token]);
 
   const handleSave = async (data: any) => {
-    if (!project?.name || !token) return;
+    if (!projectId || !token) return;
+    if (!canEdit) {
+      setError('Insufficient permissions: requires canEdit');
+      return;
+    }
     try {
-      const url = data.id
-        ? `${apiBase}/api/complaints/${data.id}`
-        : `${apiBase}/api/complaints`;
-      const res = await fetch(url, {
+      await apiFetch(data.id ? `/complaints/${data.id}` : '/complaints', {
         method: data.id ? 'PUT' : 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ ...data, projectId: project.name }),
+        body: JSON.stringify({ ...data, projectId }),
       });
-      if (res.ok) {
-        setShowForm(false);
-        setEditingComplaint(null);
-        fetchData();
-      }
+      setShowForm(false);
+      setEditingComplaint(null);
+      setError('');
+      fetchData();
     } catch (err) {
       console.error('Failed to save complaint:', err);
+      setError(err instanceof Error ? err.message : 'Failed to save complaint');
     }
   };
 
@@ -114,14 +107,22 @@ export function ComplaintTrending() {
           <AlertTriangle className="w-5 h-5 text-accent" />
           <h2 className="text-lg font-semibold text-text-primary">{t('complaints.title')}</h2>
         </div>
-        <button
-          onClick={() => { setEditingComplaint(null); setShowForm(true); }}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white bg-accent rounded-lg hover:bg-accent/90 transition-colors"
-        >
-          <Plus className="w-4 h-4" />
-          {t('complaints.addComplaint')}
-        </button>
+        {canEdit && (
+          <button
+            onClick={() => { setEditingComplaint(null); setShowForm(true); }}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white bg-accent rounded-lg hover:bg-accent/90 transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            {t('complaints.addComplaint')}
+          </button>
+        )}
       </div>
+
+      {error && (
+        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {error}
+        </div>
+      )}
 
       {/* Summary Cards */}
       {trending && (
@@ -254,12 +255,14 @@ export function ComplaintTrending() {
                     )}
                   </td>
                   <td className="px-4 py-3">
-                    <button
-                      onClick={() => { setEditingComplaint(comp); setShowForm(true); }}
-                      className="text-xs text-accent hover:underline"
-                    >
-                      {t('common.edit')}
-                    </button>
+                    {canEdit && (
+                      <button
+                        onClick={() => { setEditingComplaint(comp); setShowForm(true); }}
+                        className="text-xs text-accent hover:underline"
+                      >
+                        {t('common.edit')}
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))

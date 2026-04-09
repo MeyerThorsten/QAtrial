@@ -100,7 +100,7 @@ export function CommentThread({ entityType, entityId, projectId }: CommentThread
     if (isServer) {
       try {
         const res = await apiFetch<{ comments: ThreadedComment[] }>(
-          `/comments?entityType=${entityType}&entityId=${entityId}`
+          `/comments?entityType=${encodeURIComponent(entityType)}&entityId=${encodeURIComponent(entityId)}&projectId=${encodeURIComponent(projectId)}`
         );
         setComments(res.comments);
       } catch {
@@ -110,7 +110,7 @@ export function CommentThread({ entityType, entityId, projectId }: CommentThread
       const local = getLocalComments(entityType, entityId);
       setComments(buildThreaded(local));
     }
-  }, [isServer, entityType, entityId]);
+  }, [isServer, entityType, entityId, projectId]);
 
   useEffect(() => {
     fetchComments();

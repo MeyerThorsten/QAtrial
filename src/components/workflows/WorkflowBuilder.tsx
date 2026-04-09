@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Plus, Trash2, GripVertical, Save } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
+import { apiFetch } from '../../lib/apiClient';
+import { roleHasPermission } from '../../lib/permissions';
 
 interface SkipCondition {
   field: string;
@@ -66,19 +68,15 @@ interface Props {
 
 export function WorkflowBuilder({ templateId, onSaved, onCancel }: Props) {
   const { t } = useTranslation();
-  const { token } = useAuth();
+  const { token, user } = useAuth();
   const [template, setTemplate] = useState<TemplateDraft>(emptyTemplate());
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
-
-  const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+  const canAdmin = roleHasPermission(user?.role, 'canAdmin');
 
   useEffect(() => {
     if (templateId && token) {
-      fetch(`${apiBase}/api/workflows/templates/${templateId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-        .then((r) => r.json())
+      apiFetch<{ template: any }>(`/workflows/templates/${templateId}`)
         .then((data) => {
           if (data.template) {
             setTemplate({
@@ -102,9 +100,9 @@ export function WorkflowBuilder({ templateId, onSaved, onCancel }: Props) {
             });
           }
         })
-        .catch(() => {});
+        .catch((err) => setError(err instanceof Error ? err.message : 'Failed to load template'));
     }
-  }, [templateId, token, apiBase]);
+  }, [templateId, token]);
 
   const addStep = () => {
     setTemplate({ ...template, steps: [...template.steps, emptyStep()] });
@@ -148,6 +146,10 @@ export function WorkflowBuilder({ templateId, onSaved, onCancel }: Props) {
   };
 
   const handleSave = async () => {
+    if (!canAdmin) {
+      setError('Insufficient permissions: requires canAdmin');
+      return;
+    }
     if (!template.name.trim()) {
       setError(t('workflows.nameRequired'));
       return;
@@ -176,26 +178,14 @@ export function WorkflowBuilder({ templateId, onSaved, onCancel }: Props) {
     };
 
     try {
-      const url = template.id
-        ? `${apiBase}/api/workflows/templates/${template.id}`
-        : `${apiBase}/api/workflows/templates`;
-      const method = template.id ? 'PUT' : 'POST';
-
-      const res = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      await apiFetch(template.id ? `/workflows/templates/${template.id}` : '/workflows/templates', {
+        method: template.id ? 'PUT' : 'POST',
         body: JSON.stringify(payload),
       });
-
-      if (!res.ok) {
-        const data = await res.json();
-        setError(data.message || 'Failed to save');
-        return;
-      }
-
+      setError('');
       onSaved?.();
-    } catch {
-      setError('Network error');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to save');
     } finally {
       setSaving(false);
     }
@@ -218,6 +208,7 @@ export function WorkflowBuilder({ templateId, onSaved, onCancel }: Props) {
             type="text"
             value={template.name}
             onChange={(e) => setTemplate({ ...template, name: e.target.value })}
+            disabled={!canAdmin}
             className="w-full px-3 py-2 bg-surface border border-border rounded-lg text-text-primary text-sm focus:outline-none focus:ring-2 focus:ring-accent"
             placeholder={t('workflows.templateNamePlaceholder')}
           />
@@ -227,6 +218,7 @@ export function WorkflowBuilder({ templateId, onSaved, onCancel }: Props) {
           <select
             value={template.entityType}
             onChange={(e) => setTemplate({ ...template, entityType: e.target.value })}
+            disabled={!canAdmin}
             className="w-full px-3 py-2 bg-surface border border-border rounded-lg text-text-primary text-sm focus:outline-none focus:ring-2 focus:ring-accent"
           >
             {ENTITY_TYPES.map((et) => (
@@ -241,6 +233,7 @@ export function WorkflowBuilder({ templateId, onSaved, onCancel }: Props) {
         <textarea
           value={template.description}
           onChange={(e) => setTemplate({ ...template, description: e.target.value })}
+          disabled={!canAdmin}
           className="w-full px-3 py-2 bg-surface border border-border rounded-lg text-text-primary text-sm focus:outline-none focus:ring-2 focus:ring-accent"
           rows={2}
         />
@@ -251,6 +244,7 @@ export function WorkflowBuilder({ templateId, onSaved, onCancel }: Props) {
           type="checkbox"
           checked={template.enabled}
           onChange={(e) => setTemplate({ ...template, enabled: e.target.checked })}
+          disabled={!canAdmin}
           className="rounded border-border"
         />
         <span className="text-sm text-text-secondary">{t('workflows.enabled')}</span>
@@ -262,6 +256,7 @@ export function WorkflowBuilder({ templateId, onSaved, onCancel }: Props) {
           <h4 className="text-sm font-semibold text-text-primary">{t('workflows.steps')}</h4>
           <button
             onClick={addStep}
+            disabled={!canAdmin}
             className="inline-flex items-center gap-1 px-3 py-1.5 text-sm text-accent bg-accent-subtle rounded-lg hover:bg-accent/20 transition-colors"
           >
             <Plus className="w-3.5 h-3.5" />
@@ -280,14 +275,14 @@ export function WorkflowBuilder({ templateId, onSaved, onCancel }: Props) {
                 <div className="flex gap-1">
                   <button
                     onClick={() => moveStep(i, i - 1)}
-                    disabled={i === 0}
+                    disabled={!canAdmin || i === 0}
                     className="text-xs text-text-tertiary hover:text-text-primary disabled:opacity-30"
                   >
                     ↑
                   </button>
                   <button
                     onClick={() => moveStep(i, i + 1)}
-                    disabled={i === template.steps.length - 1}
+                    disabled={!canAdmin || i === template.steps.length - 1}
                     className="text-xs text-text-tertiary hover:text-text-primary disabled:opacity-30"
                   >
                     ↓
@@ -296,7 +291,7 @@ export function WorkflowBuilder({ templateId, onSaved, onCancel }: Props) {
               </div>
               <button
                 onClick={() => removeStep(i)}
-                disabled={template.steps.length <= 1}
+                disabled={!canAdmin || template.steps.length <= 1}
                 className="text-text-tertiary hover:text-red-500 disabled:opacity-30 transition-colors"
               >
                 <Trash2 className="w-4 h-4" />
@@ -310,6 +305,7 @@ export function WorkflowBuilder({ templateId, onSaved, onCancel }: Props) {
                   type="text"
                   value={step.name}
                   onChange={(e) => updateStep(i, 'name', e.target.value)}
+                  disabled={!canAdmin}
                   className="w-full px-2 py-1.5 bg-surface border border-border rounded text-text-primary text-sm focus:outline-none focus:ring-2 focus:ring-accent"
                   placeholder={`Step ${i + 1}`}
                 />
@@ -319,6 +315,7 @@ export function WorkflowBuilder({ templateId, onSaved, onCancel }: Props) {
                 <select
                   value={step.type}
                   onChange={(e) => updateStep(i, 'type', e.target.value)}
+                  disabled={!canAdmin}
                   className="w-full px-2 py-1.5 bg-surface border border-border rounded text-text-primary text-sm focus:outline-none focus:ring-2 focus:ring-accent"
                 >
                   {STEP_TYPES.map((st) => (
@@ -331,6 +328,7 @@ export function WorkflowBuilder({ templateId, onSaved, onCancel }: Props) {
                 <select
                   value={step.assigneeRole}
                   onChange={(e) => updateStep(i, 'assigneeRole', e.target.value)}
+                  disabled={!canAdmin}
                   className="w-full px-2 py-1.5 bg-surface border border-border rounded text-text-primary text-sm focus:outline-none focus:ring-2 focus:ring-accent"
                 >
                   {ROLES.map((r) => (
@@ -346,6 +344,7 @@ export function WorkflowBuilder({ templateId, onSaved, onCancel }: Props) {
                   max={10}
                   value={step.requiredApprovers}
                   onChange={(e) => updateStep(i, 'requiredApprovers', parseInt(e.target.value) || 1)}
+                  disabled={!canAdmin}
                   className="w-full px-2 py-1.5 bg-surface border border-border rounded text-text-primary text-sm focus:outline-none focus:ring-2 focus:ring-accent"
                 />
               </div>
@@ -356,6 +355,7 @@ export function WorkflowBuilder({ templateId, onSaved, onCancel }: Props) {
                   min={0}
                   value={step.slaHours ?? ''}
                   onChange={(e) => updateStep(i, 'slaHours', e.target.value ? parseInt(e.target.value) : null)}
+                  disabled={!canAdmin}
                   className="w-full px-2 py-1.5 bg-surface border border-border rounded text-text-primary text-sm focus:outline-none focus:ring-2 focus:ring-accent"
                   placeholder={t('workflows.optional')}
                 />
@@ -365,6 +365,7 @@ export function WorkflowBuilder({ templateId, onSaved, onCancel }: Props) {
                 <select
                   value={step.escalateTo}
                   onChange={(e) => updateStep(i, 'escalateTo', e.target.value)}
+                  disabled={!canAdmin}
                   className="w-full px-2 py-1.5 bg-surface border border-border rounded text-text-primary text-sm focus:outline-none focus:ring-2 focus:ring-accent"
                 >
                   <option value="">{t('workflows.none')}</option>
@@ -386,6 +387,7 @@ export function WorkflowBuilder({ templateId, onSaved, onCancel }: Props) {
                   <select
                     value={step.logic}
                     onChange={(e) => updateStep(i, 'logic', e.target.value)}
+                    disabled={!canAdmin}
                     className="w-full px-2 py-1.5 bg-surface border border-border rounded text-text-primary text-sm focus:outline-none focus:ring-2 focus:ring-accent"
                   >
                     <option value="and">{t('workflows.logicAnd')}</option>
@@ -399,6 +401,7 @@ export function WorkflowBuilder({ templateId, onSaved, onCancel }: Props) {
                   <select
                     value={step.rejectAction}
                     onChange={(e) => updateStep(i, 'rejectAction', e.target.value)}
+                    disabled={!canAdmin}
                     className="w-full px-2 py-1.5 bg-surface border border-border rounded text-text-primary text-sm focus:outline-none focus:ring-2 focus:ring-accent"
                   >
                     <option value="cancel">{t('workflows.rejectCancel')}</option>
@@ -414,6 +417,7 @@ export function WorkflowBuilder({ templateId, onSaved, onCancel }: Props) {
                     <select
                       value={step.rejectTarget ?? 0}
                       onChange={(e) => updateStep(i, 'rejectTarget', parseInt(e.target.value))}
+                      disabled={!canAdmin}
                       className="w-full px-2 py-1.5 bg-surface border border-border rounded text-text-primary text-sm focus:outline-none focus:ring-2 focus:ring-accent"
                     >
                       {template.steps.map((_, si) => (
@@ -433,6 +437,7 @@ export function WorkflowBuilder({ templateId, onSaved, onCancel }: Props) {
                     type="checkbox"
                     checked={step.skipCondition !== null}
                     onChange={() => toggleSkipCondition(i)}
+                    disabled={!canAdmin}
                     className="rounded border-border"
                   />
                   <span className="text-xs text-text-secondary">{t('workflows.enableSkipCondition')}</span>
@@ -444,6 +449,7 @@ export function WorkflowBuilder({ templateId, onSaved, onCancel }: Props) {
                     <select
                       value={step.skipCondition.field}
                       onChange={(e) => updateSkipCondition(i, 'field', e.target.value)}
+                      disabled={!canAdmin}
                       className="px-2 py-1 bg-surface border border-border rounded text-text-primary text-xs focus:outline-none focus:ring-2 focus:ring-accent"
                     >
                       {CONDITION_FIELDS.map((f) => (
@@ -453,6 +459,7 @@ export function WorkflowBuilder({ templateId, onSaved, onCancel }: Props) {
                     <select
                       value={step.skipCondition.operator}
                       onChange={(e) => updateSkipCondition(i, 'operator', e.target.value)}
+                      disabled={!canAdmin}
                       className="px-2 py-1 bg-surface border border-border rounded text-text-primary text-xs focus:outline-none focus:ring-2 focus:ring-accent"
                     >
                       {CONDITION_OPERATORS.map((op) => (
@@ -463,6 +470,7 @@ export function WorkflowBuilder({ templateId, onSaved, onCancel }: Props) {
                       type="text"
                       value={step.skipCondition.value}
                       onChange={(e) => updateSkipCondition(i, 'value', e.target.value)}
+                      disabled={!canAdmin}
                       className="px-2 py-1 bg-surface border border-border rounded text-text-primary text-xs focus:outline-none focus:ring-2 focus:ring-accent w-32"
                       placeholder={t('workflows.conditionValue')}
                     />
@@ -478,7 +486,7 @@ export function WorkflowBuilder({ templateId, onSaved, onCancel }: Props) {
       <div className="flex items-center gap-3 pt-2">
         <button
           onClick={handleSave}
-          disabled={saving}
+          disabled={saving || !canAdmin}
           className="inline-flex items-center gap-2 px-4 py-2 bg-accent text-white rounded-lg hover:bg-accent/90 transition-colors text-sm font-medium disabled:opacity-50"
         >
           <Save className="w-4 h-4" />

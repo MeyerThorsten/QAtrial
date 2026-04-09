@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { useDesignControlStore, PHASE_ORDER } from '../../store/useDesignControlStore';
 import { useProjectStore } from '../../store/useProjectStore';
+import { getProjectId } from '../../lib/projectUtils';
 import type { DesignControlItem, DesignPhase } from '../../types';
 
 const PHASE_LABELS: Record<DesignPhase, string> = {
@@ -53,7 +54,7 @@ export function DesignControlView() {
   const [newTitle, setNewTitle] = useState('');
   const [newDescription, setNewDescription] = useState('');
 
-  const projectId = project?.name ?? 'default';
+  const projectId = getProjectId(project) || 'default';
 
   const itemsByPhase = useMemo(() => {
     const map: Record<DesignPhase, DesignControlItem[]> = {

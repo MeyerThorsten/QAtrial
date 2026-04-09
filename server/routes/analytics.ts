@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
-import { prisma } from '../index.js';
-import { authMiddleware } from '../middleware/auth.js';
+import { findAccessibleProject } from '../lib/projectAccess.js';
+import { prisma } from '../lib/prisma.js';
+import { authMiddleware, getUser } from '../middleware/auth.js';
 
 interface Anomaly {
   type: 'deviation_spike' | 'yield_drop' | 'oos_trend' | 'complaint_spike' | 'supplier_degradation';
@@ -37,11 +38,20 @@ function rollingAverage(values: number[], window: number): number {
   return mean(slice);
 }
 
+async function ensureAccessibleProject(projectId: string, orgId: string | null) {
+  return findAccessibleProject(projectId, orgId);
+}
+
 // ── GET /:projectId/anomalies — run ALL anomaly checks ─────────────────────
 
 analytics.get('/:projectId/anomalies', async (c) => {
   try {
+    const user = getUser(c);
     const { projectId } = c.req.param();
+    const project = await ensureAccessibleProject(projectId, user.orgId);
+    if (!project) {
+      return c.json({ message: 'Project not found' }, 404);
+    }
     const allAnomalies: Anomaly[] = [];
 
     // Run all checks in parallel
@@ -49,7 +59,7 @@ analytics.get('/:projectId/anomalies', async (c) => {
       runDeviationAnomalies(projectId),
       runStabilityTrends(projectId),
       runComplaintSpikes(projectId),
-      runSupplierAnomalies(),
+      runSupplierAnomalies(user.orgId),
       runBatchAnomalies(projectId),
     ]);
 
@@ -72,7 +82,12 @@ analytics.get('/:projectId/anomalies', async (c) => {
 
 analytics.get('/:projectId/deviation-anomalies', async (c) => {
   try {
+    const user = getUser(c);
     const { projectId } = c.req.param();
+    const project = await ensureAccessibleProject(projectId, user.orgId);
+    if (!project) {
+      return c.json({ message: 'Project not found' }, 404);
+    }
     const anomalies = await runDeviationAnomalies(projectId);
     return c.json({ anomalies });
   } catch (error: any) {
@@ -132,7 +147,12 @@ async function runDeviationAnomalies(projectId: string): Promise<Anomaly[]> {
 
 analytics.get('/:projectId/stability-trends', async (c) => {
   try {
+    const user = getUser(c);
     const { projectId } = c.req.param();
+    const project = await ensureAccessibleProject(projectId, user.orgId);
+    if (!project) {
+      return c.json({ message: 'Project not found' }, 404);
+    }
     const anomalies = await runStabilityTrends(projectId);
     return c.json({ anomalies });
   } catch (error: any) {
@@ -223,7 +243,12 @@ async function runStabilityTrends(projectId: string): Promise<Anomaly[]> {
 
 analytics.get('/:projectId/complaint-spikes', async (c) => {
   try {
+    const user = getUser(c);
     const { projectId } = c.req.param();
+    const project = await ensureAccessibleProject(projectId, user.orgId);
+    if (!project) {
+      return c.json({ message: 'Project not found' }, 404);
+    }
     const anomalies = await runComplaintSpikes(projectId);
     return c.json({ anomalies });
   } catch (error: any) {
@@ -289,7 +314,13 @@ async function runComplaintSpikes(projectId: string): Promise<Anomaly[]> {
 
 analytics.get('/:projectId/supplier-anomalies', async (c) => {
   try {
-    const anomalies = await runSupplierAnomalies();
+    const user = getUser(c);
+    const { projectId } = c.req.param();
+    const project = await ensureAccessibleProject(projectId, user.orgId);
+    if (!project) {
+      return c.json({ message: 'Project not found' }, 404);
+    }
+    const anomalies = await runSupplierAnomalies(user.orgId);
     return c.json({ anomalies });
   } catch (error: any) {
     console.error('Supplier anomalies error:', error);
@@ -297,12 +328,16 @@ analytics.get('/:projectId/supplier-anomalies', async (c) => {
   }
 });
 
-async function runSupplierAnomalies(): Promise<Anomaly[]> {
+async function runSupplierAnomalies(orgId: string | null): Promise<Anomaly[]> {
   const anomalies: Anomaly[] = [];
+  if (!orgId) {
+    return anomalies;
+  }
   const twelveMonthsAgo = new Date();
   twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 12);
 
   const suppliers = await prisma.supplier.findMany({
+    where: { orgId },
     include: {
       audits: {
         where: { status: 'completed', auditDate: { gte: twelveMonthsAgo } },
@@ -343,7 +378,12 @@ async function runSupplierAnomalies(): Promise<Anomaly[]> {
 
 analytics.get('/:projectId/batch-anomalies', async (c) => {
   try {
+    const user = getUser(c);
     const { projectId } = c.req.param();
+    const project = await ensureAccessibleProject(projectId, user.orgId);
+    if (!project) {
+      return c.json({ message: 'Project not found' }, 404);
+    }
     const anomalies = await runBatchAnomalies(projectId);
     return c.json({ anomalies });
   } catch (error: any) {

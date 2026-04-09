@@ -1,8 +1,11 @@
-import { useState, useEffect } from 'react';
+import { Fragment, useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FileText, Plus, History } from 'lucide-react';
 import { useProjectStore } from '../../store/useProjectStore';
 import { useAuth } from '../../hooks/useAuth';
+import { apiFetch } from '../../lib/apiClient';
+import { roleHasPermission } from '../../lib/permissions';
+import { getProjectId } from '../../lib/projectUtils';
 
 interface DocumentVersion {
   id: string;
@@ -31,34 +34,33 @@ interface Document {
 export function DocumentManager() {
   const { t } = useTranslation();
   const project = useProjectStore((s) => s.project);
-  const { token } = useAuth();
+  const { token, user } = useAuth();
   const [documents, setDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [expandedDoc, setExpandedDoc] = useState<Document | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [showNewVersionForm, setShowNewVersionForm] = useState<string | null>(null);
+  const projectId = getProjectId(project);
+  const canEdit = roleHasPermission(user?.role, 'canEdit');
+  const canApprove = roleHasPermission(user?.role, 'canApprove');
 
   // Create form
   const [newDoc, setNewDoc] = useState({ title: '', type: 'sop', content: '' });
   // New version form
   const [newVersion, setNewVersion] = useState({ content: '', changeReason: '', majorVersion: false });
 
-  const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3001';
-
   const fetchDocuments = async () => {
-    if (!project?.name || !token) return;
+    if (!projectId || !token) return;
     setLoading(true);
     try {
-      const res = await fetch(`${apiBase}/api/documents?projectId=${project.name}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setDocuments(data.documents || []);
-      }
+      const data = await apiFetch<{ documents: Document[] }>(`/documents?projectId=${encodeURIComponent(projectId)}`);
+      setDocuments(data.documents || []);
+      setError('');
     } catch (err) {
       console.error('Failed to fetch documents:', err);
+      setError(err instanceof Error ? err.message : 'Failed to fetch documents');
     } finally {
       setLoading(false);
     }
@@ -67,86 +69,81 @@ export function DocumentManager() {
   const fetchDocDetail = async (id: string) => {
     if (!token) return;
     try {
-      const res = await fetch(`${apiBase}/api/documents/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setExpandedDoc(data.document);
-      }
+      const data = await apiFetch<{ document: Document }>(`/documents/${id}`);
+      setExpandedDoc(data.document);
+      setError('');
     } catch (err) {
       console.error('Failed to fetch document detail:', err);
+      setError(err instanceof Error ? err.message : 'Failed to fetch document detail');
     }
   };
 
   useEffect(() => {
     fetchDocuments();
-  }, [project?.name, token]);
+  }, [projectId, token]);
 
   const handleCreate = async () => {
-    if (!project?.name || !token || !newDoc.title) return;
+    if (!projectId || !token || !newDoc.title || !canEdit) return;
     try {
-      const res = await fetch(`${apiBase}/api/documents`, {
+      await apiFetch('/documents', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ projectId: project.name, ...newDoc }),
+        body: JSON.stringify({ projectId, ...newDoc }),
       });
-      if (res.ok) {
-        setShowCreateForm(false);
-        setNewDoc({ title: '', type: 'sop', content: '' });
-        fetchDocuments();
-      }
+      setShowCreateForm(false);
+      setNewDoc({ title: '', type: 'sop', content: '' });
+      setError('');
+      fetchDocuments();
     } catch (err) {
       console.error('Failed to create document:', err);
+      setError(err instanceof Error ? err.message : 'Failed to create document');
     }
   };
 
   const handleCreateVersion = async (docId: string) => {
-    if (!token || !newVersion.changeReason) return;
+    if (!token || !newVersion.changeReason || !canEdit) return;
     try {
-      const res = await fetch(`${apiBase}/api/documents/${docId}/versions`, {
+      await apiFetch(`/documents/${docId}/versions`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify(newVersion),
       });
-      if (res.ok) {
-        setShowNewVersionForm(null);
-        setNewVersion({ content: '', changeReason: '', majorVersion: false });
-        fetchDocuments();
-        if (expandedId === docId) fetchDocDetail(docId);
-      }
+      setShowNewVersionForm(null);
+      setNewVersion({ content: '', changeReason: '', majorVersion: false });
+      setError('');
+      fetchDocuments();
+      if (expandedId === docId) fetchDocDetail(docId);
     } catch (err) {
       console.error('Failed to create version:', err);
+      setError(err instanceof Error ? err.message : 'Failed to create document version');
     }
   };
 
   const handleReview = async (docId: string, status: string) => {
     if (!token) return;
     try {
-      const res = await fetch(`${apiBase}/api/documents/${docId}/review`, {
+      await apiFetch(`/documents/${docId}/review`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ status }),
       });
-      if (res.ok) {
-        fetchDocuments();
-        if (expandedId === docId) fetchDocDetail(docId);
-      }
+      setError('');
+      fetchDocuments();
+      if (expandedId === docId) fetchDocDetail(docId);
     } catch (err) {
       console.error('Failed to update review status:', err);
+      setError(err instanceof Error ? err.message : 'Failed to update review status');
     }
   };
 
   const handleRetire = async (docId: string) => {
-    if (!token) return;
+    if (!token || !canApprove) return;
     try {
-      await fetch(`${apiBase}/api/documents/${docId}/retire`, {
+      await apiFetch(`/documents/${docId}/retire`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       });
+      setError('');
       fetchDocuments();
     } catch (err) {
       console.error('Failed to retire document:', err);
+      setError(err instanceof Error ? err.message : 'Failed to retire document');
     }
   };
 
@@ -187,19 +184,27 @@ export function DocumentManager() {
 
   return (
     <div className="space-y-6">
+      {error && (
+        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {error}
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <FileText className="w-5 h-5 text-accent" />
           <h2 className="text-lg font-semibold text-text-primary">{t('documents.title')}</h2>
         </div>
-        <button
-          onClick={() => setShowCreateForm(true)}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white bg-accent rounded-lg hover:bg-accent/90 transition-colors"
-        >
-          <Plus className="w-4 h-4" />
-          {t('documents.createDocument')}
-        </button>
+        {canEdit && (
+          <button
+            onClick={() => setShowCreateForm(true)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white bg-accent rounded-lg hover:bg-accent/90 transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            {t('documents.createDocument')}
+          </button>
+        )}
       </div>
 
       {/* Create Form */}
@@ -265,8 +270,8 @@ export function DocumentManager() {
             </thead>
             <tbody>
               {documents.map((doc) => (
-                <>
-                  <tr key={doc.id} className="border-b border-border hover:bg-surface-hover transition-colors">
+                <Fragment key={doc.id}>
+                  <tr className="border-b border-border hover:bg-surface-hover transition-colors">
                     <td className="px-4 py-3 text-text-primary font-medium">{doc.title}</td>
                     <td className="px-4 py-3">
                       <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${typeColors[doc.type] || 'bg-gray-100 text-gray-700'}`}>
@@ -291,7 +296,7 @@ export function DocumentManager() {
                         >
                           <History className="w-3 h-3" />
                         </button>
-                        {doc.status === 'draft' && (
+                        {canEdit && doc.status === 'draft' && (
                           <button
                             onClick={() => handleReview(doc.id, 'in_review')}
                             className="text-xs text-purple-600 hover:underline"
@@ -299,7 +304,7 @@ export function DocumentManager() {
                             {t('documents.submitForReview')}
                           </button>
                         )}
-                        {doc.status === 'in_review' && (
+                        {canApprove && doc.status === 'in_review' && (
                           <button
                             onClick={() => handleReview(doc.id, 'approved')}
                             className="text-xs text-blue-600 hover:underline"
@@ -307,7 +312,7 @@ export function DocumentManager() {
                             {t('documents.approve')}
                           </button>
                         )}
-                        {doc.status === 'approved' && (
+                        {canApprove && doc.status === 'approved' && (
                           <button
                             onClick={() => handleReview(doc.id, 'effective')}
                             className="text-xs text-green-600 hover:underline"
@@ -315,7 +320,7 @@ export function DocumentManager() {
                             {t('documents.makeEffective')}
                           </button>
                         )}
-                        {doc.status === 'effective' && (
+                        {canApprove && doc.status === 'effective' && (
                           <button
                             onClick={() => handleRetire(doc.id)}
                             className="text-xs text-red-600 hover:underline"
@@ -323,18 +328,20 @@ export function DocumentManager() {
                             {t('documents.retire')}
                           </button>
                         )}
-                        <button
-                          onClick={() => setShowNewVersionForm(showNewVersionForm === doc.id ? null : doc.id)}
-                          className="text-xs text-accent hover:underline"
-                        >
-                          {t('documents.newVersion')}
-                        </button>
+                        {canEdit && (
+                          <button
+                            onClick={() => setShowNewVersionForm(showNewVersionForm === doc.id ? null : doc.id)}
+                            className="text-xs text-accent hover:underline"
+                          >
+                            {t('documents.newVersion')}
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>
 
                   {/* New Version Form */}
-                  {showNewVersionForm === doc.id && (
+                  {canEdit && showNewVersionForm === doc.id && (
                     <tr key={`${doc.id}-newversion`}>
                       <td colSpan={6} className="px-4 py-3 bg-surface-secondary">
                         <div className="space-y-2">
@@ -409,7 +416,7 @@ export function DocumentManager() {
                       </td>
                     </tr>
                   )}
-                </>
+                </Fragment>
               ))}
             </tbody>
           </table>

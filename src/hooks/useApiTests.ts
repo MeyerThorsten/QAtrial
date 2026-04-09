@@ -2,6 +2,12 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { apiFetch } from '../lib/apiClient';
 import type { Test } from '../types';
 
+type TestListResponse = Test[] | { tests: Test[] };
+
+function unwrapTests(data: TestListResponse): Test[] {
+  return Array.isArray(data) ? data : data.tests ?? [];
+}
+
 export function useApiTests(projectId: string) {
   const [tests, setTests] = useState<Test[]>([]);
   const [loading, setLoading] = useState(true);
@@ -9,12 +15,18 @@ export function useApiTests(projectId: string) {
   const mountedRef = useRef(true);
 
   const fetchAll = useCallback(async () => {
-    if (!projectId) return;
+    if (!projectId) {
+      if (mountedRef.current) {
+        setTests([]);
+        setLoading(false);
+      }
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
-      const data = await apiFetch<Test[]>(`/tests?projectId=${encodeURIComponent(projectId)}`);
-      if (mountedRef.current) setTests(data);
+      const data = await apiFetch<TestListResponse>(`/tests?projectId=${encodeURIComponent(projectId)}`);
+      if (mountedRef.current) setTests(unwrapTests(data));
     } catch (err: unknown) {
       if (mountedRef.current) {
         const msg = err instanceof Error ? err.message : String(err); if (msg.includes('401')) {

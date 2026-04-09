@@ -1,4 +1,4 @@
-import { useState, lazy, Suspense } from 'react';
+import { useState, lazy, Suspense, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ClipboardList, FlaskConical, BarChart3, FolderPlus, ScrollText, X, FileText, Settings, Layers, LogOut, Users, FileSpreadsheet, Download, AlertTriangle, Building2, Beaker, GraduationCap, FileCheck, Server, GitBranch, Activity, Barcode, TestTube2, Thermometer, ClipboardCheck, Workflow, RefreshCw, TriangleAlert, CheckSquare, Gauge } from 'lucide-react';
 import { ImportExportBar } from '../shared/ImportExportBar';
@@ -11,12 +11,19 @@ import { NotificationInbox } from '../shared/NotificationInbox';
 import { useProjectStore } from '../../store/useProjectStore';
 import { useRequirementsStore } from '../../store/useRequirementsStore';
 import { useTestsStore } from '../../store/useTestsStore';
+import { useAuditStore } from '../../store/useAuditStore';
 import { useAuth } from '../../hooks/useAuth';
 import { useAppMode } from '../../hooks/useAppMode';
+import { useApiProjects } from '../../hooks/useApiProjects';
+import { useApiRequirements } from '../../hooks/useApiRequirements';
+import { useApiTests } from '../../hooks/useApiTests';
+import { useApiAudit } from '../../hooks/useApiAudit';
 import { WorkspaceManager } from '../auth/WorkspaceManager';
 import { MigrateDataButton } from '../auth/MigrateDataButton';
 import { ShareAuditLink } from '../audit/ShareAuditLink';
 import { ShareSupplierLink } from '../suppliers/ShareSupplierLink';
+import { ProjectDataProvider } from '../../context/ProjectDataContext';
+import { getProjectId } from '../../lib/projectUtils';
 import type { ViewTab } from '../../types';
 
 // Lazy-loaded components for code splitting
@@ -58,13 +65,28 @@ export function AppShell() {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<ViewTab>('requirements');
   const project = useProjectStore((s) => s.project);
+  const setProject = useProjectStore((s) => s.setProject);
   const clearProject = useProjectStore((s) => s.clearProject);
   const requirements = useRequirementsStore((s) => s.requirements);
+  const setRequirements = useRequirementsStore((s) => s.setRequirements);
   const tests = useTestsStore((s) => s.tests);
+  const setTests = useTestsStore((s) => s.setTests);
 
   const { user, isAuthenticated, logout } = useAuth();
   const { mode } = useAppMode();
   const isServerMode = mode === 'server';
+
+  const {
+    projects,
+    loading: projectsLoading,
+    activeProject,
+    setActiveProject,
+    refetch: refetchProjects,
+  } = useApiProjects(isServerMode);
+  const activeProjectId = isServerMode ? activeProject?.id ?? getProjectId(project) : '';
+  const requirementApi = useApiRequirements(activeProjectId);
+  const testApi = useApiTests(activeProjectId);
+  const auditApi = useApiAudit(activeProjectId);
 
   const [showWizard, setShowWizard] = useState(false);
   const [confirmNewProject, setConfirmNewProject] = useState(false);
@@ -73,8 +95,101 @@ export function AppShell() {
   const [showImportWizard, setShowImportWizard] = useState(false);
   const [showExportPanel, setShowExportPanel] = useState(false);
 
-  const hasData = project !== null || requirements.length > 0 || tests.length > 0;
-  const wizardVisible = showWizard || !hasData;
+  useEffect(() => {
+    if (!isServerMode || projectsLoading) return;
+
+    if (projects.length === 0) {
+      setActiveProject(null);
+      clearProject();
+      setRequirements([], 1);
+      setTests([], 1);
+      useAuditStore.setState({ entries: [] });
+      return;
+    }
+
+    const storedProjectId = getProjectId(project);
+    if (storedProjectId) {
+      const matchedProject = projects.find((candidate) => candidate.id === storedProjectId);
+      if (matchedProject && activeProject?.id !== matchedProject.id) {
+        setActiveProject(matchedProject);
+        return;
+      }
+    }
+
+    if (!activeProject) {
+      setActiveProject(projects[0]);
+    }
+  }, [
+    activeProject,
+    clearProject,
+    isServerMode,
+    project,
+    projects,
+    projectsLoading,
+    setActiveProject,
+    setRequirements,
+    setTests,
+  ]);
+
+  useEffect(() => {
+    if (!isServerMode || !activeProject) return;
+    setProject(activeProject);
+  }, [activeProject, isServerMode, setProject]);
+
+  useEffect(() => {
+    if (!isServerMode) return;
+    setRequirements(requirementApi.requirements, requirementApi.requirements.length + 1);
+  }, [isServerMode, requirementApi.requirements, setRequirements]);
+
+  useEffect(() => {
+    if (!isServerMode) return;
+    setTests(testApi.tests, testApi.tests.length + 1);
+  }, [isServerMode, setTests, testApi.tests]);
+
+  useEffect(() => {
+    if (!isServerMode) return;
+    useAuditStore.setState({ entries: auditApi.entries });
+  }, [auditApi.entries, isServerMode]);
+
+  const hasLocalData = project !== null || requirements.length > 0 || tests.length > 0;
+  const wizardVisible = showWizard || (isServerMode ? !projectsLoading && projects.length === 0 : !hasLocalData);
+  const shellLoading = isServerMode && !wizardVisible && (
+    projectsLoading ||
+    (Boolean(activeProjectId) && (requirementApi.loading || testApi.loading))
+  );
+
+  const projectDataValue = useMemo(
+    () => ({
+      isServerMode,
+      loading: shellLoading,
+      projects,
+      activeProject,
+      setActiveProject,
+      refetchProjects,
+      createRequirement: requirementApi.create,
+      updateRequirement: requirementApi.update,
+      removeRequirement: requirementApi.remove,
+      createTest: testApi.create,
+      updateTest: testApi.update,
+      removeTest: testApi.remove,
+      refetchAudit: auditApi.refetch,
+    }),
+    [
+      activeProject,
+      auditApi.refetch,
+      isServerMode,
+      projects,
+      refetchProjects,
+      requirementApi.create,
+      requirementApi.remove,
+      requirementApi.update,
+      setActiveProject,
+      shellLoading,
+      testApi.create,
+      testApi.remove,
+      testApi.update,
+    ],
+  );
 
   const tabs: { id: ViewTab; label: string; icon: React.ReactNode }[] = [
     { id: 'requirements', label: t('nav.requirements'), icon: <ClipboardList className="w-4 h-4" /> },
@@ -101,16 +216,13 @@ export function AppShell() {
     { id: 'kpi', label: t('nav.kpi'), icon: <Gauge className="w-4 h-4" /> },
   ];
 
-  if (wizardVisible) {
-    return (
-      <Suspense fallback={<TabSpinner />}>
-        <SetupWizard onComplete={() => setShowWizard(false)} />
-      </Suspense>
-    );
-  }
-
   const handleNewProject = () => {
-    if (hasData) {
+    if (isServerMode) {
+      setShowWizard(true);
+      return;
+    }
+
+    if (hasLocalData) {
       setConfirmNewProject(true);
     } else {
       setShowWizard(true);
@@ -118,6 +230,12 @@ export function AppShell() {
   };
 
   const handleConfirmNewProject = () => {
+    if (isServerMode) {
+      setConfirmNewProject(false);
+      setShowWizard(true);
+      return;
+    }
+
     useRequirementsStore.getState().setRequirements([], 1);
     useTestsStore.getState().setTests([], 1);
     clearProject();
@@ -126,7 +244,13 @@ export function AppShell() {
   };
 
   return (
-    <div className="min-h-screen bg-surface-secondary">
+    <ProjectDataProvider value={projectDataValue}>
+      {wizardVisible ? (
+        <Suspense fallback={<TabSpinner />}>
+          <SetupWizard onComplete={() => setShowWizard(false)} />
+        </Suspense>
+      ) : (
+      <div className="min-h-screen bg-surface-secondary">
       <header className="bg-surface border-b border-border backdrop-blur-sm sticky top-0 z-30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-14">
@@ -148,10 +272,27 @@ export function AppShell() {
                   )}
                 </>
               )}
+              {isServerMode && projects.length > 0 && (
+                <select
+                  value={activeProject?.id ?? ''}
+                  onChange={(event) => {
+                    const nextProject = projects.find((candidate) => candidate.id === event.target.value) ?? null;
+                    setActiveProject(nextProject);
+                  }}
+                  className="ml-2 max-w-[220px] rounded-lg border border-border bg-surface px-2.5 py-1.5 text-sm text-text-secondary focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-colors"
+                  aria-label="Project"
+                >
+                  {projects.map((serverProject) => (
+                    <option key={serverProject.id} value={serverProject.id}>
+                      {serverProject.name}
+                    </option>
+                  ))}
+                </select>
+              )}
             </div>
             <div className="flex items-center gap-2">
               {/* Server mode: migrate data button */}
-              {isServerMode && isAuthenticated && <MigrateDataButton />}
+              {isServerMode && isAuthenticated && <MigrateDataButton projectId={activeProject?.id} />}
 
               <NotificationInbox />
               {/* Share Audit Link — admin only */}
@@ -256,31 +397,35 @@ export function AppShell() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <Suspense fallback={<TabSpinner />}>
-          {activeTab === 'requirements' && <RequirementsTable />}
-          {activeTab === 'tests' && <TestsTable />}
-          {activeTab === 'dashboard' && <EvaluationDashboard />}
-          {activeTab === 'reports' && <ReportGenerator />}
-          {activeTab === 'design_control' && <DesignControlView />}
-          {activeTab === 'complaints' && <ComplaintTrending />}
-          {activeTab === 'suppliers' && <SupplierScorecard />}
-          {activeTab === 'batches' && <BatchRecordForm />}
-          {activeTab === 'training' && <TrainingDashboard />}
-          {activeTab === 'documents' && <DocumentManager />}
-          {activeTab === 'systems' && <SystemInventory />}
-          {activeTab === 'impact' && <ImpactAnalysis />}
-          {activeTab === 'pms' && <PMSDashboard />}
-          {activeTab === 'udi' && <UDIManager />}
-          {activeTab === 'stability' && <StabilityStudyView />}
-          {activeTab === 'envmon' && <EnvironmentalMonitoring />}
-          {activeTab === 'audit_records' && <AuditSchedule />}
-          {activeTab === 'workflows' && <WorkflowInbox />}
-          {activeTab === 'change_control' && <ChangeControlTracker />}
-          {activeTab === 'deviations' && <DeviationInvestigationView />}
-          {activeTab === 'tasks' && <TaskDashboard />}
-          {activeTab === 'kpi' && <KPIDashboardManager />}
-          {activeTab === 'settings' && <SettingsPage />}
-        </Suspense>
+        {shellLoading ? (
+          <TabSpinner />
+        ) : (
+          <Suspense fallback={<TabSpinner />}>
+            {activeTab === 'requirements' && <RequirementsTable />}
+            {activeTab === 'tests' && <TestsTable />}
+            {activeTab === 'dashboard' && <EvaluationDashboard />}
+            {activeTab === 'reports' && <ReportGenerator />}
+            {activeTab === 'design_control' && <DesignControlView />}
+            {activeTab === 'complaints' && <ComplaintTrending />}
+            {activeTab === 'suppliers' && <SupplierScorecard />}
+            {activeTab === 'batches' && <BatchRecordForm />}
+            {activeTab === 'training' && <TrainingDashboard />}
+            {activeTab === 'documents' && <DocumentManager />}
+            {activeTab === 'systems' && <SystemInventory />}
+            {activeTab === 'impact' && <ImpactAnalysis />}
+            {activeTab === 'pms' && <PMSDashboard />}
+            {activeTab === 'udi' && <UDIManager />}
+            {activeTab === 'stability' && <StabilityStudyView />}
+            {activeTab === 'envmon' && <EnvironmentalMonitoring />}
+            {activeTab === 'audit_records' && <AuditSchedule />}
+            {activeTab === 'workflows' && <WorkflowInbox />}
+            {activeTab === 'change_control' && <ChangeControlTracker />}
+            {activeTab === 'deviations' && <DeviationInvestigationView />}
+            {activeTab === 'tasks' && <TaskDashboard />}
+            {activeTab === 'kpi' && <KPIDashboardManager />}
+            {activeTab === 'settings' && <SettingsPage />}
+          </Suspense>
+        )}
       </main>
 
       <ConfirmDialog
@@ -328,5 +473,7 @@ export function AppShell() {
       {/* Export Panel */}
       <ExportPanel open={showExportPanel} onClose={() => setShowExportPanel(false)} />
     </div>
+      )}
+    </ProjectDataProvider>
   );
 }

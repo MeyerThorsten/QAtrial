@@ -3,8 +3,11 @@ import { useTranslation } from 'react-i18next';
 import { Plus, FileEdit, Trash2, CheckCircle2, ArrowRight } from 'lucide-react';
 import { useProjectStore } from '../../store/useProjectStore';
 import { useAuth } from '../../hooks/useAuth';
+import { apiFetch } from '../../lib/apiClient';
+import { roleHasPermission } from '../../lib/permissions';
 import { ChangeControlForm } from './ChangeControlForm';
 import { WorkflowStatus } from '../workflows/WorkflowStatus';
+import { getProjectId } from '../../lib/projectUtils';
 
 const RISK_COLORS: Record<string, string> = {
   low: 'bg-green-500/10 text-green-600',
@@ -16,9 +19,10 @@ const RISK_COLORS: Record<string, string> = {
 export function ChangeControlTracker() {
   const { t } = useTranslation();
   const project = useProjectStore((s) => s.project);
-  const { token } = useAuth();
+  const { token, user } = useAuth();
   const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<any>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -26,40 +30,33 @@ export function ChangeControlTracker() {
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [newTaskAssignee, setNewTaskAssignee] = useState('');
   const [newTaskDue, setNewTaskDue] = useState('');
-
-  const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+  const projectId = getProjectId(project);
+  const canEdit = roleHasPermission(user?.role, 'canEdit');
+  const canDelete = roleHasPermission(user?.role, 'canDelete');
 
   const fetchData = useCallback(async () => {
-    if (!project?.name || !token) return;
+    if (!projectId || !token) return;
     setLoading(true);
     try {
-      const res = await fetch(`${apiBase}/api/change-control?projectId=${project.name}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setItems(data.changeControls || []);
-      }
-    } catch {
-      // ignore
+      const data = await apiFetch<{ changeControls: any[] }>(`/change-control?projectId=${encodeURIComponent(projectId)}`);
+      setItems(data.changeControls || []);
+      setError('');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load change controls');
     } finally {
       setLoading(false);
     }
-  }, [project?.name, token, apiBase]);
+  }, [projectId, token]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
   const fetchExecution = async (executionId: string) => {
     try {
-      const res = await fetch(`${apiBase}/api/workflows/executions/${executionId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setWorkflowExec(data.execution);
-      }
-    } catch {
-      // ignore
+      const data = await apiFetch<{ execution: any }>(`/workflows/executions/${executionId}`);
+      setWorkflowExec(data.execution);
+      setError('');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load workflow execution');
     }
   };
 
@@ -78,56 +75,62 @@ export function ChangeControlTracker() {
   };
 
   const handleDelete = async (id: string) => {
+    if (!canDelete) {
+      setError('Insufficient permissions: requires canDelete');
+      return;
+    }
     try {
-      await fetch(`${apiBase}/api/change-control/${id}`, {
+      await apiFetch(`/change-control/${id}`, {
         method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
       });
+      setError('');
       fetchData();
-    } catch {
-      // ignore
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete change control');
     }
   };
 
   const handleAddTask = async (ccId: string) => {
-    if (!newTaskTitle.trim()) return;
+    if (!newTaskTitle.trim() || !canEdit) return;
     try {
-      await fetch(`${apiBase}/api/change-control/${ccId}/tasks`, {
+      await apiFetch(`/change-control/${ccId}/tasks`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ title: newTaskTitle, assignee: newTaskAssignee, dueDate: newTaskDue || null }),
       });
       setNewTaskTitle('');
       setNewTaskAssignee('');
       setNewTaskDue('');
+      setError('');
       fetchData();
-    } catch {
-      // ignore
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to add change-control task');
     }
   };
 
   const handleCompleteTask = async (ccId: string, taskId: string) => {
+    if (!canEdit) return;
     try {
-      await fetch(`${apiBase}/api/change-control/${ccId}/tasks/${taskId}`, {
+      await apiFetch(`/change-control/${ccId}/tasks/${taskId}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ status: 'completed' }),
       });
+      setError('');
       fetchData();
-    } catch {
-      // ignore
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update change-control task');
     }
   };
 
   const handleVerifyEffectiveness = async (ccId: string) => {
+    if (!canEdit) return;
     try {
-      await fetch(`${apiBase}/api/change-control/${ccId}/verify-effectiveness`, {
+      await apiFetch(`/change-control/${ccId}/verify-effectiveness`, {
         method: 'PUT',
-        headers: { Authorization: `Bearer ${token}` },
       });
+      setError('');
       fetchData();
-    } catch {
-      // ignore
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to verify effectiveness');
     }
   };
 
@@ -151,15 +154,23 @@ export function ChangeControlTracker() {
 
   return (
     <div className="space-y-4">
+      {error && (
+        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {error}
+        </div>
+      )}
+
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold text-text-primary">{t('changeControl.title')}</h2>
-        <button
-          onClick={() => setShowForm(true)}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-accent bg-accent-subtle rounded-lg hover:bg-accent/20 transition-colors"
-        >
-          <Plus className="w-4 h-4" />
-          {t('changeControl.create')}
-        </button>
+        {canEdit && (
+          <button
+            onClick={() => setShowForm(true)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-accent bg-accent-subtle rounded-lg hover:bg-accent/20 transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            {t('changeControl.create')}
+          </button>
+        )}
       </div>
 
       {items.length === 0 ? (
@@ -184,18 +195,22 @@ export function ChangeControlTracker() {
                   <span className="text-xs text-text-tertiary">{cc.type}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <button
-                    onClick={(e) => { e.stopPropagation(); setEditing(cc); }}
-                    className="p-1 text-text-tertiary hover:text-accent transition-colors"
-                  >
-                    <FileEdit className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); handleDelete(cc.id); }}
-                    className="p-1 text-text-tertiary hover:text-red-500 transition-colors"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                  {canEdit && (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setEditing(cc); }}
+                      className="p-1 text-text-tertiary hover:text-accent transition-colors"
+                    >
+                      <FileEdit className="w-4 h-4" />
+                    </button>
+                  )}
+                  {canDelete && (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); handleDelete(cc.id); }}
+                      className="p-1 text-text-tertiary hover:text-red-500 transition-colors"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
                 </div>
               </div>
 
@@ -285,35 +300,37 @@ export function ChangeControlTracker() {
                     )}
 
                     {/* Add task form */}
-                    <div className="flex items-center gap-2 mt-2">
-                      <input
-                        type="text"
-                        value={newTaskTitle}
-                        onChange={(e) => setNewTaskTitle(e.target.value)}
-                        className="flex-1 px-2 py-1.5 bg-surface-secondary border border-border rounded text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-accent"
-                        placeholder={t('changeControl.newTaskPlaceholder')}
-                      />
-                      <input
-                        type="text"
-                        value={newTaskAssignee}
-                        onChange={(e) => setNewTaskAssignee(e.target.value)}
-                        className="w-28 px-2 py-1.5 bg-surface-secondary border border-border rounded text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-accent"
-                        placeholder={t('changeControl.taskAssignee')}
-                      />
-                      <input
-                        type="date"
-                        value={newTaskDue}
-                        onChange={(e) => setNewTaskDue(e.target.value)}
-                        className="px-2 py-1.5 bg-surface-secondary border border-border rounded text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-accent"
-                      />
-                      <button
-                        onClick={() => handleAddTask(cc.id)}
-                        className="inline-flex items-center gap-1 px-2 py-1.5 text-xs bg-accent text-white rounded hover:bg-accent/90 transition-colors"
-                      >
-                        <Plus className="w-3 h-3" />
-                        {t('changeControl.addTask')}
-                      </button>
-                    </div>
+                    {canEdit && (
+                      <div className="flex items-center gap-2 mt-2">
+                        <input
+                          type="text"
+                          value={newTaskTitle}
+                          onChange={(e) => setNewTaskTitle(e.target.value)}
+                          className="flex-1 px-2 py-1.5 bg-surface-secondary border border-border rounded text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-accent"
+                          placeholder={t('changeControl.newTaskPlaceholder')}
+                        />
+                        <input
+                          type="text"
+                          value={newTaskAssignee}
+                          onChange={(e) => setNewTaskAssignee(e.target.value)}
+                          className="w-28 px-2 py-1.5 bg-surface-secondary border border-border rounded text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-accent"
+                          placeholder={t('changeControl.taskAssignee')}
+                        />
+                        <input
+                          type="date"
+                          value={newTaskDue}
+                          onChange={(e) => setNewTaskDue(e.target.value)}
+                          className="px-2 py-1.5 bg-surface-secondary border border-border rounded text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-accent"
+                        />
+                        <button
+                          onClick={() => handleAddTask(cc.id)}
+                          className="inline-flex items-center gap-1 px-2 py-1.5 text-xs bg-accent text-white rounded hover:bg-accent/90 transition-colors"
+                        >
+                          <Plus className="w-3 h-3" />
+                          {t('changeControl.addTask')}
+                        </button>
+                      </div>
+                    )}
                   </div>
 
                   {/* Effectiveness verification */}
@@ -330,14 +347,14 @@ export function ChangeControlTracker() {
                             </span>
                           )}
                         </div>
-                      ) : (
+                      ) : canEdit ? (
                         <button
                           onClick={() => handleVerifyEffectiveness(cc.id)}
                           className="text-sm px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
                         >
                           {t('changeControl.verifyEffectiveness')}
                         </button>
-                      )}
+                      ) : null}
                     </div>
                   )}
                 </div>

@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
-import { prisma } from '../index.js';
-import { authMiddleware, getUser } from '../middleware/auth.js';
+import { findAccessibleProject } from '../lib/projectAccess.js';
+import { prisma } from '../lib/prisma.js';
+import { authMiddleware, getUser, requirePermission } from '../middleware/auth.js';
 import { logAudit } from '../services/audit.service.js';
 import { dispatchWebhook } from '../services/webhook.service.js';
 
@@ -22,9 +23,14 @@ function isValidTransition(from: string, to: string): boolean {
 // List complaints by projectId with optional filters
 complaints.get('/', async (c) => {
   try {
+    const user = getUser(c);
     const projectId = c.req.query('projectId');
     if (!projectId) {
       return c.json({ message: 'projectId query parameter is required' }, 400);
+    }
+    const project = await findAccessibleProject(projectId, user.orgId);
+    if (!project) {
+      return c.json({ message: 'Project not found' }, 404);
     }
 
     const severity = c.req.query('severity');
@@ -56,9 +62,14 @@ complaints.get('/', async (c) => {
 // Complaint trending data
 complaints.get('/trending', async (c) => {
   try {
+    const user = getUser(c);
     const projectId = c.req.query('projectId');
     if (!projectId) {
       return c.json({ message: 'projectId query parameter is required' }, 400);
+    }
+    const project = await findAccessibleProject(projectId, user.orgId);
+    if (!project) {
+      return c.json({ message: 'Project not found' }, 404);
     }
 
     const allComplaints = await prisma.complaint.findMany({
@@ -126,10 +137,15 @@ complaints.get('/trending', async (c) => {
 // Get single complaint
 complaints.get('/:id', async (c) => {
   try {
+    const user = getUser(c);
     const { id } = c.req.param();
     const item = await prisma.complaint.findUnique({ where: { id } });
 
     if (!item) {
+      return c.json({ message: 'Complaint not found' }, 404);
+    }
+    const project = await findAccessibleProject(item.projectId, user.orgId);
+    if (!project) {
       return c.json({ message: 'Complaint not found' }, 404);
     }
 
@@ -141,7 +157,7 @@ complaints.get('/:id', async (c) => {
 });
 
 // Create complaint
-complaints.post('/', async (c) => {
+complaints.post('/', requirePermission('canEdit'), async (c) => {
   try {
     const user = getUser(c);
     const body = await c.req.json();
@@ -153,6 +169,10 @@ complaints.post('/', async (c) => {
     const validSeverities = ['minor', 'major', 'critical'];
     if (!validSeverities.includes(body.severity)) {
       return c.json({ message: `severity must be one of: ${validSeverities.join(', ')}` }, 400);
+    }
+    const project = await findAccessibleProject(body.projectId, user.orgId);
+    if (!project) {
+      return c.json({ message: 'Project not found' }, 404);
     }
 
     const item = await prisma.complaint.create({
@@ -192,7 +212,7 @@ complaints.post('/', async (c) => {
 });
 
 // Update complaint
-complaints.put('/:id', async (c) => {
+complaints.put('/:id', requirePermission('canEdit'), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();
@@ -200,6 +220,10 @@ complaints.put('/:id', async (c) => {
 
     const existing = await prisma.complaint.findUnique({ where: { id } });
     if (!existing) {
+      return c.json({ message: 'Complaint not found' }, 404);
+    }
+    const project = await findAccessibleProject(existing.projectId, user.orgId);
+    if (!project) {
       return c.json({ message: 'Complaint not found' }, 404);
     }
 
@@ -255,13 +279,17 @@ complaints.put('/:id', async (c) => {
 });
 
 // Delete complaint
-complaints.delete('/:id', async (c) => {
+complaints.delete('/:id', requirePermission('canDelete'), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();
 
     const existing = await prisma.complaint.findUnique({ where: { id } });
     if (!existing) {
+      return c.json({ message: 'Complaint not found' }, 404);
+    }
+    const project = await findAccessibleProject(existing.projectId, user.orgId);
+    if (!project) {
       return c.json({ message: 'Complaint not found' }, 404);
     }
 

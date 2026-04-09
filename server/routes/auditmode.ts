@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import * as jwt from 'jsonwebtoken';
-import { prisma } from '../index.js';
+import { prisma } from '../lib/prisma.js';
 import { authMiddleware, requireRole, getUser } from '../middleware/auth.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'qatrial-dev-secret-change-in-production';
@@ -12,7 +12,30 @@ interface AuditModePayload {
   createdAt: string;
 }
 
-function parseExpiry(expiresIn: string): string {
+type AuditLinkExpiry = '24h' | '72h' | '7d';
+
+function buildTraceabilityLinks(tests: Array<{ id: string; linkedRequirementIds: string[] }>) {
+  return tests.flatMap((test) =>
+    test.linkedRequirementIds.map((requirementId) => ({
+      requirementId,
+      testId: test.id,
+    })),
+  );
+}
+
+async function findProjectForOrg(projectId: string, orgId: string | null) {
+  if (!orgId) return null;
+
+  return prisma.project.findFirst({
+    where: {
+      id: projectId,
+      workspace: { orgId },
+    },
+    select: { id: true },
+  });
+}
+
+function parseExpiry(expiresIn: string): AuditLinkExpiry {
   switch (expiresIn) {
     case '24h': return '24h';
     case '72h': return '72h';
@@ -21,7 +44,7 @@ function parseExpiry(expiresIn: string): string {
   }
 }
 
-function expiryToMs(expiresIn: string): number {
+function expiryToMs(expiresIn: AuditLinkExpiry): number {
   switch (expiresIn) {
     case '24h': return 24 * 60 * 60 * 1000;
     case '72h': return 72 * 60 * 60 * 1000;
@@ -52,9 +75,7 @@ auditMode.post('/create', authMiddleware, requireRole('admin'), async (c) => {
     }
 
     // Verify project exists and belongs to the user's org
-    const project = await prisma.project.findFirst({
-      where: { id: projectId, orgId: user.orgId },
-    });
+    const project = await findProjectForOrg(projectId, user.orgId);
 
     if (!project) {
       return c.json({ message: 'Project not found' }, 404);
@@ -169,9 +190,7 @@ auditMode.get('/:token/traceability', async (c) => {
       orderBy: { createdAt: 'asc' },
     });
 
-    const links = await prisma.requirementTestLink.findMany({
-      where: { projectId: payload.projectId },
-    });
+    const links = buildTraceabilityLinks(tests);
 
     return c.json({ requirements, tests, links });
   } catch (error: any) {
@@ -197,7 +216,6 @@ auditMode.get('/:token/evidence', async (c) => {
         fileSize: true,
         mimeType: true,
         description: true,
-        evidenceType: true,
         uploadedBy: true,
         createdAt: true,
       },
@@ -218,9 +236,9 @@ auditMode.get('/:token/audit-trail', async (c) => {
     const { token } = c.req.param();
     const payload = verifyAuditToken(token);
 
-    const trail = await prisma.auditEntry.findMany({
+    const trail = await prisma.auditLog.findMany({
       where: { projectId: payload.projectId },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { timestamp: 'desc' },
     });
 
     return c.json({ trail });
@@ -239,7 +257,7 @@ auditMode.get('/:token/signatures', async (c) => {
 
     const signatures = await prisma.signature.findMany({
       where: { projectId: payload.projectId },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { timestamp: 'desc' },
     });
 
     return c.json({ signatures });
@@ -276,12 +294,12 @@ auditMode.get('/:token/report', async (c) => {
 
     const signatures = await prisma.signature.findMany({
       where: { projectId: payload.projectId },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { timestamp: 'desc' },
     });
 
-    const trail = await prisma.auditEntry.findMany({
+    const trail = await prisma.auditLog.findMany({
       where: { projectId: payload.projectId },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { timestamp: 'desc' },
       take: 100,
     });
 
@@ -353,7 +371,7 @@ auditMode.get('/:token/report', async (c) => {
   <table>
     <thead><tr><th>Entity</th><th>Meaning</th><th>Signed By</th><th>Date</th></tr></thead>
     <tbody>
-      ${signatures.map((s: any) => `<tr><td>${s.entityType} ${s.entityId}</td><td>${s.meaning}</td><td>${s.signerName || s.signerId}</td><td>${s.createdAt}</td></tr>`).join('')}
+      ${signatures.map((s: any) => `<tr><td>${s.entityType} ${s.entityId}</td><td>${s.meaning}</td><td>${s.userName || s.userId}</td><td>${new Date(s.timestamp).toISOString()}</td></tr>`).join('')}
     </tbody>
   </table>
 
@@ -361,7 +379,7 @@ auditMode.get('/:token/report', async (c) => {
   <table>
     <thead><tr><th>Action</th><th>Entity</th><th>User</th><th>Date</th><th>Reason</th></tr></thead>
     <tbody>
-      ${trail.map((a: any) => `<tr><td>${a.action}</td><td>${a.entityType} ${a.entityId}</td><td>${a.userName || a.userId || '-'}</td><td>${a.createdAt}</td><td>${a.reason || '-'}</td></tr>`).join('')}
+      ${trail.map((a: any) => `<tr><td>${a.action}</td><td>${a.entityType} ${a.entityId}</td><td>${a.userId}</td><td>${new Date(a.timestamp).toISOString()}</td><td>${a.reason || '-'}</td></tr>`).join('')}
     </tbody>
   </table>
 

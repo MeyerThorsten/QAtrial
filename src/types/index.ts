@@ -84,6 +84,7 @@ export interface Test {
 export type ProjectType = 'software' | 'embedded' | 'compliance' | 'empty';
 
 export interface ProjectMeta {
+  id?: string;
   name: string;
   description: string;
   owner: string;
@@ -249,6 +250,7 @@ export interface ReportSection {
 export interface ReportConfig {
   type: ReportType;
   projectId: string;
+  projectName?: string;
   format: string;
   includeSignatures: boolean;
   targetAuthority?: string;

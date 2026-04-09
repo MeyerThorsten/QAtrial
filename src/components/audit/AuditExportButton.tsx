@@ -6,6 +6,9 @@ import { useAuditStore } from '../../store/useAuditStore';
 import { useRequirementsStore } from '../../store/useRequirementsStore';
 import { useTestsStore } from '../../store/useTestsStore';
 import { useProjectStore } from '../../store/useProjectStore';
+import { useAuth } from '../../hooks/useAuth';
+import { getApiBase } from '../../lib/apiClient';
+import { roleHasPermission } from '../../lib/permissions';
 
 interface Props {
   projectId: string;
@@ -14,7 +17,9 @@ interface Props {
 export function AuditExportButton({ projectId }: Props) {
   const { t } = useTranslation();
   const { mode } = useAppMode();
+  const { user } = useAuth();
   const isServerMode = mode === 'server';
+  const canExport = roleHasPermission(user?.role, 'canExport');
 
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState<{ dataSize: number; reportSize: number } | null>(null);
@@ -39,7 +44,7 @@ export function AuditExportButton({ projectId }: Props) {
 
   const exportFromServer = async () => {
     const token = localStorage.getItem('qatrial:token');
-    const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+    const apiBase = getApiBase();
     const headers: Record<string, string> = {};
     if (token) headers['Authorization'] = `Bearer ${token}`;
 
@@ -183,7 +188,7 @@ export function AuditExportButton({ projectId }: Props) {
     <div className="inline-flex items-center gap-2">
       <button
         onClick={handleExport}
-        disabled={loading}
+        disabled={loading || !canExport}
         className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-text-secondary bg-surface border border-border rounded-lg hover:bg-surface-hover transition-colors disabled:opacity-50"
       >
         {loading ? (
@@ -193,6 +198,12 @@ export function AuditExportButton({ projectId }: Props) {
         )}
         {loading ? t('common.loading') : t('audit.exportCSV').replace('(CSV)', '')}
       </button>
+
+      {!canExport && (
+        <span className="text-xs text-text-tertiary">
+          Export not available for your role
+        </span>
+      )}
 
       {success && (
         <span className="inline-flex items-center gap-1 text-xs text-success">
