@@ -1,12 +1,87 @@
 # QAtrial — Regulated Quality Workspace
 
-A country-aware, GxP-aware, AI-assisted quality and validation platform for regulated industries. Inspired by IBM DOORS, extended with industry verticals, AI compliance co-pilot, compliance starter packs, audit mode, Docker deployment, SSO, webhooks, Jira/GitHub integrations, and audit-ready validation documentation.
+**Open-source, AI-powered quality management platform for regulated industries.**
+
+QAtrial is a full-stack quality management system built for pharma, medical devices, biotech, CROs, and software/GAMP teams. It combines requirements and test management with AI-assisted compliance, electronic signatures, audit trails, and industry-specific workflows — all under the AGPL-3.0 license.
+
+**Live Demo:** [qatrial.vercel.app](https://qatrial.vercel.app) | **Website:** [qatrial.com](https://qatrial.com)
+
+---
+
+## Technology
+
+| Layer | Technology | Details |
+|-------|-----------|---------|
+| **Frontend** | React 19 + TypeScript | Vite build, Tailwind CSS 4, Zustand state management, TanStack Table, Recharts |
+| **Backend** | Hono (Node.js) | TypeScript-first HTTP framework, 90+ REST endpoints, 34+ route files |
+| **Database** | PostgreSQL 16 + Prisma v7 | 35+ models, append-only audit trail, relational integrity |
+| **Auth** | JWT + bcrypt + OIDC | Access/refresh tokens, 5-role RBAC, SSO (Okta, Azure AD, Auth0, Keycloak) |
+| **AI** | Multi-provider | Anthropic, OpenAI, OpenRouter, Ollama (local). Server-side proxy for API key security. 9 prompt templates. |
+| **Deployment** | Docker Compose | Multi-stage Dockerfile, PostgreSQL + app in one command. Also runs standalone (no server needed). |
+| **i18n** | react-i18next | 12 languages, 500+ translation keys, lazy-loaded |
+| **PWA** | Service Worker | Offline caching, mutation queue, mobile-optimized views |
+
+## Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                        Browser (React 19)                    │
+│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌───────────────┐  │
+│  │ 70+ UI   │ │ 20+      │ │ PWA      │ │ i18n          │  │
+│  │Components│ │ Zustand   │ │ Service  │ │ 12 languages  │  │
+│  │          │ │ Stores    │ │ Worker   │ │ 500+ keys     │  │
+│  └──────────┘ └──────────┘ └──────────┘ └───────────────┘  │
+│         │              │                                     │
+│   Standalone Mode      │  Server Mode (VITE_API_URL)        │
+│   (localStorage)       │         │                           │
+└────────────────────────┼─────────┼───────────────────────────┘
+                         │         │
+                         ▼         ▼
+              ┌──────────────────────────┐
+              │     Hono API Server      │
+              │     (Port 3001)          │
+              │                          │
+              │  ┌────────────────────┐  │
+              │  │ 34 Route Modules   │  │
+              │  │ JWT + RBAC + OIDC  │  │
+              │  │ Audit Service      │  │
+              │  │ Webhook Dispatch   │  │
+              │  │ AI Proxy           │  │
+              │  └────────────────────┘  │
+              │           │              │
+              └───────────┼──────────────┘
+                          │
+                          ▼
+              ┌──────────────────────────┐
+              │    PostgreSQL 16         │
+              │    (Prisma ORM v7)       │
+              │                          │
+              │  35+ Models:             │
+              │  Users, Projects, Reqs,  │
+              │  Tests, CAPA, Risks,     │
+              │  Evidence, Approvals,    │
+              │  Signatures, Complaints, │
+              │  Suppliers, Batches,     │
+              │  Training, Documents,    │
+              │  Workflows, Deviations,  │
+              │  Stability, UDI, PMS,    │
+              │  Monitoring, Audits,     │
+              │  KPI, Notifications,     │
+              │  Comments, Tasks, ...    │
+              └──────────────────────────┘
+```
+
+**Dual mode:** QAtrial runs in **standalone mode** (browser-only, localStorage, no server needed) for demos and individual use, or **server mode** (PostgreSQL-backed, multi-user, API-driven) for team and enterprise use. Same codebase, same UI — just set `VITE_API_URL` to switch.
 
 ## Core Model
 
 ```
-Country (jurisdiction) x Vertical (domain) x Project Type (execution) x Modules (quality controls)
+Country (jurisdiction) × Vertical (domain) × Project Type (execution) × Modules (quality controls)
 ```
+
+**35+ database models · 90+ API endpoints · 70+ components · 9 AI prompts · 12 languages · 10 verticals · 37 countries · 15 modules · 4 compliance packs · 5 validation documents**
+
+---
 
 ## Features
 
@@ -209,25 +284,15 @@ Light and dark mode with full design system (CSS custom properties, Tailwind tok
 
 ## Tech Stack
 
-| Technology | Purpose |
-|---|---|
-| React 19 | UI Framework |
-| TypeScript | Type Safety |
-| Vite | Build Tool |
-| Tailwind CSS 4 | Styling |
-| Vitest | Test Framework |
-| Zustand | State Management (20+ stores on client) |
-| TanStack Table v8 | Tables |
-| Recharts | Charts |
-| react-i18next | Internationalization |
-| Lucide React | Icons |
-| **Hono** | **Backend HTTP Framework** |
-| **Prisma v7** | **ORM / Database Client** |
-| **PostgreSQL** | **Relational Database** |
-| **JSON Web Tokens** | **Authentication (access + refresh tokens)** |
-| **bcryptjs** | **Password Hashing** |
-| **Docker** | **Container Deployment** |
-| **OIDC** | **SSO Authentication** |
+See the **Technology** table above for the full stack. Key dependencies:
+
+| Category | Packages |
+|----------|----------|
+| **Frontend** | React 19, TypeScript 5.9, Vite 8, Tailwind CSS 4, Zustand 5, TanStack Table v8, Recharts 3, react-i18next, Lucide React |
+| **Backend** | Hono, @hono/node-server, Prisma v7, bcryptjs, jsonwebtoken, uuid |
+| **Database** | PostgreSQL 16 (via Prisma ORM) |
+| **Testing** | Vitest, Testing Library |
+| **Deployment** | Docker, Docker Compose |
 
 ## Project Structure
 
@@ -341,7 +406,7 @@ QAtrial/
 └── vitest.config.ts                 # Test runner configuration
 ```
 
-**160+ TypeScript source files, 35,000+ lines of code, 12 translation files (425+ keys each), 25+ database models, 80+ API endpoints, 28+ route files, 60+ frontend components, 9 AI prompt templates, 5 validation documents**
+**230+ TypeScript source files · 35+ database models · 90+ API endpoints · 34+ route files · 70+ frontend components · 9 AI prompt templates · 12 translation files (500+ keys each) · 5 validation documents**
 
 ## Installation
 
