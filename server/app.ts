@@ -43,6 +43,18 @@ import taskRoutes from './routes/tasks.js';
 import kpiRoutes from './routes/kpi.js';
 import supplierPortalRoutes from './routes/supplierportal.js';
 import analyticsRoutes from './routes/analytics.js';
+import formRoutes from './routes/forms.js';
+import realtimeRoutes from './routes/realtime.js';
+import presenceRoutes from './routes/presence.js';
+import predictiveRoutes from './routes/predictive.js';
+import etmfRoutes from './routes/etmf.js';
+import econsentRoutes from './routes/econsent.js';
+import sapRoutes from './routes/integrations/sap.js';
+import limsRoutes from './routes/integrations/lims.js';
+import submissionRoutes from './routes/submissions.js';
+import scheduledReportRoutes from './routes/scheduled-reports.js';
+import searchRoutes from './routes/search.js';
+import quizRoutes from './routes/quizzes.js';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -96,6 +108,18 @@ export function createApp() {
   app.route('/api/kpi', kpiRoutes);
   app.route('/api/supplier-portal', supplierPortalRoutes);
   app.route('/api/analytics', analyticsRoutes);
+  app.route('/api/forms', formRoutes);
+  app.route('/api/realtime', realtimeRoutes);
+  app.route('/api/presence', presenceRoutes);
+  app.route('/api/predictive', predictiveRoutes);
+  app.route('/api/etmf', etmfRoutes);
+  app.route('/api/econsent', econsentRoutes);
+  app.route('/api/integrations/sap', sapRoutes);
+  app.route('/api/integrations/lims', limsRoutes);
+  app.route('/api/submissions', submissionRoutes);
+  app.route('/api/scheduled-reports', scheduledReportRoutes);
+  app.route('/api/search', searchRoutes);
+  app.route('/api/quizzes', quizRoutes);
 
   app.get('/api/health', (c) => c.json({ status: 'ok', version: '5.0.0' }));
 

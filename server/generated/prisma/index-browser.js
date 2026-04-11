@@ -771,6 +771,189 @@ exports.Prisma.DashboardWidgetScalarFieldEnum = {
   createdAt: 'createdAt'
 };
 
+exports.Prisma.FormTemplateScalarFieldEnum = {
+  id: 'id',
+  orgId: 'orgId',
+  name: 'name',
+  description: 'description',
+  entityType: 'entityType',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.FormFieldScalarFieldEnum = {
+  id: 'id',
+  templateId: 'templateId',
+  order: 'order',
+  label: 'label',
+  type: 'type',
+  required: 'required',
+  options: 'options',
+  placeholder: 'placeholder',
+  helpText: 'helpText',
+  validation: 'validation',
+  conditional: 'conditional',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.FormSubmissionScalarFieldEnum = {
+  id: 'id',
+  templateId: 'templateId',
+  projectId: 'projectId',
+  entityType: 'entityType',
+  entityId: 'entityId',
+  data: 'data',
+  submittedBy: 'submittedBy',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.PresenceRecordScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  userName: 'userName',
+  projectId: 'projectId',
+  entityType: 'entityType',
+  entityId: 'entityId',
+  lastSeen: 'lastSeen'
+};
+
+exports.Prisma.TMFZoneScalarFieldEnum = {
+  id: 'id',
+  projectId: 'projectId',
+  number: 'number',
+  name: 'name',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.TMFSectionScalarFieldEnum = {
+  id: 'id',
+  zoneId: 'zoneId',
+  number: 'number',
+  name: 'name',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.TMFArtifactScalarFieldEnum = {
+  id: 'id',
+  sectionId: 'sectionId',
+  name: 'name',
+  fileName: 'fileName',
+  fileSize: 'fileSize',
+  storagePath: 'storagePath',
+  status: 'status',
+  retentionYears: 'retentionYears',
+  uploadedBy: 'uploadedBy',
+  uploadedAt: 'uploadedAt',
+  approvedBy: 'approvedBy',
+  approvedAt: 'approvedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.ConsentFormScalarFieldEnum = {
+  id: 'id',
+  projectId: 'projectId',
+  title: 'title',
+  version: 'version',
+  status: 'status',
+  content: 'content',
+  language: 'language',
+  comprehensionQuestions: 'comprehensionQuestions',
+  requireComprehension: 'requireComprehension',
+  reconsentOnAmendment: 'reconsentOnAmendment',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.ConsentSignatureScalarFieldEnum = {
+  id: 'id',
+  consentFormId: 'consentFormId',
+  subjectId: 'subjectId',
+  signedAt: 'signedAt',
+  comprehensionScore: 'comprehensionScore',
+  comprehensionPassed: 'comprehensionPassed',
+  withdrawnAt: 'withdrawnAt',
+  withdrawalReason: 'withdrawalReason',
+  witnessName: 'witnessName',
+  witnessSignedAt: 'witnessSignedAt',
+  method: 'method',
+  ipAddress: 'ipAddress',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.SubmissionPackageScalarFieldEnum = {
+  id: 'id',
+  projectId: 'projectId',
+  type: 'type',
+  title: 'title',
+  status: 'status',
+  targetAuthority: 'targetAuthority',
+  sections: 'sections',
+  generatedAt: 'generatedAt',
+  submittedAt: 'submittedAt',
+  createdBy: 'createdBy',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.ScheduledReportScalarFieldEnum = {
+  id: 'id',
+  orgId: 'orgId',
+  projectId: 'projectId',
+  reportType: 'reportType',
+  schedule: 'schedule',
+  recipients: 'recipients',
+  format: 'format',
+  enabled: 'enabled',
+  lastRunAt: 'lastRunAt',
+  lastStatus: 'lastStatus',
+  createdBy: 'createdBy',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.QuizScalarFieldEnum = {
+  id: 'id',
+  courseId: 'courseId',
+  title: 'title',
+  passingScore: 'passingScore',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.QuizQuestionScalarFieldEnum = {
+  id: 'id',
+  quizId: 'quizId',
+  order: 'order',
+  question: 'question',
+  type: 'type',
+  options: 'options',
+  correctAnswers: 'correctAnswers',
+  explanation: 'explanation',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.QuizAttemptScalarFieldEnum = {
+  id: 'id',
+  quizId: 'quizId',
+  userId: 'userId',
+  answers: 'answers',
+  score: 'score',
+  passed: 'passed',
+  completedAt: 'completedAt'
+};
+
+exports.Prisma.DocumentDistributionScalarFieldEnum = {
+  id: 'id',
+  documentId: 'documentId',
+  userId: 'userId',
+  userName: 'userName',
+  distributedAt: 'distributedAt',
+  acknowledgedAt: 'acknowledgedAt',
+  version: 'version'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -849,7 +1032,22 @@ exports.Prisma.ModelName = {
   Comment: 'Comment',
   QTask: 'QTask',
   CustomDashboard: 'CustomDashboard',
-  DashboardWidget: 'DashboardWidget'
+  DashboardWidget: 'DashboardWidget',
+  FormTemplate: 'FormTemplate',
+  FormField: 'FormField',
+  FormSubmission: 'FormSubmission',
+  PresenceRecord: 'PresenceRecord',
+  TMFZone: 'TMFZone',
+  TMFSection: 'TMFSection',
+  TMFArtifact: 'TMFArtifact',
+  ConsentForm: 'ConsentForm',
+  ConsentSignature: 'ConsentSignature',
+  SubmissionPackage: 'SubmissionPackage',
+  ScheduledReport: 'ScheduledReport',
+  Quiz: 'Quiz',
+  QuizQuestion: 'QuizQuestion',
+  QuizAttempt: 'QuizAttempt',
+  DocumentDistribution: 'DocumentDistribution'
 };
 
 /**

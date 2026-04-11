@@ -66,6 +66,9 @@ model Project {
   changeControls   ChangeControl[]
   deviations       Deviation[]
   tasks            QTask[]
+  tmfZones         TMFZone[]
+  consentForms     ConsentForm[]
+  submissions      SubmissionPackage[]
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @updatedAt
 }
@@ -339,6 +342,7 @@ model Course {
   version         String           @default("1.0")
   durationMinutes Int?
   records         TrainingRecord[]
+  quizzes         Quiz[]
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
 }
@@ -356,17 +360,18 @@ model TrainingRecord {
 }
 
 model Document {
-  id               String            @id @default(uuid())
+  id               String                  @id @default(uuid())
   projectId        String
-  project          Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  project          Project                 @relation(fields: [projectId], references: [id], onDelete: Cascade)
   title            String
-  type             String            @default("sop") // sop, work_instruction, policy, form, specification
-  currentVersion   String            @default("1.0")
-  status           String            @default("draft") // draft, in_review, approved, effective, superseded, retired
+  type             String                  @default("sop") // sop, work_instruction, policy, form, specification
+  currentVersion   String                  @default("1.0")
+  status           String                  @default("draft") // draft, in_review, approved, effective, superseded, retired
   versions         DocumentVersion[]
+  distributions    DocumentDistribution[]
   createdBy        String?
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
+  createdAt        DateTime                @default(now())
+  updatedAt        DateTime                @updatedAt
 }
 
 model DocumentVersion {
@@ -730,4 +735,222 @@ model DashboardWidget {
   position      Int             @default(0)
   size          String          @default("medium") // small, medium, large
   createdAt     DateTime        @default(now())
+}
+
+// ── Form Builder ────────────────────────────────────────────────────────────
+
+model FormTemplate {
+  id          String           @id @default(uuid())
+  orgId       String
+  name        String
+  description String           @default("")
+  entityType  String           @default("custom") // deviation_investigation, complaint_intake, audit_checklist, custom
+  fields      FormField[]
+  submissions FormSubmission[]
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+}
+
+model FormField {
+  id          String       @id @default(uuid())
+  templateId  String
+  template    FormTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  order       Int
+  label       String
+  type        String       // text, textarea, number, date, select, multi_select, checkbox, radio, file, signature, section_header
+  required    Boolean      @default(false)
+  options     Json?        // for select/radio: ["Option A", "Option B"]
+  placeholder String?
+  helpText    String?
+  validation  Json?        // { min?, max?, pattern?, minLength?, maxLength? }
+  conditional Json?        // { dependsOnField: id, showWhen: value }
+  createdAt   DateTime     @default(now())
+}
+
+model FormSubmission {
+  id          String       @id @default(uuid())
+  templateId  String
+  template    FormTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  projectId   String
+  entityType  String?
+  entityId    String?
+  data        Json         // { fieldId: value, ... }
+  submittedBy String
+  status      String       @default("submitted") // submitted, reviewed, approved
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+// ── Realtime Presence ───────────────────────────────────────────────────────
+
+model PresenceRecord {
+  id          String   @id @default(uuid())
+  userId      String
+  userName    String
+  projectId   String
+  entityType  String?
+  entityId    String?
+  lastSeen    DateTime @default(now())
+}
+
+// ── eTMF (Electronic Trial Master File) ──────────────────────────────────────
+
+model TMFZone {
+  id          String       @id @default(uuid())
+  projectId   String
+  project     Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  number      Int
+  name        String
+  sections    TMFSection[]
+  createdAt   DateTime     @default(now())
+}
+
+model TMFSection {
+  id          String        @id @default(uuid())
+  zoneId      String
+  zone        TMFZone       @relation(fields: [zoneId], references: [id], onDelete: Cascade)
+  number      String
+  name        String
+  artifacts   TMFArtifact[]
+  createdAt   DateTime      @default(now())
+}
+
+model TMFArtifact {
+  id              String     @id @default(uuid())
+  sectionId       String
+  section         TMFSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  name            String
+  fileName        String?
+  fileSize        Int?
+  storagePath     String?
+  status          String     @default("expected")
+  retentionYears  Int        @default(25)
+  uploadedBy      String?
+  uploadedAt      DateTime?
+  approvedBy      String?
+  approvedAt      DateTime?
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+}
+
+// ── eConsent ─────────────────────────────────────────────────────────────────
+
+model ConsentForm {
+  id                      String             @id @default(uuid())
+  projectId               String
+  project                 Project            @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  title                   String
+  version                 String             @default("1.0")
+  status                  String             @default("draft")
+  content                 String             @default("")
+  language                String             @default("en")
+  comprehensionQuestions  Json?
+  requireComprehension    Boolean            @default(true)
+  reconsentOnAmendment    Boolean            @default(true)
+  signatures              ConsentSignature[]
+  createdAt               DateTime           @default(now())
+  updatedAt               DateTime           @updatedAt
+}
+
+model ConsentSignature {
+  id                  String      @id @default(uuid())
+  consentFormId       String
+  consentForm         ConsentForm @relation(fields: [consentFormId], references: [id], onDelete: Cascade)
+  subjectId           String
+  signedAt            DateTime    @default(now())
+  comprehensionScore  Int?
+  comprehensionPassed Boolean     @default(true)
+  withdrawnAt         DateTime?
+  withdrawalReason    String?
+  witnessName         String?
+  witnessSignedAt     DateTime?
+  method              String      @default("electronic")
+  ipAddress           String?
+  createdAt           DateTime    @default(now())
+}
+
+// ── Submission Builder ──────────────────────────────────────────────────────
+
+model SubmissionPackage {
+  id              String   @id @default(uuid())
+  projectId       String
+  project         Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  type            String   // fda_510k, eu_mdr_td, pmda_sted, ectd_module3
+  title           String
+  status          String   @default("draft") // draft, in_progress, review, submitted
+  targetAuthority String   // FDA, EMA, PMDA, Notified Body
+  sections        Json     // structured sections with content
+  generatedAt     DateTime?
+  submittedAt     DateTime?
+  createdBy       String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+// ── Scheduled Reports ───────────────────────────────────────────────────────
+
+model ScheduledReport {
+  id          String   @id @default(uuid())
+  orgId       String
+  projectId   String
+  reportType  String   // validation_summary, executive_brief, gap_analysis, risk_assessment, traceability
+  schedule    String   // cron expression: "0 8 * * 1" = every Monday 8am
+  recipients  String[] @default([])
+  format      String   @default("html") // html, pdf
+  enabled     Boolean  @default(true)
+  lastRunAt   DateTime?
+  lastStatus  String?
+  createdBy   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// ── Quiz Builder ────────────────────────────────────────────────────────────
+
+model Quiz {
+  id          String         @id @default(uuid())
+  courseId    String
+  course      Course         @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  title       String
+  passingScore Int           @default(80)
+  questions   QuizQuestion[]
+  attempts    QuizAttempt[]
+  createdAt   DateTime       @default(now())
+}
+
+model QuizQuestion {
+  id             String   @id @default(uuid())
+  quizId         String
+  quiz           Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  order          Int
+  question       String
+  type           String   @default("multiple_choice") // multiple_choice, true_false, multi_select
+  options        Json     // ["Option A", "Option B", "Option C", "Option D"]
+  correctAnswers Json     // [0] for single, [0, 2] for multi_select
+  explanation    String?
+  createdAt      DateTime @default(now())
+}
+
+model QuizAttempt {
+  id          String   @id @default(uuid())
+  quizId      String
+  quiz        Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  userId      String
+  answers     Json     // { questionId: selectedIndex[] }
+  score       Int      // percentage
+  passed      Boolean
+  completedAt DateTime @default(now())
+}
+
+// ── Document Distribution ───────────────────────────────────────────────────
+
+model DocumentDistribution {
+  id             String    @id @default(uuid())
+  documentId     String
+  document       Document  @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  userId         String
+  userName       String
+  distributedAt  DateTime  @default(now())
+  acknowledgedAt DateTime?
+  version        String
 }

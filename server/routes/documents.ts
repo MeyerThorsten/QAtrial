@@ -422,4 +422,116 @@ documents.put('/:id/retire', requirePermission('canApprove'), async (c) => {
   }
 });
 
+// ── Document Distribution ───────────────────────────────────────────────────
+
+// Distribute document to users
+documents.post('/:id/distribute', requirePermission('canEdit'), async (c) => {
+  try {
+    const user = getUser(c);
+    const { id } = c.req.param();
+    const body = await c.req.json();
+
+    if (!body.userIds || !Array.isArray(body.userIds) || body.userIds.length === 0) {
+      return c.json({ message: 'userIds array is required' }, 400);
+    }
+
+    const doc = await prisma.document.findUnique({ where: { id } });
+    if (!doc) return c.json({ message: 'Document not found' }, 404);
+
+    const project = await findAccessibleProject(doc.projectId, user.orgId);
+    if (!project) return c.json({ message: 'Document not found' }, 404);
+
+    // Resolve user names
+    const users = await prisma.user.findMany({
+      where: { id: { in: body.userIds } },
+      select: { id: true, name: true },
+    });
+
+    const userMap = new Map(users.map((u) => [u.id, u.name]));
+
+    const distributions = await Promise.all(
+      body.userIds.map((userId: string) =>
+        prisma.documentDistribution.create({
+          data: {
+            documentId: id,
+            userId,
+            userName: userMap.get(userId) ?? 'Unknown',
+            version: doc.currentVersion,
+          },
+        })
+      )
+    );
+
+    await logAudit({
+      projectId: doc.projectId,
+      userId: user.userId,
+      action: 'create',
+      entityType: 'document_distribution',
+      entityId: id,
+      newValue: { userIds: body.userIds, version: doc.currentVersion },
+    });
+
+    if (user.orgId) {
+      dispatchWebhook(user.orgId, 'document.distributed', {
+        document: doc,
+        distributedTo: body.userIds,
+      });
+    }
+
+    return c.json({ distributions }, 201);
+  } catch (error: any) {
+    console.error('Distribute document error:', error);
+    return c.json({ message: 'Failed to distribute document' }, 500);
+  }
+});
+
+// Acknowledge document distribution
+documents.put('/distributions/:distId/acknowledge', async (c) => {
+  try {
+    const user = getUser(c);
+    const { distId } = c.req.param();
+
+    const dist = await prisma.documentDistribution.findUnique({ where: { id: distId } });
+    if (!dist) return c.json({ message: 'Distribution not found' }, 404);
+
+    if (dist.userId !== user.userId) {
+      return c.json({ message: 'Can only acknowledge your own distributions' }, 403);
+    }
+
+    const updated = await prisma.documentDistribution.update({
+      where: { id: distId },
+      data: { acknowledgedAt: new Date() },
+    });
+
+    return c.json({ distribution: updated });
+  } catch (error: any) {
+    console.error('Acknowledge distribution error:', error);
+    return c.json({ message: 'Failed to acknowledge distribution' }, 500);
+  }
+});
+
+// List distributions for a document
+documents.get('/:id/distributions', async (c) => {
+  try {
+    const user = getUser(c);
+    const { id } = c.req.param();
+
+    const doc = await prisma.document.findUnique({ where: { id } });
+    if (!doc) return c.json({ message: 'Document not found' }, 404);
+
+    const project = await findAccessibleProject(doc.projectId, user.orgId);
+    if (!project) return c.json({ message: 'Document not found' }, 404);
+
+    const distributions = await prisma.documentDistribution.findMany({
+      where: { documentId: id },
+      orderBy: { distributedAt: 'desc' },
+    });
+
+    return c.json({ distributions });
+  } catch (error: any) {
+    console.error('List distributions error:', error);
+    return c.json({ message: 'Failed to list distributions' }, 500);
+  }
+});
+
 export default documents;

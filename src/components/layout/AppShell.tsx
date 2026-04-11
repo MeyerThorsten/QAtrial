@@ -1,6 +1,6 @@
 import { useState, lazy, Suspense, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ClipboardList, FlaskConical, BarChart3, FolderPlus, ScrollText, X, FileText, Settings, Layers, LogOut, Users, FileSpreadsheet, Download, AlertTriangle, Building2, Beaker, GraduationCap, FileCheck, Server, GitBranch, Activity, Barcode, TestTube2, Thermometer, ClipboardCheck, Workflow, RefreshCw, TriangleAlert, CheckSquare, Gauge } from 'lucide-react';
+import { ClipboardList, FlaskConical, BarChart3, FolderPlus, ScrollText, X, FileText, Settings, Layers, LogOut, Users, FileSpreadsheet, Download, AlertTriangle, Building2, Beaker, GraduationCap, FileCheck, Server, GitBranch, Activity, Barcode, TestTube2, Thermometer, ClipboardCheck, Workflow, RefreshCw, TriangleAlert, CheckSquare, Gauge, FormInput, FolderOpen, ShieldCheck, Package, Clock } from 'lucide-react';
 import { ImportExportBar } from '../shared/ImportExportBar';
 import { ImportWizard } from '../import/ImportWizard';
 import { ExportPanel } from '../import/ExportPanel';
@@ -8,6 +8,7 @@ import { ThemeToggle } from '../shared/ThemeToggle';
 import { LanguageSelector } from '../shared/LanguageSelector';
 import { ConfirmDialog } from '../shared/ConfirmDialog';
 import { NotificationInbox } from '../shared/NotificationInbox';
+import { GlobalSearch } from '../shared/GlobalSearch';
 import { useProjectStore } from '../../store/useProjectStore';
 import { useRequirementsStore } from '../../store/useRequirementsStore';
 import { useTestsStore } from '../../store/useTestsStore';
@@ -52,6 +53,11 @@ const ChangeControlTracker = lazy(() => import('../change/ChangeControlTracker')
 const DeviationInvestigationView = lazy(() => import('../deviations/DeviationInvestigation').then((m) => ({ default: m.DeviationInvestigation })));
 const TaskDashboard = lazy(() => import('../tasks/TaskDashboard').then((m) => ({ default: m.TaskDashboard })));
 const KPIDashboardManager = lazy(() => import('../kpi/KPIDashboardManager').then((m) => ({ default: m.KPIDashboardManager })));
+const FormManagerView = lazy(() => import('../forms/FormManagerView').then((m) => ({ default: m.FormManagerView })));
+const ETMFView = lazy(() => import('../etmf/ETMFView').then((m) => ({ default: m.ETMFView })));
+const EConsentManager = lazy(() => import('../econsent/EConsentManager').then((m) => ({ default: m.EConsentManager })));
+const SubmissionBuilder = lazy(() => import('../submissions/SubmissionBuilder').then((m) => ({ default: m.SubmissionBuilder })));
+const ScheduledReports = lazy(() => import('../reports/ScheduledReports').then((m) => ({ default: m.ScheduledReports })));
 
 function TabSpinner() {
   return (
@@ -214,6 +220,11 @@ export function AppShell() {
     { id: 'deviations', label: t('nav.deviations'), icon: <TriangleAlert className="w-4 h-4" /> },
     { id: 'tasks', label: t('nav.tasks'), icon: <CheckSquare className="w-4 h-4" /> },
     { id: 'kpi', label: t('nav.kpi'), icon: <Gauge className="w-4 h-4" /> },
+    { id: 'forms', label: t('nav.forms'), icon: <FormInput className="w-4 h-4" /> },
+    { id: 'etmf', label: t('nav.etmf'), icon: <FolderOpen className="w-4 h-4" /> },
+    { id: 'econsent', label: t('nav.econsent'), icon: <ShieldCheck className="w-4 h-4" /> },
+    { id: 'submissions', label: t('nav.submissions'), icon: <Package className="w-4 h-4" /> },
+    { id: 'scheduled_reports', label: t('nav.scheduledReports'), icon: <Clock className="w-4 h-4" /> },
   ];
 
   const handleNewProject = () => {
@@ -294,6 +305,7 @@ export function AppShell() {
               {/* Server mode: migrate data button */}
               {isServerMode && isAuthenticated && <MigrateDataButton projectId={activeProject?.id} />}
 
+              <GlobalSearch />
               <NotificationInbox />
               {/* Share Audit Link — admin only */}
               {isServerMode && isAuthenticated && <ShareAuditLink />}
@@ -423,6 +435,11 @@ export function AppShell() {
             {activeTab === 'deviations' && <DeviationInvestigationView />}
             {activeTab === 'tasks' && <TaskDashboard />}
             {activeTab === 'kpi' && <KPIDashboardManager />}
+            {activeTab === 'forms' && <FormManagerView />}
+            {activeTab === 'etmf' && <ETMFView />}
+            {activeTab === 'econsent' && <EConsentManager />}
+            {activeTab === 'submissions' && <SubmissionBuilder />}
+            {activeTab === 'scheduled_reports' && <ScheduledReports />}
             {activeTab === 'settings' && <SettingsPage />}
           </Suspense>
         )}

@@ -21,8 +21,9 @@ import { ISO13485Assessment } from './ISO13485Assessment';
 import type { DashboardFilters } from '../../types';
 
 const AnomalyDashboard = lazy(() => import('../analytics/AnomalyDashboard').then((m) => ({ default: m.AnomalyDashboard })));
+const PredictiveView = lazy(() => import('../analytics/PredictiveView').then((m) => ({ default: m.PredictiveView })));
 
-type DashboardTab = 'overview' | 'compliance' | 'iso13485' | 'risk' | 'evidence' | 'capa' | 'trends' | 'portfolio' | 'anomalies';
+type DashboardTab = 'overview' | 'compliance' | 'iso13485' | 'risk' | 'evidence' | 'capa' | 'trends' | 'portfolio' | 'anomalies' | 'predictive';
 
 export function EvaluationDashboard() {
   const { t } = useTranslation();
@@ -66,6 +67,7 @@ export function EvaluationDashboard() {
     { id: 'trends', labelKey: 'dashboard.tabTrends' },
     { id: 'portfolio', labelKey: 'dashboard.tabPortfolio' },
     { id: 'anomalies', labelKey: 'analytics.tabAnomalies' },
+    { id: 'predictive', labelKey: 'predictive.tabPredictive' },
   ];
 
   return (
@@ -147,6 +149,17 @@ export function EvaluationDashboard() {
           </div>
         }>
           <AnomalyDashboard />
+        </Suspense>
+      )}
+
+      {/* Predictive tab */}
+      {activeTab === 'predictive' && (
+        <Suspense fallback={
+          <div className="flex items-center justify-center h-64">
+            <div className="h-6 w-6 rounded-full border-2 border-accent border-t-transparent animate-spin" />
+          </div>
+        }>
+          <PredictiveView />
         </Suspense>
       )}
     </div>
