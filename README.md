@@ -12,66 +12,93 @@ QAtrial is a full-stack quality management system built for pharma, medical devi
 
 | Layer | Technology | Details |
 |-------|-----------|---------|
-| **Frontend** | React 19 + TypeScript | Vite build, Tailwind CSS 4, Zustand state management, TanStack Table, Recharts |
-| **Backend** | Hono (Node.js) | TypeScript-first HTTP framework, 90+ REST endpoints, 34+ route files |
-| **Database** | PostgreSQL 16 + Prisma v7 | 35+ models, append-only audit trail, relational integrity |
-| **Auth** | JWT + bcrypt + OIDC | Access/refresh tokens, 5-role RBAC, SSO (Okta, Azure AD, Auth0, Keycloak) |
-| **AI** | Multi-provider | Anthropic, OpenAI, OpenRouter, Ollama (local). Server-side proxy for API key security. 9 prompt templates. |
-| **Deployment** | Docker Compose | Multi-stage Dockerfile, PostgreSQL + app in one command. Also runs standalone (no server needed). |
-| **i18n** | react-i18next | 12 languages, 500+ translation keys, lazy-loaded |
-| **PWA** | Service Worker | Offline caching, mutation queue, mobile-optimized views |
+| **Frontend** | React 19 + TypeScript | Vite 8, Tailwind CSS 4, Zustand (20+ stores), TanStack Table v8, Recharts 3, Lucide icons |
+| **Backend** | Hono (Node.js) | TypeScript-first HTTP framework, 100+ REST endpoints, 40+ route files, SSE realtime |
+| **Database** | PostgreSQL 16 + Prisma v7 | 45+ models, append-only audit trail, relational integrity, full-text search |
+| **Auth** | JWT + bcrypt + OIDC | Access/refresh tokens, 5-role RBAC, SSO (Okta, Azure AD, Auth0, Keycloak, Google Workspace) |
+| **AI** | Multi-provider (9 prompts) | Anthropic, OpenAI, OpenRouter, Ollama (local). Server-side proxy. Predictive analytics. |
+| **Deployment** | Docker + Helm | Multi-stage Dockerfile, docker-compose (PostgreSQL + app), Helm chart for Kubernetes |
+| **Realtime** | Server-Sent Events | Live entity updates, presence tracking, heartbeat, online user indicators |
+| **i18n** | react-i18next | 12 languages, 500+ translation keys, lazy-loaded via HTTP backend |
+| **PWA** | Service Worker | Offline caching, IndexedDB mutation queue, mobile-optimized views, install prompt |
+| **Clinical** | eTMF + eConsent | TMF Reference Model v3.3, consent forms with comprehension, signatures, re-consent |
+| **Integrations** | 6 connectors | Jira, GitHub, SAP QM, LabWare LIMS + webhooks (14 events, HMAC signing) |
 
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                        Browser (React 19)                    │
-│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌───────────────┐  │
-│  │ 70+ UI   │ │ 20+      │ │ PWA      │ │ i18n          │  │
-│  │Components│ │ Zustand   │ │ Service  │ │ 12 languages  │  │
-│  │          │ │ Stores    │ │ Worker   │ │ 500+ keys     │  │
-│  └──────────┘ └──────────┘ └──────────┘ └───────────────┘  │
-│         │              │                                     │
-│   Standalone Mode      │  Server Mode (VITE_API_URL)        │
-│   (localStorage)       │         │                           │
-└────────────────────────┼─────────┼───────────────────────────┘
+┌──────────────────────────────────────────────────────────────────┐
+│                         Browser (React 19)                        │
+│                                                                    │
+│  ┌───────────┐ ┌───────────┐ ┌───────────┐ ┌──────────────────┐  │
+│  │  80+ UI   │ │  20+      │ │  PWA      │ │  i18n            │  │
+│  │Components │ │  Zustand   │ │  Service  │ │  12 languages    │  │
+│  │  + Forms  │ │  Stores    │ │  Worker + │ │  500+ keys       │  │
+│  │  Builder  │ │  + Hooks   │ │  Offline  │ │  + lazy loading  │  │
+│  └───────────┘ └───────────┘ └───────────┘ └──────────────────┘  │
+│         │              │                                           │
+│   Standalone Mode      │  Server Mode (VITE_API_URL)              │
+│   (localStorage)       │         │                                 │
+└────────────────────────┼─────────┼─────────────────────────────────┘
                          │         │
                          ▼         ▼
-              ┌──────────────────────────┐
-              │     Hono API Server      │
-              │     (Port 3001)          │
-              │                          │
-              │  ┌────────────────────┐  │
-              │  │ 34 Route Modules   │  │
-              │  │ JWT + RBAC + OIDC  │  │
-              │  │ Audit Service      │  │
-              │  │ Webhook Dispatch   │  │
-              │  │ AI Proxy           │  │
-              │  └────────────────────┘  │
-              │           │              │
-              └───────────┼──────────────┘
-                          │
-                          ▼
-              ┌──────────────────────────┐
-              │    PostgreSQL 16         │
-              │    (Prisma ORM v7)       │
-              │                          │
-              │  35+ Models:             │
-              │  Users, Projects, Reqs,  │
-              │  Tests, CAPA, Risks,     │
-              │  Evidence, Approvals,    │
-              │  Signatures, Complaints, │
-              │  Suppliers, Batches,     │
-              │  Training, Documents,    │
-              │  Workflows, Deviations,  │
-              │  Stability, UDI, PMS,    │
-              │  Monitoring, Audits,     │
-              │  KPI, Notifications,     │
-              │  Comments, Tasks, ...    │
-              └──────────────────────────┘
+              ┌───────────────────────────────┐
+              │       Hono API Server          │
+              │       (Port 3001)              │
+              │                                │
+              │  ┌──────────────────────────┐  │
+              │  │  40+ Route Modules       │  │
+              │  │  JWT + RBAC + OIDC SSO   │  │
+              │  │  Audit Service (append)  │  │
+              │  │  Webhook Dispatch (HMAC) │  │
+              │  │  AI Proxy (multi-LLM)    │  │
+              │  │  SSE Realtime + Presence │  │
+              │  │  Predictive Analytics    │  │
+              │  │  Full-Text Search        │  │
+              │  └──────────────────────────┘  │
+              │               │                │
+              └───────────────┼────────────────┘
+                              │
+               ┌──────────────┼──────────────┐
+               │              │              │
+               ▼              ▼              ▼
+    ┌──────────────┐ ┌──────────────┐ ┌──────────────┐
+    │ PostgreSQL 16│ │  File Store  │ │  External    │
+    │ (Prisma v7)  │ │  (uploads/)  │ │  Systems     │
+    │              │ │              │ │              │
+    │ 45+ Models:  │ │  Evidence    │ │  Jira Cloud  │
+    │ Users, Orgs, │ │  eTMF docs   │ │  GitHub      │
+    │ Projects,    │ │  Batch files │ │  SAP QM      │
+    │ Requirements,│ │  Form files  │ │  LabWare     │
+    │ Tests, CAPA, │ │              │ │  LIMS        │
+    │ Risks, Audit,│ └──────────────┘ │  Slack/Teams │
+    │ Evidence,    │                   │  (webhooks)  │
+    │ Approvals,   │                   └──────────────┘
+    │ Signatures,  │
+    │ Complaints,  │
+    │ Suppliers,   │
+    │ Batches,     │
+    │ Training,    │
+    │ Documents,   │
+    │ Workflows,   │
+    │ Deviations,  │
+    │ ChangeCtrl,  │
+    │ Stability,   │
+    │ UDI, PMS,    │
+    │ Monitoring,  │
+    │ Audits, KPI, │
+    │ Notifications│
+    │ Comments,    │
+    │ Tasks, Forms,│
+    │ TMF, Consent,│
+    │ Submissions, │
+    │ Quizzes, ... │
+    └──────────────┘
 ```
 
 **Dual mode:** QAtrial runs in **standalone mode** (browser-only, localStorage, no server needed) for demos and individual use, or **server mode** (PostgreSQL-backed, multi-user, API-driven) for team and enterprise use. Same codebase, same UI — just set `VITE_API_URL` to switch.
+
+**Kubernetes:** Deploy via Helm chart (`helm/qatrial/`) with configurable replicas, ingress, TLS, persistent volumes, and secrets.
 
 ## Core Model
 
@@ -79,7 +106,7 @@ QAtrial is a full-stack quality management system built for pharma, medical devi
 Country (jurisdiction) × Vertical (domain) × Project Type (execution) × Modules (quality controls)
 ```
 
-**35+ database models · 90+ API endpoints · 70+ components · 9 AI prompts · 12 languages · 10 verticals · 37 countries · 15 modules · 4 compliance packs · 5 validation documents**
+**45+ database models · 100+ API endpoints · 80+ components · 9 AI prompts · 12 languages · 10 verticals · 18 country templates · 15 modules · 4 compliance packs · 5 validation documents · 6 integrations · Helm chart**
 
 ---
 
@@ -290,9 +317,11 @@ See the **Technology** table above for the full stack. Key dependencies:
 |----------|----------|
 | **Frontend** | React 19, TypeScript 5.9, Vite 8, Tailwind CSS 4, Zustand 5, TanStack Table v8, Recharts 3, react-i18next, Lucide React |
 | **Backend** | Hono, @hono/node-server, Prisma v7, bcryptjs, jsonwebtoken, uuid |
-| **Database** | PostgreSQL 16 (via Prisma ORM) |
+| **Database** | PostgreSQL 16 (via Prisma ORM, 45+ models) |
+| **Realtime** | Server-Sent Events (SSE) for live updates + presence |
 | **Testing** | Vitest, Testing Library |
-| **Deployment** | Docker, Docker Compose |
+| **Deployment** | Docker Compose (dev/prod), Helm chart (Kubernetes) |
+| **Integrations** | Jira Cloud REST API v3, GitHub REST API v3, SAP QM, LabWare LIMS |
 
 ## Project Structure
 
@@ -406,7 +435,7 @@ QAtrial/
 └── vitest.config.ts                 # Test runner configuration
 ```
 
-**230+ TypeScript source files · 35+ database models · 90+ API endpoints · 34+ route files · 70+ frontend components · 9 AI prompt templates · 12 translation files (500+ keys each) · 5 validation documents**
+**250+ TypeScript source files · 45+ database models · 100+ API endpoints · 40+ route files · 80+ frontend components · 9 AI prompt templates · 12 translation files (500+ keys each) · 5 validation documents · Helm chart for Kubernetes**
 
 ## Installation
 
