@@ -1,9 +1,7 @@
 import { Hono } from 'hono';
 import * as jwt from 'jsonwebtoken';
 import { prisma } from '../lib/prisma.js';
-import { authMiddleware, requireRole, getUser } from '../middleware/auth.js';
-
-const JWT_SECRET = process.env.JWT_SECRET || 'qatrial-dev-secret-change-in-production';
+import { authMiddleware, requireRole, getUser, JWT_SECRET } from '../middleware/auth.js';
 
 interface AuditModePayload {
   type: 'audit_mode';

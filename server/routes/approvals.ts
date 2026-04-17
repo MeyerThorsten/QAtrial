@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
 import { prisma } from '../lib/prisma.js';
 import { authMiddleware, getUser, requirePermission } from '../middleware/auth.js';
+import { findAccessibleProject, listAccessibleProjectIds } from '../lib/projectAccess.js';
 import { logAudit } from '../services/audit.service.js';
 import { dispatchWebhook } from '../services/webhook.service.js';
 
@@ -63,6 +64,11 @@ async function createApprovalRequest(
     throw new ApprovalError(404, 'Entity not found');
   }
 
+  const accessibleProject = await findAccessibleProject(entityProjectId, user.orgId);
+  if (!accessibleProject) {
+    throw new ApprovalError(404, 'Entity not found');
+  }
+
   const existingPending = await findPendingApproval(entityType, entityId);
   if (existingPending) {
     throw new ApprovalError(400, 'A pending approval already exists for this entity');
@@ -104,6 +110,11 @@ async function reviewApproval(
 ) {
   const existing = await prisma.approval.findUnique({ where: { id: approvalId } });
   if (!existing) {
+    throw new ApprovalError(404, 'Approval not found');
+  }
+
+  const accessibleProject = await findAccessibleProject(existing.projectId, user.orgId);
+  if (!accessibleProject) {
     throw new ApprovalError(404, 'Approval not found');
   }
 
@@ -167,6 +178,11 @@ async function reviewApproval(
 async function revokeApproval(user: ReturnType<typeof getUser>, approvalId: string) {
   const existing = await prisma.approval.findUnique({ where: { id: approvalId } });
   if (!existing) {
+    throw new ApprovalError(404, 'Approval not found');
+  }
+
+  const accessibleProject = await findAccessibleProject(existing.projectId, user.orgId);
+  if (!accessibleProject) {
     throw new ApprovalError(404, 'Approval not found');
   }
 
@@ -303,6 +319,7 @@ approvals.post('/:entityType/:entityId/revoke', requirePermission('canEdit'), as
 // GET / — list approvals (filterable by status and projectId)
 approvals.get('/', async (c) => {
   try {
+    const user = getUser(c);
     const projectId = c.req.query('projectId');
     const status = c.req.query('status');
     const entityType = c.req.query('entityType');
@@ -310,6 +327,11 @@ approvals.get('/', async (c) => {
 
     if (!projectId) {
       return c.json({ message: 'projectId query parameter is required' }, 400);
+    }
+
+    const accessibleProject = await findAccessibleProject(projectId, user.orgId);
+    if (!accessibleProject) {
+      return c.json({ approvals: [] });
     }
 
     const where: any = { projectId };
@@ -335,11 +357,18 @@ approvals.get('/my-pending', requirePermission('canApprove'), async (c) => {
   try {
     const user = getUser(c);
 
+    const accessibleIds = await listAccessibleProjectIds(user.orgId);
+    if (accessibleIds.length === 0) {
+      return c.json({ approvals: [] });
+    }
+
     // Return all pending approvals not requested by this user (they are potential reviewers)
+    // scoped to projects within the user's organization
     const items = await prisma.approval.findMany({
       where: {
         status: 'pending',
         requestedBy: { not: user.userId },
+        projectId: { in: accessibleIds },
       },
       orderBy: { createdAt: 'desc' },
     });

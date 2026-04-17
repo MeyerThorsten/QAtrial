@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
 import { prisma } from '../lib/prisma.js';
-import { authMiddleware, getUser } from '../middleware/auth.js';
+import { authMiddleware, getUser, requirePermission } from '../middleware/auth.js';
+import { findAccessibleProject } from '../lib/projectAccess.js';
 import { logAudit } from '../services/audit.service.js';
 
 const importRoutes = new Hono();
@@ -30,72 +31,101 @@ function detectDelimiter(firstLine: string): string {
 }
 
 /**
- * Parse a single CSV line handling quoted fields.
- * Supports fields wrapped in double quotes with escaped quotes ("").
- */
-function parseCsvLine(line: string, delimiter: string): string[] {
-  const fields: string[] = [];
-  let current = '';
-  let inQuotes = false;
-  let i = 0;
-
-  while (i < line.length) {
-    const char = line[i];
-
-    if (inQuotes) {
-      if (char === '"') {
-        // Check for escaped quote
-        if (i + 1 < line.length && line[i + 1] === '"') {
-          current += '"';
-          i += 2;
-          continue;
-        }
-        // End of quoted field
-        inQuotes = false;
-        i++;
-        continue;
-      }
-      current += char;
-      i++;
-    } else {
-      if (char === '"') {
-        inQuotes = true;
-        i++;
-        continue;
-      }
-      if (char === delimiter) {
-        fields.push(current.trim());
-        current = '';
-        i++;
-        continue;
-      }
-      current += char;
-      i++;
-    }
-  }
-
-  fields.push(current.trim());
-  return fields;
-}
-
-/**
  * Parse full CSV text into rows of string arrays.
+ *
+ * RFC 4180-compliant: quoted fields may contain newlines and embedded quotes
+ * (escaped as ""). Quote state is tracked across the whole document, so
+ * multi-line quoted cells are preserved instead of being split into rows.
  */
 function parseCsv(text: string): { headers: string[]; rows: string[][]; delimiter: string } {
-  // Normalize line endings
+  // Normalize line endings & strip BOM
   const normalized = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
-  // Remove BOM if present
   const clean = normalized.startsWith('\ufeff') ? normalized.slice(1) : normalized;
 
-  const lines = clean.split('\n').filter((l) => l.trim().length > 0);
-  if (lines.length === 0) {
+  if (clean.length === 0) {
     return { headers: [], rows: [], delimiter: ',' };
   }
 
-  const delimiter = detectDelimiter(lines[0]);
-  const headers = parseCsvLine(lines[0], delimiter);
-  const rows = lines.slice(1).map((line) => parseCsvLine(line, delimiter));
+  // Delimiter detection from the first unquoted line
+  const firstLineEnd = (() => {
+    let inQuotes = false;
+    for (let i = 0; i < clean.length; i++) {
+      const ch = clean[i];
+      if (ch === '"') {
+        if (inQuotes && clean[i + 1] === '"') {
+          i++;
+          continue;
+        }
+        inQuotes = !inQuotes;
+        continue;
+      }
+      if (ch === '\n' && !inQuotes) return i;
+    }
+    return clean.length;
+  })();
+  const delimiter = detectDelimiter(clean.slice(0, firstLineEnd));
 
+  const allRows: string[][] = [];
+  let current = '';
+  let row: string[] = [];
+  let inQuotes = false;
+
+  for (let i = 0; i < clean.length; i++) {
+    const ch = clean[i];
+
+    if (inQuotes) {
+      if (ch === '"') {
+        if (clean[i + 1] === '"') {
+          current += '"';
+          i++;
+          continue;
+        }
+        inQuotes = false;
+        continue;
+      }
+      current += ch;
+      continue;
+    }
+
+    if (ch === '"') {
+      inQuotes = true;
+      continue;
+    }
+
+    if (ch === delimiter) {
+      row.push(current.trim());
+      current = '';
+      continue;
+    }
+
+    if (ch === '\n') {
+      row.push(current.trim());
+      // Skip empty rows (all blanks)
+      if (row.some((f) => f.length > 0)) {
+        allRows.push(row);
+      }
+      row = [];
+      current = '';
+      continue;
+    }
+
+    current += ch;
+  }
+
+  // Flush trailing field/row (file without trailing newline)
+  if (current.length > 0 || row.length > 0) {
+    row.push(current.trim());
+    if (row.some((f) => f.length > 0)) {
+      allRows.push(row);
+    }
+  }
+
+  if (allRows.length === 0) {
+    return { headers: [], rows: [], delimiter };
+  }
+
+  const headers = allRows[0];
+  const rows = allRows.slice(1);
   return { headers, rows, delimiter };
 }
 
@@ -188,7 +218,7 @@ interface ImportMapping {
   linkedRequirements?: number | null;
 }
 
-importRoutes.post('/execute', async (c) => {
+importRoutes.post('/execute', requirePermission('canEdit'), async (c) => {
   try {
     const user = getUser(c);
     const body = await c.req.json();
@@ -211,8 +241,8 @@ importRoutes.post('/execute', async (c) => {
       return c.json({ message: 'Missing required fields: projectId, entityType, mapping, data' }, 400);
     }
 
-    // Verify project exists
-    const project = await prisma.project.findUnique({ where: { id: projectId } });
+    // Verify project belongs to caller's organization
+    const project = await findAccessibleProject(projectId, user.orgId);
     if (!project) {
       return c.json({ message: 'Project not found' }, 404);
     }

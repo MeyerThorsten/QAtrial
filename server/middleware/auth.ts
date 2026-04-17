@@ -1,7 +1,18 @@
 import type { Context, Next } from 'hono';
 import * as jwt from 'jsonwebtoken';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'qatrial-dev-secret-change-in-production';
+function loadJwtSecret(): string {
+  const secret = process.env.JWT_SECRET;
+  if (!secret || secret.trim().length < 32 || /change-in-production/i.test(secret)) {
+    throw new Error(
+      'JWT_SECRET environment variable is required and must be at least 32 characters of random entropy. ' +
+        'Generate one with: openssl rand -hex 48'
+    );
+  }
+  return secret;
+}
+
+export const JWT_SECRET = loadJwtSecret();
 
 export interface JwtPayload {
   userId: string;

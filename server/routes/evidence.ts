@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
 import { prisma } from '../lib/prisma.js';
 import { authMiddleware, getUser, requirePermission } from '../middleware/auth.js';
+import { findAccessibleProject } from '../lib/projectAccess.js';
 import { logAudit } from '../services/audit.service.js';
 import { dispatchWebhook } from '../services/webhook.service.js';
 import * as fs from 'fs';
@@ -39,7 +40,7 @@ evidence.post('/upload', requirePermission('canEdit'), async (c) => {
       return c.json({ message: 'file is required' }, 400);
     }
 
-    const project = await prisma.project.findUnique({ where: { id: projectId } });
+    const project = await findAccessibleProject(projectId, user.orgId);
     if (!project) {
       return c.json({ message: 'Project not found' }, 404);
     }
@@ -97,12 +98,18 @@ evidence.post('/upload', requirePermission('canEdit'), async (c) => {
 // GET / — list evidence for entity
 evidence.get('/', async (c) => {
   try {
+    const user = getUser(c);
     const projectId = c.req.query('projectId');
     const entityId = c.req.query('entityId');
     const entityType = c.req.query('entityType');
 
     if (!projectId) {
       return c.json({ message: 'projectId query parameter is required' }, 400);
+    }
+
+    const accessibleProject = await findAccessibleProject(projectId, user.orgId);
+    if (!accessibleProject) {
+      return c.json({ evidence: [] });
     }
 
     const where: any = { projectId };
@@ -124,9 +131,19 @@ evidence.get('/', async (c) => {
 // GET /completeness — evidence completeness stats
 evidence.get('/completeness', async (c) => {
   try {
+    const user = getUser(c);
     const projectId = c.req.query('projectId');
     if (!projectId) {
       return c.json({ message: 'projectId query parameter is required' }, 400);
+    }
+
+    const accessibleProject = await findAccessibleProject(projectId, user.orgId);
+    if (!accessibleProject) {
+      return c.json({
+        summary: { requirements: { total: 0, withEvidence: 0 }, tests: { total: 0, withEvidence: 0 } },
+        requirements: [],
+        tests: [],
+      });
     }
 
     const requirements = await prisma.requirement.findMany({
@@ -184,10 +201,16 @@ evidence.get('/completeness', async (c) => {
 // GET /:id/download — stream file download
 evidence.get('/:id/download', async (c) => {
   try {
+    const user = getUser(c);
     const { id } = c.req.param();
     const record = await prisma.evidence.findUnique({ where: { id } });
 
     if (!record) {
+      return c.json({ message: 'Evidence not found' }, 404);
+    }
+
+    const accessibleProject = await findAccessibleProject(record.projectId, user.orgId);
+    if (!accessibleProject) {
       return c.json({ message: 'Evidence not found' }, 404);
     }
 
@@ -218,6 +241,11 @@ evidence.delete('/:id', requirePermission('canDelete'), async (c) => {
 
     const record = await prisma.evidence.findUnique({ where: { id } });
     if (!record) {
+      return c.json({ message: 'Evidence not found' }, 404);
+    }
+
+    const accessibleProject = await findAccessibleProject(record.projectId, user.orgId);
+    if (!accessibleProject) {
       return c.json({ message: 'Evidence not found' }, 404);
     }
 

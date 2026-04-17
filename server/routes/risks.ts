@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
 import { prisma } from '../lib/prisma.js';
-import { authMiddleware, getUser } from '../middleware/auth.js';
+import { authMiddleware, getUser, requirePermission } from '../middleware/auth.js';
+import { findAccessibleProject } from '../lib/projectAccess.js';
 import { logAudit } from '../services/audit.service.js';
 
 const risks = new Hono();
@@ -9,9 +10,15 @@ risks.use('*', authMiddleware);
 
 risks.get('/', async (c) => {
   try {
+    const user = getUser(c);
     const projectId = c.req.query('projectId');
     if (!projectId) {
       return c.json({ message: 'projectId query parameter is required' }, 400);
+    }
+
+    const accessibleProject = await findAccessibleProject(projectId, user.orgId);
+    if (!accessibleProject) {
+      return c.json({ risks: [] });
     }
 
     const items = await prisma.risk.findMany({
@@ -26,13 +33,18 @@ risks.get('/', async (c) => {
   }
 });
 
-risks.post('/', async (c) => {
+risks.post('/', requirePermission('canEdit'), async (c) => {
   try {
     const user = getUser(c);
     const body = await c.req.json();
 
     if (!body.projectId || !body.requirementId || body.severity === undefined || body.likelihood === undefined) {
       return c.json({ message: 'projectId, requirementId, severity, and likelihood are required' }, 400);
+    }
+
+    const accessibleProject = await findAccessibleProject(body.projectId, user.orgId);
+    if (!accessibleProject) {
+      return c.json({ message: 'Project not found' }, 404);
     }
 
     const riskScore = body.riskScore ?? body.severity * body.likelihood * (body.detectability ?? 1);
@@ -78,10 +90,16 @@ risks.post('/', async (c) => {
 
 risks.get('/:id', async (c) => {
   try {
+    const user = getUser(c);
     const { id } = c.req.param();
     const risk = await prisma.risk.findUnique({ where: { id } });
 
     if (!risk) {
+      return c.json({ message: 'Risk not found' }, 404);
+    }
+
+    const accessibleProject = await findAccessibleProject(risk.projectId, user.orgId);
+    if (!accessibleProject) {
       return c.json({ message: 'Risk not found' }, 404);
     }
 
@@ -92,7 +110,7 @@ risks.get('/:id', async (c) => {
   }
 });
 
-risks.put('/:id', async (c) => {
+risks.put('/:id', requirePermission('canEdit'), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();
@@ -100,6 +118,11 @@ risks.put('/:id', async (c) => {
 
     const existing = await prisma.risk.findUnique({ where: { id } });
     if (!existing) {
+      return c.json({ message: 'Risk not found' }, 404);
+    }
+
+    const accessibleProject = await findAccessibleProject(existing.projectId, user.orgId);
+    if (!accessibleProject) {
       return c.json({ message: 'Risk not found' }, 404);
     }
 
@@ -147,13 +170,18 @@ risks.put('/:id', async (c) => {
   }
 });
 
-risks.delete('/:id', async (c) => {
+risks.delete('/:id', requirePermission('canDelete'), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();
 
     const existing = await prisma.risk.findUnique({ where: { id } });
     if (!existing) {
+      return c.json({ message: 'Risk not found' }, 404);
+    }
+
+    const accessibleProject = await findAccessibleProject(existing.projectId, user.orgId);
+    if (!accessibleProject) {
       return c.json({ message: 'Risk not found' }, 404);
     }
 

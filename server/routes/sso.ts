@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 import { prisma } from '../lib/prisma.js';
 import { signAccessToken, signRefreshToken, type JwtPayload } from '../middleware/auth.js';
 import * as crypto from 'crypto';
+import { createRemoteJWKSet, jwtVerify } from 'jose';
 
 const sso = new Hono();
 
@@ -22,16 +23,20 @@ function getSsoConfig() {
 
 // ── OIDC Discovery cache ───────────────────────────────────────────────────
 
-let discoveryCache: {
+interface OidcDiscovery {
   authorization_endpoint: string;
   token_endpoint: string;
   userinfo_endpoint: string;
+  jwks_uri: string;
   issuer: string;
-} | null = null;
+}
+
+let discoveryCache: OidcDiscovery | null = null;
 let discoveryCacheTime = 0;
+let jwksCache: ReturnType<typeof createRemoteJWKSet> | null = null;
 const DISCOVERY_TTL = 3600_000; // 1 hour
 
-async function getOidcDiscovery(issuerUrl: string) {
+async function getOidcDiscovery(issuerUrl: string): Promise<OidcDiscovery> {
   if (discoveryCache && Date.now() - discoveryCacheTime < DISCOVERY_TTL) {
     return discoveryCache;
   }
@@ -42,9 +47,17 @@ async function getOidcDiscovery(issuerUrl: string) {
     throw new Error(`OIDC discovery failed: ${res.status} ${res.statusText}`);
   }
 
-  discoveryCache = await res.json() as typeof discoveryCache;
+  discoveryCache = await res.json() as OidcDiscovery;
   discoveryCacheTime = Date.now();
-  return discoveryCache!;
+  jwksCache = null; // invalidate JWKS cache when discovery refreshes
+  return discoveryCache;
+}
+
+function getJwks(discovery: OidcDiscovery): ReturnType<typeof createRemoteJWKSet> {
+  if (!jwksCache) {
+    jwksCache = createRemoteJWKSet(new URL(discovery.jwks_uri));
+  }
+  return jwksCache;
 }
 
 // In-memory state store for CSRF (in production, use Redis or DB)
@@ -165,22 +178,39 @@ sso.get('/callback', async (c) => {
       token_type: string;
     };
 
-    // Decode ID token to get user info (JWT payload is base64url-encoded)
+    // The ID token is REQUIRED and must be cryptographically verified before
+    // we trust any claims. We check signature via the provider's JWKS and
+    // validate issuer, audience, expiration, and nonce.
+    if (!tokenData.id_token) {
+      return c.redirect('/?sso_error=Missing+id_token');
+    }
+
     let email = '';
     let name = '';
 
-    if (tokenData.id_token) {
-      const parts = tokenData.id_token.split('.');
-      if (parts.length >= 2) {
-        const payload = JSON.parse(
-          Buffer.from(parts[1], 'base64url').toString('utf-8'),
-        );
-        email = payload.email || '';
-        name = payload.name || payload.preferred_username || '';
+    try {
+      const jwks = getJwks(discovery);
+      const { payload } = await jwtVerify(tokenData.id_token, jwks, {
+        issuer: discovery.issuer,
+        audience: config.clientId,
+      });
+
+      if (!payload.nonce || payload.nonce !== storedState.nonce) {
+        return c.redirect('/?sso_error=Nonce+mismatch');
       }
+
+      email = typeof payload.email === 'string' ? payload.email : '';
+      name =
+        (typeof payload.name === 'string' && payload.name) ||
+        (typeof payload.preferred_username === 'string' && payload.preferred_username) ||
+        '';
+    } catch (verifyError: any) {
+      console.error('ID token verification failed:', verifyError?.message ?? verifyError);
+      return c.redirect('/?sso_error=Invalid+ID+token');
     }
 
-    // If no email from ID token, try userinfo endpoint
+    // If no email from ID token, fall back to userinfo endpoint (still over
+    // an access_token we just received directly from the token endpoint)
     if (!email && discovery.userinfo_endpoint) {
       const userinfoRes = await fetch(discovery.userinfo_endpoint, {
         headers: { Authorization: `Bearer ${tokenData.access_token}` },

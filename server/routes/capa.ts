@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
 import { prisma } from '../lib/prisma.js';
-import { authMiddleware, getUser } from '../middleware/auth.js';
+import { authMiddleware, getUser, requirePermission } from '../middleware/auth.js';
+import { findAccessibleProject } from '../lib/projectAccess.js';
 import { logAudit } from '../services/audit.service.js';
 import { dispatchWebhook } from '../services/webhook.service.js';
 
@@ -23,9 +24,15 @@ function isValidTransition(from: string, to: string): boolean {
 
 capa.get('/', async (c) => {
   try {
+    const user = getUser(c);
     const projectId = c.req.query('projectId');
     if (!projectId) {
       return c.json({ message: 'projectId query parameter is required' }, 400);
+    }
+
+    const accessibleProject = await findAccessibleProject(projectId, user.orgId);
+    if (!accessibleProject) {
+      return c.json({ capas: [] });
     }
 
     const items = await prisma.cAPA.findMany({
@@ -40,13 +47,18 @@ capa.get('/', async (c) => {
   }
 });
 
-capa.post('/', async (c) => {
+capa.post('/', requirePermission('canEdit'), async (c) => {
   try {
     const user = getUser(c);
     const body = await c.req.json();
 
     if (!body.projectId || !body.title) {
       return c.json({ message: 'projectId and title are required' }, 400);
+    }
+
+    const accessibleProject = await findAccessibleProject(body.projectId, user.orgId);
+    if (!accessibleProject) {
+      return c.json({ message: 'Project not found' }, 404);
     }
 
     const item = await prisma.cAPA.create({
@@ -86,10 +98,16 @@ capa.post('/', async (c) => {
 
 capa.get('/:id', async (c) => {
   try {
+    const user = getUser(c);
     const { id } = c.req.param();
     const item = await prisma.cAPA.findUnique({ where: { id } });
 
     if (!item) {
+      return c.json({ message: 'CAPA not found' }, 404);
+    }
+
+    const accessibleProject = await findAccessibleProject(item.projectId, user.orgId);
+    if (!accessibleProject) {
       return c.json({ message: 'CAPA not found' }, 404);
     }
 
@@ -100,7 +118,7 @@ capa.get('/:id', async (c) => {
   }
 });
 
-capa.put('/:id', async (c) => {
+capa.put('/:id', requirePermission('canEdit'), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();
@@ -108,6 +126,11 @@ capa.put('/:id', async (c) => {
 
     const existing = await prisma.cAPA.findUnique({ where: { id } });
     if (!existing) {
+      return c.json({ message: 'CAPA not found' }, 404);
+    }
+
+    const accessibleProject = await findAccessibleProject(existing.projectId, user.orgId);
+    if (!accessibleProject) {
       return c.json({ message: 'CAPA not found' }, 404);
     }
 
@@ -174,13 +197,18 @@ capa.put('/:id', async (c) => {
   }
 });
 
-capa.delete('/:id', async (c) => {
+capa.delete('/:id', requirePermission('canDelete'), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();
 
     const existing = await prisma.cAPA.findUnique({ where: { id } });
     if (!existing) {
+      return c.json({ message: 'CAPA not found' }, 404);
+    }
+
+    const accessibleProject = await findAccessibleProject(existing.projectId, user.orgId);
+    if (!accessibleProject) {
       return c.json({ message: 'CAPA not found' }, 404);
     }
 

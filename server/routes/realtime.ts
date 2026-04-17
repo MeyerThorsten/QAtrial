@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import { authMiddleware, getUser } from '../middleware/auth.js';
+import { JWT_SECRET } from '../middleware/auth.js';
 import { realtimeService } from '../services/realtime.service.js';
 
 const realtime = new Hono();
@@ -18,8 +18,10 @@ realtime.get('/events', async (c) => {
   let userId = 'anonymous';
   try {
     const jwt = await import('jsonwebtoken');
-    const JWT_SECRET = process.env.JWT_SECRET || 'qatrial-dev-secret-change-in-production';
     const decoded = jwt.verify(token, JWT_SECRET) as any;
+    if (decoded.type === 'refresh') {
+      return c.json({ message: 'Cannot use refresh token for API access' }, 401);
+    }
     userId = decoded.userId || 'anonymous';
   } catch {
     return c.json({ message: 'Invalid token' }, 401);
